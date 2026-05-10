@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Guru — Jurnal Kelas</title>
+    <meta name="theme-color" content="#0891B2" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📒</text></svg>"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/dashboard.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  </head>
+  <body>
+    <div class="dashboard-layout">
+      <!-- SIDEBAR -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo guru"><i class="fas fa-book-open"></i></div>
+          <div>
+            <div class="sidebar-app-name">Jurnal Kelas</div>
+            <div class="sidebar-app-sub">Portal Guru</div>
+          </div>
+        </div>
+        <div class="sidebar-user">
+          <div class="user-avatar guru" id="sidebarAvatar">G</div>
+          <div>
+            <div class="user-name" id="sidebarName">Guru</div>
+            <div class="user-role">
+              <span class="badge badge-guru">Guru</span>
+            </div>
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <div class="nav-section-title">Menu</div>
+          <button class="nav-item guru" onclick="showPage('jadwal-aktif')">
+            <i class="fas fa-circle-play"></i> Jadwal Aktif
+          </button>
+          <button class="nav-item guru" onclick="showPage('jadwal-hari-ini')">
+            <i class="fas fa-calendar-day"></i> Jadwal Hari Ini
+          </button>
+          <button class="nav-item guru" onclick="showPage('riwayat')">
+            <i class="fas fa-clock-rotate-left"></i> Riwayat Konfirmasi
+          </button>
+        </nav>
+        <div class="sidebar-footer">
+          <button class="btn-logout" onclick="logout()">
+            <i class="fas fa-right-from-bracket"></i> Keluar
+          </button>
+        </div>
+      </aside>
+
+      <div
+        class="sidebar-overlay"
+        id="sidebarOverlay"
+        onclick="toggleSidebar()"
+      ></div>
+
+      <!-- MAIN -->
+      <div class="main-content">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+              <i class="fas fa-bars"></i>
+            </button>
+            <span class="topbar-title" id="topbarTitle">Jadwal Aktif</span>
+          </div>
+          <div class="topbar-right">
+            <button
+              class="dark-mode-toggle"
+              onclick="toggleDarkMode()"
+              id="darkModeBtn"
+              title="Toggle Dark Mode"
+            >
+              <i class="fas fa-moon"></i>
+            </button>
+            <span class="topbar-date" id="topbarDate"></span>
+            <span class="topbar-time badge badge-guru" id="topbarTime"></span>
+          </div>
+        </header>
+
+        <!-- PAGE: JADWAL AKTIF (default) -->
+        <div class="page-content hidden" id="page-jadwal-aktif">
+          <div class="page-header">
+            <h2 class="page-title" id="jadwalAktifTitle">Jadwal Saat Ini</h2>
+            <p class="page-subtitle" id="jadwalAktifSubtitle">
+              Menampilkan jadwal yang sedang berlangsung
+            </p>
+          </div>
+
+          <!-- Status jam sekarang -->
+          <div id="statusJamSekarang" class="mb-4"></div>
+
+          <!-- Container jadwal aktif -->
+          <div id="jadwalAktifContainer"></div>
+        </div>
+
+        <!-- PAGE: JADWAL HARI INI -->
+        <div class="page-content hidden" id="page-jadwal-hari-ini">
+          <div class="page-header">
+            <h2 class="page-title">Jadwal Hari Ini</h2>
+            <p class="page-subtitle" id="jadwalHariIniSubtitle">—</p>
+          </div>
+          <div id="jadwalHariIniContainer"></div>
+        </div>
+
+        <!-- PAGE: RIWAYAT -->
+        <div class="page-content hidden" id="page-riwayat">
+          <div class="page-header d-flex justify-between align-center">
+            <div>
+              <h2 class="page-title">Riwayat Konfirmasi</h2>
+              <p class="page-subtitle">Rekap semua konfirmasi kehadiran Anda</p>
+            </div>
+          </div>
+
+          <div class="card mb-4">
+            <div class="card-body" style="padding: 16px">
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr 1fr auto;
+                  gap: 12px;
+                  align-items: end;
+                "
+              >
+                <div>
+                  <label class="form-label">Dari Tanggal</label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="riwayatDari"
+                    onchange="renderRiwayat()"
+                  />
+                </div>
+                <div>
+                  <label class="form-label">Sampai Tanggal</label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="riwayatSampai"
+                    onchange="renderRiwayat()"
+                  />
+                </div>
+                <button class="btn btn-outline" onclick="clearRiwayatFilter()">
+                  <i class="fas fa-rotate-left"></i> Reset
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-body" style="padding: 0">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Tanggal</th>
+                      <th>Hari</th>
+                      <th>Jam</th>
+                      <th>Waktu</th>
+                      <th>Kelas</th>
+                      <th>Mapel</th>
+                      <th>Konfirmasi Pukul</th>
+                      <th>Foto</th>
+                    </tr>
+                  </thead>
+                  <tbody id="riwayatTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: KONFIRMASI KEHADIRAN -->
+    <div class="modal-overlay" id="modalKonfirmasi">
+      <div class="modal" style="max-width: 480px">
+        <div class="modal-header">
+          <h3 class="modal-title">Konfirmasi Kehadiran</h3>
+          <button class="modal-close" onclick="closeModal('modalKonfirmasi')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <!-- Info jadwal -->
+          <div id="konfirmasiInfo" class="info-box mb-4"></div>
+
+          <!-- Kamera -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-camera"></i> Foto Selfie Kehadiran
+            </label>
+            <p class="form-hint mb-3">
+              Ambil foto sebagai bukti kehadiran Anda di kelas. Pastikan wajah
+              terlihat jelas.
+            </p>
+
+            <!-- Preview video kamera -->
+            <div
+              id="kameraContainer"
+              style="
+                position: relative;
+                border-radius: var(--radius-lg);
+                overflow: hidden;
+                background: #000;
+                aspect-ratio: 4/3;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              <video
+                id="videoElement"
+                autoplay
+                playsinline
+                style="
+                  width: 100%;
+                  height: 100%;
+                  object-fit: cover;
+                  transform: scaleX(-1);
+                "
+              ></video>
+              <canvas id="canvasElement" style="display: none"></canvas>
+
+              <!-- Overlay saat belum ada kamera -->
+              <div
+                id="kameraPlaceholder"
+                style="
+                  position: absolute;
+                  inset: 0;
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  justify-content: center;
+                  color: white;
+                  gap: 12px;
+                  background: var(--gray-800);
+                "
+              >
+                <i
+                  class="fas fa-camera"
+                  style="font-size: 48px; opacity: 0.5"
+                ></i>
+                <p style="font-size: var(--text-sm); opacity: 0.7">
+                  Kamera belum aktif
+                </p>
+              </div>
+
+              <!-- Preview foto yang sudah diambil -->
+              <img
+                id="fotoResult"
+                src=""
+                style="
+                  display: none;
+                  width: 100%;
+                  height: 100%;
+                  object-fit: cover;
+                  transform: scaleX(-1);
+                "
+              />
+            </div>
+
+            <!-- Tombol kamera -->
+            <div style="display: flex; gap: 10px; margin-top: 12px">
+              <button
+                class="btn btn-outline w-full"
+                id="btnAktifkanKamera"
+                onclick="aktifkanKamera()"
+              >
+                <i class="fas fa-video"></i> Aktifkan Kamera
+              </button>
+              <button
+                class="btn btn-guru w-full hidden"
+                id="btnAmbilFoto"
+                onclick="ambilFoto()"
+              >
+                <i class="fas fa-camera"></i> Ambil Foto
+              </button>
+              <button
+                class="btn btn-outline hidden"
+                id="btnRetake"
+                onclick="retakeFoto()"
+              >
+                <i class="fas fa-rotate-left"></i> Ulangi
+              </button>
+            </div>
+          </div>
+
+          <div class="alert alert-warning">
+            <i class="fas fa-triangle-exclamation"></i>
+            <span>
+              Konfirmasi hanya bisa dilakukan saat jam pelajaran berlangsung.
+              Waktu konfirmasi akan dicatat otomatis oleh sistem.
+            </span>
+          </div>
+
+          <div class="alert alert-danger hidden" id="konfirmasiError"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="batalKonfirmasi()">
+            Batal
+          </button>
+          <button
+            class="btn btn-guru"
+            id="btnSimpanKonfirmasi"
+            onclick="simpanKonfirmasi()"
+            disabled
+          >
+            <i class="fas fa-circle-check"></i> Konfirmasi Kehadiran
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: LIHAT FOTO -->
+    <div class="modal-overlay" id="modalLihatFoto">
+      <div class="modal" style="max-width: 400px">
+        <div class="modal-header">
+          <h3 class="modal-title">Foto Konfirmasi</h3>
+          <button class="modal-close" onclick="closeModal('modalLihatFoto')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body" style="text-align: center">
+          <img
+            id="lihatFotoImg"
+            src=""
+            alt="Foto"
+            style="max-width: 100%; border-radius: var(--radius-md)"
+          />
+          <p
+            id="lihatFotoInfo"
+            style="
+              margin-top: 12px;
+              font-size: var(--text-sm);
+              color: var(--gray-500);
+            "
+          ></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: KONFIRMASI LOGOUT -->
+    <div class="modal-overlay" id="modalLogout">
+      <div class="modal" style="max-width: 380px">
+        <div class="modal-body" style="padding: 32px 28px; text-align: center">
+          <!-- Icon -->
+          <div
+            style="
+              width: 72px;
+              height: 72px;
+              border-radius: 50%;
+              background: #fee2e2;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin: 0 auto 20px;
+              font-size: 32px;
+            "
+          >
+            🚪
+          </div>
+
+          <h3
+            style="
+              font-size: var(--text-xl);
+              font-weight: 700;
+              color: var(--gray-800);
+              margin-bottom: 8px;
+            "
+          >
+            Keluar dari Sistem?
+          </h3>
+
+          <p
+            style="
+              font-size: var(--text-sm);
+              color: var(--gray-500);
+              margin-bottom: 24px;
+              line-height: 1.6;
+            "
+          >
+            Anda akan keluar dari sesi ini.<br />
+            Pastikan semua data sudah tersimpan.
+          </p>
+
+          <!-- Info user yang login -->
+          <div
+            style="
+              background: var(--gray-50);
+              border: 1px solid var(--gray-200);
+              border-radius: var(--radius-md);
+              padding: 12px 16px;
+              margin-bottom: 24px;
+              display: flex;
+              align-items: center;
+              gap: 12px;
+            "
+          >
+            <div
+              class="user-avatar"
+              id="logoutAvatar"
+              style="width: 36px; height: 36px; font-size: 14px; flex-shrink: 0"
+            ></div>
+            <div style="text-align: left">
+              <div
+                style="
+                  font-size: var(--text-sm);
+                  font-weight: 600;
+                  color: var(--gray-800);
+                "
+                id="logoutNama"
+              >
+                —
+              </div>
+              <div
+                style="font-size: var(--text-xs); color: var(--gray-400)"
+                id="logoutRole"
+              >
+                —
+              </div>
+            </div>
+          </div>
+
+          <!-- Tombol -->
+          <div style="display: flex; gap: 10px">
+            <button
+              class="btn btn-outline w-full"
+              onclick="closeModal('modalLogout')"
+            >
+              <i class="fas fa-arrow-left"></i> Batal
+            </button>
+            <button class="btn btn-danger w-full" onclick="konfirmasiLogout()">
+              <i class="fas fa-right-from-bracket"></i> Ya, Keluar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/darkmode.js"></script>
+    <script src="js/guru.js"></script>
+    <script src="js/export.js"></script>
+  </body>
+</html>

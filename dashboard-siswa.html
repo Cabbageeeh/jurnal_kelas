@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Siswa — Jurnal Kelas</title>
+    <meta name="theme-color" content="#059669" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📒</text></svg>"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/dashboard.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  </head>
+  <body>
+    <div class="dashboard-layout">
+      <!-- SIDEBAR -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo siswa"><i class="fas fa-book-open"></i></div>
+          <div>
+            <div class="sidebar-app-name">Jurnal Kelas</div>
+            <div class="sidebar-app-sub">Portal Siswa</div>
+          </div>
+        </div>
+
+        <div class="sidebar-user">
+          <div class="user-avatar siswa" id="sidebarAvatar">S</div>
+          <div>
+            <div class="user-name" id="sidebarName">Siswa</div>
+            <div
+              style="display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap"
+            >
+              <span class="badge badge-siswa" id="sidebarJabatan">—</span>
+              <span class="badge badge-gray" id="sidebarKelas">—</span>
+            </div>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <div class="nav-section-title">Menu</div>
+          <button class="nav-item siswa" onclick="showPage('beranda')">
+            <i class="fas fa-gauge"></i> Beranda
+          </button>
+          <button class="nav-item siswa" onclick="showPage('jurnal-hari-ini')">
+            <i class="fas fa-file-pen"></i> Jurnal Hari Ini
+          </button>
+          <button class="nav-item siswa" onclick="showPage('riwayat')">
+            <i class="fas fa-clock-rotate-left"></i> Riwayat Jurnal
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <button class="btn-logout" onclick="logout()">
+            <i class="fas fa-right-from-bracket"></i> Keluar
+          </button>
+        </div>
+      </aside>
+
+      <div
+        class="sidebar-overlay"
+        id="sidebarOverlay"
+        onclick="toggleSidebar()"
+      ></div>
+
+      <!-- MAIN -->
+      <div class="main-content">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+              <i class="fas fa-bars"></i>
+            </button>
+            <span class="topbar-title" id="topbarTitle">Beranda</span>
+          </div>
+          <div class="topbar-right">
+            <button
+              class="dark-mode-toggle"
+              onclick="toggleDarkMode()"
+              id="darkModeBtn"
+              title="Toggle Dark Mode"
+            >
+              <i class="fas fa-moon"></i>
+            </button>
+            <span class="topbar-date" id="topbarDate"></span>
+            <span class="badge badge-siswa" id="topbarJabatan">
+              <i class="fas fa-graduation-cap"></i>&nbsp; Siswa
+            </span>
+          </div>
+        </header>
+
+        <!-- PAGE: BERANDA -->
+        <div class="page-content hidden" id="page-beranda">
+          <div class="page-header">
+            <h2 class="page-title" id="siswaGreeting">Selamat Datang 👋</h2>
+            <p class="page-subtitle" id="siswaSubtitle">—</p>
+          </div>
+
+          <!-- Tambah setelah page-header di page-beranda -->
+          <div id="notifikasiContainer"></div>
+
+          <div class="stats-grid" id="siswaStatsGrid"></div>
+
+          <div class="content-grid" style="grid-template-columns: 1fr 1fr">
+            <!-- Jadwal hari ini -->
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">
+                  <i class="fas fa-calendar-day"></i> Jadwal Kelas Hari Ini
+                </span>
+              </div>
+              <div class="card-body" id="dashJadwalKelas"></div>
+            </div>
+
+            <!-- Jurnal hari ini -->
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">
+                  <i class="fas fa-file-pen"></i> Jurnal Hari Ini
+                </span>
+                <button
+                  class="btn btn-sm btn-siswa"
+                  onclick="showPage('jurnal-hari-ini')"
+                >
+                  <i class="fas fa-arrow-right"></i> Lihat
+                </button>
+              </div>
+              <div class="card-body" id="dashJurnalHariIni"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAGE: JURNAL HARI INI -->
+        <div class="page-content hidden" id="page-jurnal-hari-ini">
+          <div class="page-header">
+            <h2 class="page-title">Jurnal Hari Ini</h2>
+            <p class="page-subtitle" id="jurnalHariIniSubtitle">—</p>
+          </div>
+
+          <!-- Info kelas -->
+          <div class="alert alert-info mb-4" id="infoKelas">
+            <i class="fas fa-circle-info"></i>
+            <span id="infoKelasText">Memuat...</span>
+          </div>
+
+          <!-- Container jadwal + jurnal per sesi -->
+          <div id="jurnalSesiContainer"></div>
+        </div>
+
+        <!-- PAGE: RIWAYAT -->
+        <div class="page-content hidden" id="page-riwayat">
+          <div class="page-header d-flex justify-between align-center">
+            <div>
+              <h2 class="page-title">Riwayat Jurnal</h2>
+              <p class="page-subtitle">Semua jurnal kelas yang pernah diisi</p>
+            </div>
+          </div>
+
+          <div class="card mb-4">
+            <div class="card-body" style="padding: 16px">
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr 1fr auto;
+                  gap: 12px;
+                  align-items: end;
+                "
+              >
+                <div>
+                  <label class="form-label">Dari Tanggal</label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="riwayatDari"
+                    onchange="renderRiwayat()"
+                  />
+                </div>
+                <div>
+                  <label class="form-label">Sampai Tanggal</label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="riwayatSampai"
+                    onchange="renderRiwayat()"
+                  />
+                </div>
+                <button class="btn btn-outline" onclick="clearRiwayatFilter()">
+                  <i class="fas fa-rotate-left"></i> Reset
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-body" style="padding: 0">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Tanggal</th>
+                      <th>Jam</th>
+                      <th>Waktu</th>
+                      <th>Mapel</th>
+                      <th>Guru</th>
+                      <th>Materi</th>
+                      <th>Hadir</th>
+                      <th>Diisi Oleh</th>
+                    </tr>
+                  </thead>
+                  <tbody id="riwayatTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: ISI / EDIT JURNAL -->
+    <div class="modal-overlay" id="modalJurnal">
+      <div class="modal" style="max-width: 560px">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalJurnalTitle">Isi Jurnal</h3>
+          <button class="modal-close" onclick="closeModal('modalJurnal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="jurnalId" />
+          <input type="hidden" id="jurnalJadwalId" />
+          <input type="hidden" id="jurnalJamKe" />
+
+          <!-- Info sesi -->
+          <div id="jurnalSesiInfo" class="info-box mb-4"></div>
+
+          <!-- Materi -->
+          <div class="form-group">
+            <label class="form-label">
+              Materi yang Diajarkan
+              <span class="text-danger">*</span>
+            </label>
+            <textarea
+              class="form-control"
+              id="formJurnalMateri"
+              rows="3"
+              placeholder="Tuliskan materi yang diajarkan guru hari ini..."
+            >
+            </textarea>
+          </div>
+
+          <!-- Kehadiran -->
+          <label class="form-label">Data Kehadiran</label>
+          <div
+            style="
+              display: grid;
+              grid-template-columns: 1fr 1fr 1fr;
+              gap: 12px;
+              margin-bottom: 12px;
+            "
+          >
+            <div class="form-group" style="margin: 0">
+              <label class="form-label" style="font-size: 11px">
+                <i
+                  class="fas fa-circle-check"
+                  style="color: var(--success)"
+                ></i>
+                Hadir
+              </label>
+              <input
+                type="number"
+                class="form-control"
+                id="formJurnalHadir"
+                min="0"
+                value="0"
+                oninput="hitungKehadiran()"
+              />
+            </div>
+            <div class="form-group" style="margin: 0">
+              <label class="form-label" style="font-size: 11px">
+                <i class="fas fa-circle-xmark" style="color: var(--danger)"></i>
+                Sakit
+              </label>
+              <input
+                type="number"
+                class="form-control"
+                id="formJurnalSakit"
+                min="0"
+                value="0"
+                oninput="hitungKehadiran()"
+              />
+            </div>
+            <div class="form-group" style="margin: 0">
+              <label class="form-label" style="font-size: 11px">
+                <i
+                  class="fas fa-circle-minus"
+                  style="color: var(--warning)"
+                ></i>
+                Izin
+              </label>
+              <input
+                type="number"
+                class="form-control"
+                id="formJurnalIzin"
+                min="0"
+                value="0"
+                oninput="hitungKehadiran()"
+              />
+            </div>
+          </div>
+
+          <!-- Ringkasan kehadiran -->
+          <div
+            style="
+              background: var(--gray-50);
+              border: 1px solid var(--gray-200);
+              border-radius: var(--radius-md);
+              padding: 12px;
+              margin-bottom: 16px;
+              display: flex;
+              gap: 20px;
+              flex-wrap: wrap;
+              font-size: var(--text-sm);
+            "
+          >
+            <span>
+              <i class="fas fa-circle-check" style="color: var(--success)"></i>
+              Hadir: <strong id="ringkasHadir">0</strong>
+            </span>
+            <span>
+              <i class="fas fa-circle-xmark" style="color: var(--danger)"></i>
+              Sakit: <strong id="ringkasTotal">0</strong>
+            </span>
+            <span>
+              <i
+                class="fas fa-circle-question"
+                style="color: var(--gray-400)"
+              ></i>
+              Alpha: <strong id="ringkasAlpha">0</strong>
+            </span>
+          </div>
+
+          <!-- Keterangan -->
+          <div class="form-group">
+            <label class="form-label">
+              Catatan / Keterangan
+              <span class="text-muted">(opsional)</span>
+            </label>
+            <textarea
+              class="form-control"
+              id="formJurnalKeterangan"
+              rows="2"
+              placeholder="cth: Kelas kondusif, ada presentasi kelompok..."
+            >
+            </textarea>
+          </div>
+
+          <div class="alert alert-danger hidden" id="jurnalFormError"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('modalJurnal')">
+            Batal
+          </button>
+          <button class="btn btn-siswa" onclick="simpanJurnal()">
+            <i class="fas fa-floppy-disk"></i> Simpan Jurnal
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: KONFIRMASI HAPUS -->
+    <div class="modal-overlay" id="modalHapus">
+      <div class="modal" style="max-width: 400px">
+        <div class="modal-header">
+          <h3 class="modal-title">Konfirmasi Hapus</h3>
+          <button class="modal-close" onclick="closeModal('modalHapus')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p id="hapusMessage" style="color: var(--gray-600)"></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('modalHapus')">
+            Batal
+          </button>
+          <button class="btn btn-danger" id="hapusBtn">
+            <i class="fas fa-trash"></i> Hapus
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: KONFIRMASI LOGOUT -->
+    <div class="modal-overlay" id="modalLogout">
+      <div class="modal" style="max-width: 380px">
+        <div class="modal-body" style="padding: 32px 28px; text-align: center">
+          <!-- Icon -->
+          <div
+            style="
+              width: 72px;
+              height: 72px;
+              border-radius: 50%;
+              background: #fee2e2;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin: 0 auto 20px;
+              font-size: 32px;
+            "
+          >
+            🚪
+          </div>
+
+          <h3
+            style="
+              font-size: var(--text-xl);
+              font-weight: 700;
+              color: var(--gray-800);
+              margin-bottom: 8px;
+            "
+          >
+            Keluar dari Sistem?
+          </h3>
+
+          <p
+            style="
+              font-size: var(--text-sm);
+              color: var(--gray-500);
+              margin-bottom: 24px;
+              line-height: 1.6;
+            "
+          >
+            Anda akan keluar dari sesi ini.<br />
+            Pastikan semua data sudah tersimpan.
+          </p>
+
+          <!-- Info user yang login -->
+          <div
+            style="
+              background: var(--gray-50);
+              border: 1px solid var(--gray-200);
+              border-radius: var(--radius-md);
+              padding: 12px 16px;
+              margin-bottom: 24px;
+              display: flex;
+              align-items: center;
+              gap: 12px;
+            "
+          >
+            <div
+              class="user-avatar"
+              id="logoutAvatar"
+              style="width: 36px; height: 36px; font-size: 14px; flex-shrink: 0"
+            ></div>
+            <div style="text-align: left">
+              <div
+                style="
+                  font-size: var(--text-sm);
+                  font-weight: 600;
+                  color: var(--gray-800);
+                "
+                id="logoutNama"
+              >
+                —
+              </div>
+              <div
+                style="font-size: var(--text-xs); color: var(--gray-400)"
+                id="logoutRole"
+              >
+                —
+              </div>
+            </div>
+          </div>
+
+          <!-- Tombol -->
+          <div style="display: flex; gap: 10px">
+            <button
+              class="btn btn-outline w-full"
+              onclick="closeModal('modalLogout')"
+            >
+              <i class="fas fa-arrow-left"></i> Batal
+            </button>
+            <button class="btn btn-danger w-full" onclick="konfirmasiLogout()">
+              <i class="fas fa-right-from-bracket"></i> Ya, Keluar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/darkmode.js"></script>
+    <script src="js/siswa.js"></script>
+    <script src="js/export.js"></script>
+  </body>
+</html>

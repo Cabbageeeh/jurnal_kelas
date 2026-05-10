@@ -1,0 +1,1856 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Admin — Jurnal Kelas</title>
+    <meta name="description" content="Sistem Jurnal Kelas Digital" />
+    <meta name="theme-color" content="#4F46E5" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📒</text></svg>"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/dashboard.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  </head>
+  <body>
+    <div class="dashboard-layout">
+      <!-- SIDEBAR -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo admin"><i class="fas fa-book-open"></i></div>
+          <div>
+            <div class="sidebar-app-name">Jurnal Kelas</div>
+            <div class="sidebar-app-sub">Panel Admin</div>
+          </div>
+        </div>
+
+        <div class="sidebar-user">
+          <div class="user-avatar admin" id="sidebarAvatar">A</div>
+          <div>
+            <div class="user-name" id="sidebarName">Administrator</div>
+            <div class="user-role">
+              <span class="badge badge-admin">Admin</span>
+            </div>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <div class="nav-section-title">Utama</div>
+          <button class="nav-item admin" onclick="showPage('dashboard')">
+            <i class="fas fa-gauge"></i> Beranda
+          </button>
+          <button class="nav-item admin" onclick="showPage('profil')">
+            <i class="fas fa-school"></i> Profil Sekolah
+          </button>
+
+          <div class="nav-section-title">Akademik</div>
+          <button class="nav-item admin" onclick="showPage('periode')">
+            <i class="fas fa-calendar-alt"></i> Periode / Semester
+          </button>
+          <button class="nav-item admin" onclick="showPage('jadwal')">
+            <i class="fas fa-calendar-week"></i> Jadwal Pelajaran
+          </button>
+          <button class="nav-item admin" onclick="showPage('jam')">
+            <i class="fas fa-clock"></i> Jam Pelajaran
+          </button>
+          <button class="nav-item admin" onclick="showPage('hari-libur')">
+            <i class="fas fa-calendar-xmark"></i> Hari Libur
+          </button>
+
+          <div class="nav-section-title">Data Master</div>
+          <button class="nav-item admin" onclick="showPage('users')">
+            <i class="fas fa-users"></i> Pengguna
+          </button>
+          <button class="nav-item admin" onclick="showPage('kelas')">
+            <i class="fas fa-chalkboard"></i> Kelas
+          </button>
+          <button class="nav-item admin" onclick="showPage('mapel')">
+            <i class="fas fa-book"></i> Mata Pelajaran
+          </button>
+
+          <div class="nav-section-title">Laporan</div>
+          <button class="nav-item admin" onclick="showPage('rekap-jurnal')">
+            <i class="fas fa-file-lines"></i> Rekap Jurnal
+          </button>
+          <button class="nav-item admin" onclick="showPage('rekap-konfirmasi')">
+            <i class="fas fa-user-check"></i> Rekap Konfirmasi
+          </button>
+        </nav>
+
+        <!-- Tombol Keluar -->
+        <div class="sidebar-footer">
+          <button class="btn-logout" onclick="logout()">
+            <i class="fas fa-right-from-bracket"></i> Keluar
+          </button>
+        </div>
+      </aside>
+
+      <div
+        class="sidebar-overlay"
+        id="sidebarOverlay"
+        onclick="toggleSidebar()"
+      ></div>
+
+      <!-- MAIN -->
+      <div class="main-content">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+              <i class="fas fa-bars"></i>
+            </button>
+            <span class="topbar-title" id="topbarTitle">Beranda</span>
+          </div>
+          <div class="topbar-right">
+            <button
+              class="dark-mode-toggle"
+              onclick="toggleDarkMode()"
+              id="darkModeBtn"
+              title="Toggle Dark Mode"
+            >
+              <i class="fas fa-moon"></i>
+            </button>
+            <span class="topbar-date" id="topbarDate"></span>
+            <span class="badge badge-admin">
+              <i class="fas fa-shield-halved"></i>&nbsp; Admin
+            </span>
+          </div>
+        </header>
+
+        <!-- PAGE: DASHBOARD -->
+        <div class="page-content hidden" id="page-dashboard">
+          <div class="page-header">
+            <h2 class="page-title">Selamat Datang 👋</h2>
+            <p class="page-subtitle" id="dashPeriodeLabel">—</p>
+          </div>
+          <div class="stats-grid" id="statsGrid"></div>
+          <div class="content-grid" style="grid-template-columns: 1fr 1fr">
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title"
+                  ><i class="fas fa-calendar-check"></i> Konfirmasi Hari
+                  Ini</span
+                >
+              </div>
+              <div class="card-body" id="dashKonfirmasiHariIni"></div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title"
+                  ><i class="fas fa-file-lines"></i> Jurnal Terbaru</span
+                >
+              </div>
+              <div class="card-body" id="dashJurnalTerbaru"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAGE: PROFIL SEKOLAH -->
+        <div class="page-content hidden" id="page-profil">
+          <div class="page-header">
+            <h2 class="page-title">Profil Sekolah</h2>
+            <p class="page-subtitle">
+              Informasi sekolah yang tampil di header export
+            </p>
+          </div>
+
+          <div class="content-grid" style="grid-template-columns: 1fr 2fr">
+            <!-- Kartu preview -->
+            <div class="card" style="height: fit-content">
+              <div class="card-header">
+                <span class="card-title">Preview</span>
+              </div>
+              <div class="card-body" style="text-align: center; padding: 28px">
+                <!-- Logo -->
+                <div
+                  id="previewLogo"
+                  style="
+                    width: 100px;
+                    height: 100px;
+                    border-radius: 50%;
+                    background: var(--gray-100);
+                    border: 3px solid var(--gray-200);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0 auto 16px;
+                    overflow: hidden;
+                    font-size: 40px;
+                  "
+                >
+                  🏫
+                </div>
+
+                <div
+                  id="previewNama"
+                  style="
+                    font-size: var(--text-lg);
+                    font-weight: 700;
+                    color: var(--gray-800);
+                    margin-bottom: 4px;
+                  "
+                >
+                  —
+                </div>
+                <div
+                  id="previewNpsn"
+                  style="
+                    font-size: var(--text-xs);
+                    color: var(--gray-400);
+                    margin-bottom: 12px;
+                  "
+                >
+                  NPSN: —
+                </div>
+
+                <div
+                  style="
+                    font-size: var(--text-sm);
+                    color: var(--gray-500);
+                    line-height: 1.8;
+                  "
+                >
+                  <div id="previewAlamat">—</div>
+                  <div id="previewTelepon">—</div>
+                  <div id="previewEmail">—</div>
+                </div>
+
+                <div
+                  style="
+                    margin-top: 16px;
+                    padding-top: 16px;
+                    border-top: 1px solid var(--gray-100);
+                  "
+                >
+                  <div
+                    style="font-size: var(--text-xs); color: var(--gray-400)"
+                  >
+                    Kepala Sekolah
+                  </div>
+                  <div
+                    id="previewKepala"
+                    style="
+                      font-size: var(--text-sm);
+                      font-weight: 600;
+                      color: var(--gray-700);
+                      margin-top: 2px;
+                    "
+                  >
+                    —
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form edit -->
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">
+                  <i class="fas fa-pen"></i> Edit Profil
+                </span>
+              </div>
+              <div class="card-body">
+                <!-- Upload Logo -->
+                <div class="form-group">
+                  <label class="form-label">Logo Sekolah</label>
+                  <div style="display: flex; align-items: center; gap: 16px">
+                    <div
+                      id="logoPreviewKecil"
+                      style="
+                        width: 64px;
+                        height: 64px;
+                        border-radius: 50%;
+                        background: var(--gray-100);
+                        border: 2px solid var(--gray-200);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 24px;
+                        overflow: hidden;
+                        flex-shrink: 0;
+                      "
+                    >
+                      🏫
+                    </div>
+                    <div style="flex: 1">
+                      <input
+                        type="file"
+                        id="logoInput"
+                        accept="image/*"
+                        style="display: none"
+                        onchange="handleLogoUpload(event)"
+                      />
+                      <button
+                        class="btn btn-outline btn-sm"
+                        onclick="document.getElementById('logoInput').click()"
+                      >
+                        <i class="fas fa-upload"></i> Upload Logo
+                      </button>
+                      <button
+                        class="btn btn-ghost btn-sm"
+                        onclick="hapusLogo()"
+                      >
+                        <i class="fas fa-trash"></i> Hapus
+                      </button>
+                      <p class="form-hint mt-2">
+                        Format: JPG, PNG. Maks 2MB. Disarankan ukuran persegi
+                        (1:1).
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  style="
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 12px;
+                  "
+                >
+                  <div class="form-group">
+                    <label class="form-label">Nama Sekolah</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="profilNama"
+                      placeholder="cth: SMA Negeri 1 Contoh"
+                      oninput="updatePreview()"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">NPSN</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="profilNpsn"
+                      placeholder="cth: 12345678"
+                      oninput="updatePreview()"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Alamat</label>
+                  <textarea
+                    class="form-control"
+                    id="profilAlamat"
+                    rows="2"
+                    placeholder="cth: Jl. Pendidikan No. 1, Kota Contoh"
+                    oninput="updatePreview()"
+                  >
+                  </textarea>
+                </div>
+
+                <div
+                  style="
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 12px;
+                  "
+                >
+                  <div class="form-group">
+                    <label class="form-label">Telepon</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="profilTelepon"
+                      placeholder="cth: (021) 1234567"
+                      oninput="updatePreview()"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input
+                      type="email"
+                      class="form-control"
+                      id="profilEmail"
+                      placeholder="cth: info@sekolah.sch.id"
+                      oninput="updatePreview()"
+                    />
+                  </div>
+                </div>
+
+                <div
+                  style="
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 12px;
+                  "
+                >
+                  <div class="form-group">
+                    <label class="form-label">Website</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="profilWebsite"
+                      placeholder="cth: www.sekolah.sch.id"
+                      oninput="updatePreview()"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Nama Kepala Sekolah</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="profilKepalaSekolah"
+                      placeholder="cth: Drs. Ahmad Subarjo, M.Pd"
+                      oninput="updatePreview()"
+                    />
+                  </div>
+                </div>
+
+                <div class="alert alert-info mt-2">
+                  <i class="fas fa-circle-info"></i>
+                  <span>
+                    Informasi ini akan muncul di header setiap file PDF dan XLSX
+                    yang diexport.
+                  </span>
+                </div>
+
+                <div class="alert alert-danger hidden" id="profilError"></div>
+
+                <div
+                  style="
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 10px;
+                    margin-top: 8px;
+                  "
+                >
+                  <button class="btn btn-outline" onclick="resetProfilForm()">
+                    <i class="fas fa-rotate-left"></i> Reset
+                  </button>
+                  <button class="btn btn-admin" onclick="simpanProfil()">
+                    <i class="fas fa-floppy-disk"></i> Simpan Profil
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAGE: PERIODE -->
+        <div class="page-content hidden" id="page-periode">
+          <div class="page-header d-flex justify-between align-center">
+            <div>
+              <h2 class="page-title">Periode / Semester</h2>
+              <p class="page-subtitle">
+                Kelola semester dan periode jadwal aktif
+              </p>
+            </div>
+            <button class="btn btn-admin" onclick="openPeriodeModal()">
+              <i class="fas fa-plus"></i> Tambah Periode
+            </button>
+          </div>
+          <div class="card">
+            <div class="card-body" style="padding: 0">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Nama Periode</th>
+                      <th>Mulai</th>
+                      <th>Selesai</th>
+                      <th>Status</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="periodeTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAGE: JADWAL -->
+        <div class="page-content hidden" id="page-jadwal">
+          <div class="page-header d-flex justify-between align-center">
+            <div>
+              <h2 class="page-title">Jadwal Pelajaran</h2>
+              <p class="page-subtitle" id="jadwalPeriodeLabel">—</p>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap">
+              <select
+                class="form-control"
+                id="filterJadwalHari"
+                style="width: 140px"
+                onchange="renderJadwalTable()"
+              >
+                <option value="">Semua Hari</option>
+                <option>Senin</option>
+                <option>Selasa</option>
+                <option>Rabu</option>
+                <option>Kamis</option>
+                <option>Jumat</option>
+                <option>Sabtu</option>
+              </select>
+              <select
+                class="form-control"
+                id="filterJadwalGuru"
+                style="width: 180px"
+                onchange="renderJadwalTable()"
+              >
+                <option value="">Semua Guru</option>
+              </select>
+              <button class="btn btn-admin" onclick="openJadwalModal()">
+                <i class="fas fa-plus"></i> Tambah Jadwal
+              </button>
+            </div>
+          </div>
+
+          <!-- Tampilan grid per hari -->
+          <div id="jadwalGridView"></div>
+        </div>
+
+        <!-- PAGE: JAM PELAJARAN -->
+        <div class="page-content hidden" id="page-jam">
+          <div class="page-header d-flex justify-between align-center">
+            <div>
+              <h2 class="page-title">Jam Pelajaran</h2>
+              <p class="page-subtitle">Atur jadwal waktu dan istirahat</p>
+            </div>
+            <button class="btn btn-admin" onclick="openJamModal()">
+              <i class="fas fa-plus"></i> Tambah Jam
+            </button>
+          </div>
+          <div class="card">
+            <div class="card-body" style="padding: 0">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Jam Ke</th>
+                      <th>Mulai</th>
+                      <th>Selesai</th>
+                      <th>Durasi</th>
+                      <th>Tipe</th>
+                      <th>Label</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="jamTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAGE: HARI LIBUR -->
+        <div class="page-content hidden" id="page-hari-libur">
+          <div class="page-header d-flex justify-between align-center">
+            <div>
+              <h2 class="page-title">Hari Libur</h2>
+              <p class="page-subtitle">
+                Kelola hari libur nasional dan libur sekolah
+              </p>
+            </div>
+            <button class="btn btn-admin" onclick="openHariLiburModal()">
+              <i class="fas fa-plus"></i> Tambah Hari Libur
+            </button>
+          </div>
+
+          <!-- Filter -->
+          <div class="card mb-4">
+            <div class="card-body" style="padding: 16px">
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr 1fr auto;
+                  gap: 12px;
+                  align-items: end;
+                "
+              >
+                <div>
+                  <label class="form-label">Tahun</label>
+                  <select
+                    class="form-control"
+                    id="filterLiburTahun"
+                    onchange="renderHariLiburTable()"
+                  ></select>
+                </div>
+                <div>
+                  <label class="form-label">Tipe</label>
+                  <select
+                    class="form-control"
+                    id="filterLiburTipe"
+                    onchange="renderHariLiburTable()"
+                  >
+                    <option value="">Semua Tipe</option>
+                    <option value="nasional">Nasional</option>
+                    <option value="sekolah">Libur Sekolah</option>
+                    <option value="mingguan">Mingguan</option>
+                  </select>
+                </div>
+                <button class="btn btn-outline" onclick="clearFilterLibur()">
+                  <i class="fas fa-rotate-left"></i> Reset
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Info hari ini -->
+          <div id="infoHariLiburHariIni" class="mb-4"></div>
+
+          <div class="card">
+            <div class="card-body" style="padding: 0">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Tanggal</th>
+                      <th>Hari</th>
+                      <th>Nama Hari Libur</th>
+                      <th>Tipe</th>
+                      <th>Status</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hariLiburTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAGE: USERS -->
+        <div class="page-content hidden" id="page-users">
+          <div class="page-header d-flex justify-between align-center">
+            <div>
+              <h2 class="page-title">Kelola Pengguna</h2>
+              <p class="page-subtitle">Tambah, edit, dan hapus akun pengguna</p>
+            </div>
+            <div style="display: flex; gap: 10px">
+              <button
+                class="btn btn-outline"
+                onclick="openImportModal('users')"
+              >
+                <i class="fas fa-file-excel"></i> Import Excel
+              </button>
+              <button class="btn btn-admin" onclick="openUserModal()">
+                <i class="fas fa-plus"></i> Tambah Pengguna
+              </button>
+            </div>
+          </div>
+          <div class="card mb-4">
+            <div class="card-body" style="padding: 16px">
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr 1fr 1fr;
+                  gap: 12px;
+                "
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="filterUserSearch"
+                  placeholder="🔍 Cari nama / username..."
+                  oninput="renderUsersTable()"
+                />
+                <select
+                  class="form-control"
+                  id="filterUserRole"
+                  onchange="renderUsersTable()"
+                >
+                  <option value="">Semua Role</option>
+                  <option value="admin">Admin</option>
+                  <option value="guru">Guru</option>
+                  <option value="siswa">Siswa</option>
+                </select>
+                <select
+                  class="form-control"
+                  id="filterUserAktif"
+                  onchange="renderUsersTable()"
+                >
+                  <option value="">Semua Status</option>
+                  <option value="true">Aktif</option>
+                  <option value="false">Nonaktif</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body" style="padding: 0">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Nama</th>
+                      <th>Username</th>
+                      <th>Role</th>
+                      <th>Info</th>
+                      <th>Status</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="usersTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAGE: KELAS -->
+        <div class="page-content hidden" id="page-kelas">
+          <div class="page-header d-flex justify-between align-center">
+            <div>
+              <h2 class="page-title">Kelola Kelas</h2>
+              <p class="page-subtitle">Daftar kelas yang terdaftar</p>
+            </div>
+            <div style="display: flex; gap: 10px">
+              <button
+                class="btn btn-outline"
+                onclick="openImportModal('kelas')"
+              >
+                <i class="fas fa-file-excel"></i> Import Excel
+              </button>
+              <button class="btn btn-admin" onclick="openKelasModal()">
+                <i class="fas fa-plus"></i> Tambah Kelas
+              </button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body" style="padding: 0">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Nama Kelas</th>
+                      <th>Tingkat</th>
+                      <th>Jurusan</th>
+                      <th>Status</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="kelasTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAGE: MAPEL -->
+        <div class="page-content hidden" id="page-mapel">
+          <div class="page-header d-flex justify-between align-center">
+            <div>
+              <h2 class="page-title">Kelola Mata Pelajaran</h2>
+              <p class="page-subtitle">Daftar mata pelajaran yang tersedia</p>
+            </div>
+            <div style="display: flex; gap: 10px">
+              <button
+                class="btn btn-outline"
+                onclick="openImportModal('mapel')"
+              >
+                <i class="fas fa-file-excel"></i> Import Excel
+              </button>
+              <button class="btn btn-admin" onclick="openMapelModal()">
+                <i class="fas fa-plus"></i> Tambah Mapel
+              </button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body" style="padding: 0">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Kode</th>
+                      <th>Nama Mata Pelajaran</th>
+                      <th>Status</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="mapelTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAGE: REKAP JURNAL -->
+        <div class="page-content hidden" id="page-rekap-jurnal">
+          <div class="page-header d-flex justify-between align-center">
+            <div>
+              <h2 class="page-title">Rekap Jurnal Kelas</h2>
+              <p class="page-subtitle">Semua jurnal yang diisi oleh siswa</p>
+            </div>
+            <!-- Ganti tombol export di page rekap-jurnal -->
+            <div style="display: flex; gap: 10px">
+              <button
+                class="btn btn-outline"
+                onclick="exportRekapAdmin('jurnal', 'xlsx')"
+              >
+                <i class="fas fa-file-excel"></i> Export XLSX
+              </button>
+              <button
+                class="btn btn-outline"
+                onclick="exportRekapAdmin('jurnal', 'pdf')"
+              >
+                <i class="fas fa-file-pdf"></i> Export PDF
+              </button>
+            </div>
+          </div>
+          <div class="card mb-4">
+            <div class="card-body" style="padding: 16px">
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr 1fr 1fr auto;
+                  gap: 12px;
+                  align-items: end;
+                "
+              >
+                <div>
+                  <label class="form-label">Dari Tanggal</label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="filterJurnalDari"
+                    onchange="renderRekapJurnal()"
+                  />
+                </div>
+                <div>
+                  <label class="form-label">Sampai Tanggal</label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="filterJurnalSampai"
+                    onchange="renderRekapJurnal()"
+                  />
+                </div>
+                <div>
+                  <label class="form-label">Kelas</label>
+                  <select
+                    class="form-control"
+                    id="filterJurnalKelas"
+                    onchange="renderRekapJurnal()"
+                  >
+                    <option value="">Semua Kelas</option>
+                  </select>
+                </div>
+                <button class="btn btn-outline" onclick="clearFilterJurnal()">
+                  <i class="fas fa-rotate-left"></i> Reset
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body" style="padding: 0">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Tanggal</th>
+                      <th>Kelas</th>
+                      <th>Jam</th>
+                      <th>Mapel</th>
+                      <th>Guru</th>
+                      <th>Materi</th>
+                      <th>Hadir</th>
+                      <th>Diisi Oleh</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rekapJurnalBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAGE: REKAP KONFIRMASI -->
+        <div class="page-content hidden" id="page-rekap-konfirmasi">
+          <div class="page-header d-flex justify-between align-center">
+            <div>
+              <h2 class="page-title">Rekap Konfirmasi Kehadiran Guru</h2>
+              <p class="page-subtitle">
+                Rekap konfirmasi kehadiran beserta foto
+              </p>
+            </div>
+            <!-- Ganti tombol export di page rekap-konfirmasi -->
+            <div style="display: flex; gap: 10px">
+              <button
+                class="btn btn-outline"
+                onclick="exportRekapAdmin('konfirmasi', 'xlsx')"
+              >
+                <i class="fas fa-file-excel"></i> Export XLSX
+              </button>
+              <button
+                class="btn btn-outline"
+                onclick="exportRekapAdmin('konfirmasi', 'pdf')"
+              >
+                <i class="fas fa-file-pdf"></i> Export PDF
+              </button>
+            </div>
+          </div>
+          <div class="card mb-4">
+            <div class="card-body" style="padding: 16px">
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr 1fr 1fr auto;
+                  gap: 12px;
+                  align-items: end;
+                "
+              >
+                <div>
+                  <label class="form-label">Dari Tanggal</label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="filterKonfDari"
+                    onchange="renderRekapKonfirmasi()"
+                  />
+                </div>
+                <div>
+                  <label class="form-label">Sampai Tanggal</label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="filterKonfSampai"
+                    onchange="renderRekapKonfirmasi()"
+                  />
+                </div>
+                <div>
+                  <label class="form-label">Guru</label>
+                  <select
+                    class="form-control"
+                    id="filterKonfGuru"
+                    onchange="renderRekapKonfirmasi()"
+                  >
+                    <option value="">Semua Guru</option>
+                  </select>
+                </div>
+                <button class="btn btn-outline" onclick="clearFilterKonf()">
+                  <i class="fas fa-rotate-left"></i> Reset
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body" style="padding: 0">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Tanggal</th>
+                      <th>Guru</th>
+                      <th>Kelas</th>
+                      <th>Mapel</th>
+                      <th>Jam</th>
+                      <th>Waktu Konfirmasi</th>
+                      <th>Foto</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rekapKonfirmasiBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- end main-content -->
+    </div>
+    <!-- end dashboard-layout -->
+
+    <!-- MODAL: PERIODE -->
+    <div class="modal-overlay" id="modalPeriode">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalPeriodeTitle">Tambah Periode</h3>
+          <button class="modal-close" onclick="closeModal('modalPeriode')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="periodeId" />
+          <div class="form-group">
+            <label class="form-label">Nama Periode</label>
+            <input
+              type="text"
+              class="form-control"
+              id="periodeNama"
+              placeholder="cth: Semester Ganjil 2025/2026"
+            />
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+            <div class="form-group">
+              <label class="form-label">Tanggal Mulai</label>
+              <input type="date" class="form-control" id="periodeMulai" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tanggal Selesai</label>
+              <input type="date" class="form-control" id="periodeSelesai" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-control" id="periodeAktif">
+              <option value="true">
+                Aktif (jadwal periode ini yang berlaku)
+              </option>
+              <option value="false">Nonaktif</option>
+            </select>
+          </div>
+          <div class="alert alert-warning" style="margin-top: 8px">
+            <i class="fas fa-triangle-exclamation"></i>
+            Hanya boleh ada <strong>1 periode aktif</strong>. Mengaktifkan
+            periode ini akan menonaktifkan periode lain secara otomatis.
+          </div>
+          <div class="alert alert-danger hidden" id="periodeFormError"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('modalPeriode')">
+            Batal
+          </button>
+          <button class="btn btn-admin" onclick="savePeriode()">
+            <i class="fas fa-floppy-disk"></i> Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: JADWAL -->
+    <div class="modal-overlay" id="modalJadwal">
+      <div class="modal" style="max-width: 560px">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalJadwalTitle">Tambah Jadwal</h3>
+          <button class="modal-close" onclick="closeModal('modalJadwal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="jadwalId" />
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+            <div class="form-group">
+              <label class="form-label">Periode</label>
+              <select class="form-control" id="jadwalPeriodeId">
+                <option value="">— Pilih Periode —</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Hari</label>
+              <select class="form-control" id="jadwalHari">
+                <option value="">— Pilih Hari —</option>
+                <option>Senin</option>
+                <option>Selasa</option>
+                <option>Rabu</option>
+                <option>Kamis</option>
+                <option>Jumat</option>
+                <option>Sabtu</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Guru</label>
+            <select class="form-control" id="jadwalGuruId">
+              <option value="">— Pilih Guru —</option>
+            </select>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+            <div class="form-group">
+              <label class="form-label">Kelas</label>
+              <select class="form-control" id="jadwalKelasId">
+                <option value="">— Pilih Kelas —</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mata Pelajaran</label>
+              <select class="form-control" id="jadwalMapelId">
+                <option value="">— Pilih Mapel —</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Jam Pelajaran</label>
+            <p class="form-hint mb-2">
+              <i class="fas fa-info-circle"></i>
+              Centang jam yang termasuk dalam sesi ini
+            </p>
+            <div
+              id="jamCheckboxGroup"
+              style="
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+              "
+            ></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-control" id="jadwalAktif">
+              <option value="true">Aktif</option>
+              <option value="false">Nonaktif</option>
+            </select>
+          </div>
+
+          <div class="alert alert-danger hidden" id="jadwalFormError"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('modalJadwal')">
+            Batal
+          </button>
+          <button class="btn btn-admin" onclick="saveJadwal()">
+            <i class="fas fa-floppy-disk"></i> Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: JAM PELAJARAN -->
+    <div class="modal-overlay" id="modalJam">
+      <div class="modal" style="max-width: 440px">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalJamTitle">Tambah Jam</h3>
+          <button class="modal-close" onclick="closeModal('modalJam')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="jamId" />
+          <div class="form-group">
+            <label class="form-label">Tipe</label>
+            <select
+              class="form-control"
+              id="jamTipe"
+              onchange="toggleJamFields()"
+            >
+              <option value="pelajaran">Jam Pelajaran</option>
+              <option value="istirahat">Istirahat</option>
+            </select>
+          </div>
+          <div id="fieldJamKe" class="form-group">
+            <label class="form-label">Jam Ke</label>
+            <input
+              type="number"
+              class="form-control"
+              id="jamKe"
+              min="1"
+              max="20"
+              placeholder="cth: 1"
+            />
+          </div>
+          <div id="fieldJamLabel" class="form-group hidden">
+            <label class="form-label">Label Istirahat</label>
+            <input
+              type="text"
+              class="form-control"
+              id="jamLabel"
+              placeholder="cth: Istirahat 1"
+            />
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+            <div class="form-group">
+              <label class="form-label">Mulai</label>
+              <input type="time" class="form-control" id="jamMulai" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Selesai</label>
+              <input type="time" class="form-control" id="jamSelesai" />
+            </div>
+          </div>
+          <div class="alert alert-danger hidden" id="jamFormError"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('modalJam')">
+            Batal
+          </button>
+          <button class="btn btn-admin" onclick="saveJam()">
+            <i class="fas fa-floppy-disk"></i> Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: USER -->
+    <div class="modal-overlay" id="modalUser">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalUserTitle">Tambah Pengguna</h3>
+          <button class="modal-close" onclick="closeModal('modalUser')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="userId" />
+          <div class="form-group">
+            <label class="form-label">Nama Lengkap</label>
+            <input
+              type="text"
+              class="form-control"
+              id="userNama"
+              placeholder="cth: Budi Santoso, S.Pd"
+            />
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+            <div class="form-group">
+              <label class="form-label">Username</label>
+              <input type="text" class="form-control" id="userUsername" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input type="text" class="form-control" id="userPassword" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Role</label>
+            <select
+              class="form-control"
+              id="userRole"
+              onchange="toggleRoleFields()"
+            >
+              <option value="guru">Guru</option>
+              <option value="siswa">Siswa</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div id="fieldSiswa" class="hidden">
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px"
+            >
+              <div class="form-group">
+                <label class="form-label">Kelas</label>
+                <select class="form-control" id="userKelas">
+                  <option value="">— Pilih Kelas —</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Jabatan</label>
+                <select class="form-control" id="userJabatan">
+                  <option value="ketua">Ketua Kelas</option>
+                  <option value="sekretaris">Sekretaris</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-control" id="userAktif">
+              <option value="true">Aktif</option>
+              <option value="false">Nonaktif</option>
+            </select>
+          </div>
+          <div class="alert alert-danger hidden" id="userFormError"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('modalUser')">
+            Batal
+          </button>
+          <button class="btn btn-admin" onclick="saveUser()">
+            <i class="fas fa-floppy-disk"></i> Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: KELAS -->
+    <div class="modal-overlay" id="modalKelas">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalKelasTitle">Tambah Kelas</h3>
+          <button class="modal-close" onclick="closeModal('modalKelas')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="kelasId" />
+          <div class="form-group">
+            <label class="form-label">Nama Kelas</label>
+            <input
+              type="text"
+              class="form-control"
+              id="kelasNama"
+              placeholder="cth: X IPA 1"
+            />
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+            <div class="form-group">
+              <label class="form-label">Tingkat</label>
+              <select class="form-control" id="kelasTingkat">
+                <option value="X">X</option>
+                <option value="XI">XI</option>
+                <option value="XII">XII</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Jurusan</label>
+              <select class="form-control" id="kelasJurusan">
+                <option value="IPA">IPA</option>
+                <option value="IPS">IPS</option>
+                <option value="Bahasa">Bahasa</option>
+                <option value="Umum">Umum</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-control" id="kelasAktif">
+              <option value="true">Aktif</option>
+              <option value="false">Nonaktif</option>
+            </select>
+          </div>
+          <div class="alert alert-danger hidden" id="kelasFormError"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('modalKelas')">
+            Batal
+          </button>
+          <button class="btn btn-admin" onclick="saveKelas()">
+            <i class="fas fa-floppy-disk"></i> Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: MAPEL -->
+    <div class="modal-overlay" id="modalMapel">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalMapelTitle">
+            Tambah Mata Pelajaran
+          </h3>
+          <button class="modal-close" onclick="closeModal('modalMapel')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="mapelId" />
+          <div class="form-group">
+            <label class="form-label">Nama Mata Pelajaran</label>
+            <input type="text" class="form-control" id="mapelNama" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kode</label>
+            <input
+              type="text"
+              class="form-control"
+              id="mapelKode"
+              placeholder="cth: MTK"
+              style="text-transform: uppercase"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-control" id="mapelAktif">
+              <option value="true">Aktif</option>
+              <option value="false">Nonaktif</option>
+            </select>
+          </div>
+          <div class="alert alert-danger hidden" id="mapelFormError"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('modalMapel')">
+            Batal
+          </button>
+          <button class="btn btn-admin" onclick="saveMapel()">
+            <i class="fas fa-floppy-disk"></i> Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: FOTO KONFIRMASI -->
+    <div class="modal-overlay" id="modalFoto">
+      <div class="modal" style="max-width: 500px">
+        <div class="modal-header">
+          <h3 class="modal-title">Foto Konfirmasi</h3>
+          <button class="modal-close" onclick="closeModal('modalFoto')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body" style="text-align: center">
+          <img
+            id="fotoPreview"
+            src=""
+            alt="Foto Konfirmasi"
+            style="
+              max-width: 100%;
+              border-radius: var(--radius-md);
+              border: 2px solid var(--gray-200);
+            "
+          />
+          <div
+            id="fotoInfo"
+            style="
+              margin-top: 12px;
+              font-size: var(--text-sm);
+              color: var(--gray-500);
+            "
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: KONFIRMASI HAPUS -->
+    <div class="modal-overlay" id="modalConfirm">
+      <div class="modal" style="max-width: 400px">
+        <div class="modal-header">
+          <h3 class="modal-title">Konfirmasi Hapus</h3>
+          <button class="modal-close" onclick="closeModal('modalConfirm')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmMessage" style="color: var(--gray-600)"></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('modalConfirm')">
+            Batal
+          </button>
+          <button class="btn btn-danger" id="confirmBtn">
+            <i class="fas fa-trash"></i> Hapus
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: IMPORT -->
+    <div class="modal-overlay" id="modalImport">
+      <div class="modal" style="max-width: 680px">
+        <div class="modal-header">
+          <h3 class="modal-title">Import Data Excel</h3>
+          <button class="modal-close" onclick="closeModal('modalImport')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="importStep1">
+            <div class="alert alert-info mb-4">
+              <i class="fas fa-circle-info"></i>
+              <div>
+                Download template, isi data, lalu upload kembali. Jangan ubah
+                nama kolom.
+              </div>
+            </div>
+            <div class="card mb-4" style="border: 2px dashed var(--gray-200)">
+              <div class="card-body" style="padding: 20px; text-align: center">
+                <i
+                  class="fas fa-file-excel"
+                  style="
+                    font-size: 40px;
+                    color: #16a34a;
+                    margin-bottom: 12px;
+                    display: block;
+                  "
+                ></i>
+                <div
+                  style="
+                    display: flex;
+                    gap: 10px;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                  "
+                >
+                  <button
+                    class="btn btn-sm btn-outline"
+                    onclick="downloadTemplate('users')"
+                  >
+                    <i class="fas fa-download"></i> Template Pengguna
+                  </button>
+                  <button
+                    class="btn btn-sm btn-outline"
+                    onclick="downloadTemplate('kelas')"
+                  >
+                    <i class="fas fa-download"></i> Template Kelas
+                  </button>
+                  <button
+                    class="btn btn-sm btn-outline"
+                    onclick="downloadTemplate('mapel')"
+                  >
+                    <i class="fas fa-download"></i> Template Mapel
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Upload File Excel (.xlsx)</label>
+              <div
+                id="dropZone"
+                class="drop-zone"
+                onclick="document.getElementById('fileInput').click()"
+                ondrop="handleDrop(event)"
+                ondragover="handleDragOver(event)"
+                ondragleave="handleDragLeave(event)"
+              >
+                <i class="fas fa-cloud-arrow-up drop-zone-icon"></i>
+                <p class="drop-zone-text">Klik atau drag & drop file Excel</p>
+                <p style="font-size: var(--text-xs); color: var(--gray-400)">
+                  Format: .xlsx | Maks: 5MB
+                </p>
+              </div>
+              <input
+                type="file"
+                id="fileInput"
+                accept=".xlsx,.xls"
+                style="display: none"
+                onchange="handleFileSelect(event)"
+              />
+            </div>
+            <div id="fileInfo" class="hidden">
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 10px;
+                  padding: 12px;
+                  background: var(--gray-50);
+                  border-radius: var(--radius-md);
+                  border: 1px solid var(--gray-200);
+                "
+              >
+                <i
+                  class="fas fa-file-excel"
+                  style="color: #16a34a; font-size: 20px"
+                ></i>
+                <div style="flex: 1">
+                  <div
+                    style="font-size: var(--text-sm); font-weight: 600"
+                    id="fileName"
+                  >
+                    —
+                  </div>
+                  <div
+                    style="font-size: var(--text-xs); color: var(--gray-400)"
+                    id="fileSize"
+                  >
+                    —
+                  </div>
+                </div>
+                <button class="btn btn-sm btn-outline" onclick="clearFile()">
+                  <i class="fas fa-xmark"></i>
+                </button>
+              </div>
+            </div>
+            <div class="alert alert-danger hidden mt-3" id="importError">
+              <i class="fas fa-circle-exclamation"></i>
+              <span id="importErrorMsg"></span>
+            </div>
+          </div>
+          <div id="importStep2" class="hidden">
+            <div class="alert alert-success mb-4">
+              <i class="fas fa-circle-check"></i>
+              <span id="importSuccessMsg"></span>
+            </div>
+            <div
+              style="
+                display: flex;
+                gap: 8px;
+                margin-bottom: 16px;
+                flex-wrap: wrap;
+              "
+            >
+              <button
+                class="btn btn-sm btn-outline active-tab"
+                id="tabUsers"
+                onclick="switchPreviewTab('users')"
+              >
+                <i class="fas fa-users"></i> Pengguna (<span id="countUsers"
+                  >0</span
+                >)
+              </button>
+              <button
+                class="btn btn-sm btn-outline"
+                id="tabKelas"
+                onclick="switchPreviewTab('kelas')"
+              >
+                <i class="fas fa-chalkboard"></i> Kelas (<span id="countKelas"
+                  >0</span
+                >)
+              </button>
+              <button
+                class="btn btn-sm btn-outline"
+                id="tabMapel"
+                onclick="switchPreviewTab('mapel')"
+              >
+                <i class="fas fa-book"></i> Mapel (<span id="countMapel">0</span
+                >)
+              </button>
+            </div>
+            <div id="previewUsers">
+              <div
+                class="table-wrapper"
+                style="max-height: 280px; overflow-y: auto"
+              >
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Nama</th>
+                      <th>Username</th>
+                      <th>Role</th>
+                      <th>Info</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="previewUsersBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div id="previewKelas" class="hidden">
+              <div
+                class="table-wrapper"
+                style="max-height: 280px; overflow-y: auto"
+              >
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Nama Kelas</th>
+                      <th>Tingkat</th>
+                      <th>Jurusan</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="previewKelasBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div id="previewMapel" class="hidden">
+              <div
+                class="table-wrapper"
+                style="max-height: 280px; overflow-y: auto"
+              >
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Kode</th>
+                      <th>Nama Mapel</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="previewMapelBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div id="importWarning" class="alert alert-warning hidden mt-3">
+              <i class="fas fa-triangle-exclamation"></i>
+              <span id="importWarningMsg"></span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('modalImport')">
+            Batal
+          </button>
+          <button class="btn btn-admin" id="btnProses" onclick="prosesFile()">
+            <i class="fas fa-magnifying-glass"></i> Proses & Preview
+          </button>
+          <button
+            class="btn btn-admin hidden"
+            id="btnImport"
+            onclick="konfirmasiImport()"
+          >
+            <i class="fas fa-file-import"></i> Import Sekarang
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: HARI LIBUR -->
+    <div class="modal-overlay" id="modalHariLibur">
+      <div class="modal" style="max-width: 440px">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalHariLiburTitle">
+            Tambah Hari Libur
+          </h3>
+          <button class="modal-close" onclick="closeModal('modalHariLibur')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="hariLiburId" />
+
+          <div class="form-group">
+            <label class="form-label">Tanggal</label>
+            <input
+              type="date"
+              class="form-control"
+              id="hariLiburTanggal"
+              onchange="cekTanggalLibur()"
+            />
+            <div
+              id="hariLiburTanggalInfo"
+              style="
+                font-size: var(--text-xs);
+                color: var(--gray-400);
+                margin-top: 4px;
+              "
+            ></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Nama Hari Libur</label>
+            <input
+              type="text"
+              class="form-control"
+              id="hariLiburNama"
+              placeholder="cth: Hari Kemerdekaan RI"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tipe</label>
+            <select class="form-control" id="hariLiburTipe">
+              <option value="nasional">🇮🇩 Libur Nasional</option>
+              <option value="sekolah">🏫 Libur Sekolah</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-control" id="hariLiburAktif">
+              <option value="true">Aktif</option>
+              <option value="false">Nonaktif</option>
+            </select>
+          </div>
+
+          <div class="alert alert-warning">
+            <i class="fas fa-triangle-exclamation"></i>
+            <span>
+              Pada hari libur yang aktif, guru tidak bisa melakukan konfirmasi
+              dan siswa tidak bisa mengisi jurnal.
+            </span>
+          </div>
+
+          <div class="alert alert-danger hidden" id="hariLiburError"></div>
+        </div>
+        <div class="modal-footer">
+          <button
+            class="btn btn-outline"
+            onclick="closeModal('modalHariLibur')"
+          >
+            Batal
+          </button>
+          <button class="btn btn-admin" onclick="saveHariLibur()">
+            <i class="fas fa-floppy-disk"></i> Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: KONFIRMASI LOGOUT -->
+    <div class="modal-overlay" id="modalLogout">
+      <div class="modal" style="max-width: 380px">
+        <div class="modal-body" style="padding: 32px 28px; text-align: center">
+          <!-- Icon -->
+          <div
+            style="
+              width: 72px;
+              height: 72px;
+              border-radius: 50%;
+              background: #fee2e2;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin: 0 auto 20px;
+              font-size: 32px;
+            "
+          >
+            🚪
+          </div>
+
+          <h3
+            style="
+              font-size: var(--text-xl);
+              font-weight: 700;
+              color: var(--gray-800);
+              margin-bottom: 8px;
+            "
+          >
+            Keluar dari Sistem?
+          </h3>
+
+          <p
+            style="
+              font-size: var(--text-sm);
+              color: var(--gray-500);
+              margin-bottom: 24px;
+              line-height: 1.6;
+            "
+          >
+            Anda akan keluar dari sesi ini.<br />
+            Pastikan semua data sudah tersimpan.
+          </p>
+
+          <!-- Info user yang login -->
+          <div
+            style="
+              background: var(--gray-50);
+              border: 1px solid var(--gray-200);
+              border-radius: var(--radius-md);
+              padding: 12px 16px;
+              margin-bottom: 24px;
+              display: flex;
+              align-items: center;
+              gap: 12px;
+            "
+          >
+            <div
+              class="user-avatar"
+              id="logoutAvatar"
+              style="width: 36px; height: 36px; font-size: 14px; flex-shrink: 0"
+            ></div>
+            <div style="text-align: left">
+              <div
+                style="
+                  font-size: var(--text-sm);
+                  font-weight: 600;
+                  color: var(--gray-800);
+                "
+                id="logoutNama"
+              >
+                —
+              </div>
+              <div
+                style="font-size: var(--text-xs); color: var(--gray-400)"
+                id="logoutRole"
+              >
+                —
+              </div>
+            </div>
+          </div>
+
+          <!-- Tombol -->
+          <div style="display: flex; gap: 10px">
+            <button
+              class="btn btn-outline w-full"
+              onclick="closeModal('modalLogout')"
+            >
+              <i class="fas fa-arrow-left"></i> Batal
+            </button>
+            <button class="btn btn-danger w-full" onclick="konfirmasiLogout()">
+              <i class="fas fa-right-from-bracket"></i> Ya, Keluar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/darkmode.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/import.js"></script>
+    <script src="js/export.js"></script>
+  </body>
+</html>
