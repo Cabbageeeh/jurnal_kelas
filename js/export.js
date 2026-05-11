@@ -2,9 +2,39 @@
 // js/export.js — Export PDF & XLSX v2.0
 // ============================================
 
+// ── Wrapper Functions untuk onclick (karena async) ────────
+
+function exportRekapAdminWrapper(type, format) {
+  exportRekapAdmin(type, format).catch(err => {
+    console.error('Export error:', err);
+    showToast('Terjadi kesalahan saat export', 'error');
+  });
+}
+
+function exportDataWrapper(type, format) {
+  exportData(type, format).catch(err => {
+    console.error('Export error:', err);
+    showToast('Terjadi kesalahan saat export', 'error');
+  });
+}
+
+function exportRiwayatGuruWrapper(format) {
+  exportRiwayatGuru(format).catch(err => {
+    console.error('Export error:', err);
+    showToast('Terjadi kesalahan saat export', 'error');
+  });
+}
+
+function exportRiwayatSiswaWrapper(format) {
+  exportRiwayatSiswa(format).catch(err => {
+    console.error('Export error:', err);
+    showToast('Terjadi kesalahan saat export', 'error');
+  });
+}
+
 // ── ADMIN: Export dengan filter yang sedang aktif ─────────
 
-function exportRekapAdmin(type, format) {
+async function exportRekapAdmin(type, format) {
   if (type === "jurnal") {
     const dari = document.getElementById("filterJurnalDari")?.value || "";
     const sampai = document.getElementById("filterJurnalSampai")?.value || "";
@@ -88,7 +118,7 @@ function exportRekapAdmin(type, format) {
         rows,
       });
     } else {
-      exportPDF({
+      await exportPDF({
         filename: `rekap_jurnal_${namaKelas}_${dari || "semua"}`,
         title: `REKAP JURNAL KELAS — ${namaKelas.toUpperCase()}`,
         orientation: "landscape",
@@ -172,7 +202,7 @@ function exportRekapAdmin(type, format) {
         rows,
       });
     } else {
-      exportPDF({
+      await exportPDF({
         filename: `rekap_konfirmasi_${namaGuru}_${dari || "semua"}`,
         title: `REKAP KONFIRMASI — ${namaGuru.toUpperCase()}`,
         orientation: "landscape",
@@ -200,7 +230,7 @@ function getTanggalExport() {
 
 // ── ADMIN: Export Jurnal & Konfirmasi ─────────────────────
 
-function exportData(type, format) {
+async function exportData(type, format) {
   // ── JURNAL ──────────────────────────────────────────────
   if (type === "jurnal") {
     const dari = document.getElementById("filterJurnalDari")?.value || "";
@@ -276,7 +306,7 @@ function exportData(type, format) {
         rows,
       });
     } else {
-      exportPDF({
+      await exportPDF({
         filename: `rekap_jurnal_${dari || "semua"}`,
         title: "REKAP JURNAL KELAS",
         orientation: "landscape",
@@ -352,7 +382,7 @@ function exportData(type, format) {
         rows,
       });
     } else {
-      exportPDF({
+      await exportPDF({
         filename: `rekap_konfirmasi_${dari || "semua"}`,
         title: "REKAP KONFIRMASI KEHADIRAN GURU",
         orientation: "landscape",
@@ -366,7 +396,7 @@ function exportData(type, format) {
 
 // ── GURU: Export Riwayat ──────────────────────────────────
 
-function exportRiwayatGuru(format) {
+async function exportRiwayatGuru(format) {
   const session = getSession();
   const dari = document.getElementById("riwayatDari")?.value || "";
   const sampai = document.getElementById("riwayatSampai")?.value || "";
@@ -427,7 +457,7 @@ function exportRiwayatGuru(format) {
       rows,
     });
   } else {
-    exportPDF({
+    await exportPDF({
       filename: `riwayat_konfirmasi_${session.username}`,
       orientation: "landscape",
       title,
@@ -440,7 +470,7 @@ function exportRiwayatGuru(format) {
 
 // ── SISWA: Export Riwayat Jurnal ──────────────────────────
 
-function exportRiwayatSiswa(format) {
+async function exportRiwayatSiswa(format) {
   const session = getSession();
   const dari = document.getElementById("riwayatDari")?.value || "";
   const sampai = document.getElementById("riwayatSampai")?.value || "";
@@ -514,7 +544,7 @@ function exportRiwayatSiswa(format) {
       rows,
     });
   } else {
-    exportPDF({
+    await exportPDF({
       filename: `jurnal_${kelas?.nama || "kelas"}_${dari || "semua"}`,
       orientation: "landscape",
       title,
@@ -640,9 +670,75 @@ function exportXLSX({ filename, sheetName, title, filter, headers, rows }) {
   showToast("File XLSX berhasil didownload!", "success");
 }
 
+// ── Helper: Kompresi Gambar untuk PDF ────────────────────
+
+function compressImageForPDF(base64Image, maxWidth, maxHeight, quality = 0.85) {
+  try {
+    // Jika bukan base64, return as is
+    if (!base64Image || !base64Image.startsWith('data:image')) {
+      return base64Image;
+    }
+
+    // Buat canvas untuk resize dan kompresi
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    // Konversi ke promise untuk handling async
+    return new Promise((resolve) => {
+      img.onload = function() {
+        // Hitung dimensi baru dengan mempertahankan aspect ratio
+        let width = img.width;
+        let height = img.height;
+        
+        // Resize jika lebih besar dari max
+        if (width > maxWidth || height > maxHeight) {
+          const ratio = Math.min(maxWidth / width, maxHeight / height);
+          width = width * ratio;
+          height = height * ratio;
+        }
+        
+        // Set canvas size
+        canvas.width = width;
+        canvas.height = height;
+        
+        // PENTING: Isi background putih untuk transparansi PNG
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, width, height);
+        
+        // Draw image dengan smoothing
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Deteksi format original
+        const isPNG = base64Image.startsWith('data:image/png');
+        
+        // Untuk PNG dengan kemungkinan transparansi, gunakan kualitas lebih tinggi
+        // Untuk format lain, gunakan kualitas yang diberikan
+        const finalQuality = isPNG ? Math.max(quality, 0.85) : quality;
+        
+        // Convert ke JPEG dengan kompresi
+        const compressed = canvas.toDataURL('image/jpeg', finalQuality);
+        resolve(compressed);
+      };
+      
+      img.onerror = function() {
+        // Jika error, return original
+        resolve(base64Image);
+      };
+      
+      img.src = base64Image;
+    });
+  } catch (e) {
+    console.error('Error compressing image:', e);
+    return base64Image;
+  }
+}
+
 // ── Core: PDF ─────────────────────────────────────────────
 
-function exportPDF({
+async function exportPDF({
   filename,
   title,
   filter,
@@ -682,7 +778,10 @@ function exportPDF({
       doc.setFillColor(255, 255, 255);
       doc.roundedRect(logoX - 1, y - 1, logoSize + 2, logoSize + 2, 2, 2, "F");
 
-      doc.addImage(profil.logo, "JPEG", logoX, y, logoSize, logoSize);
+      // Kompresi logo untuk mengurangi ukuran file PDF
+      // Gunakan resolusi lebih tinggi (6x) dan kualitas 90% untuk ketajaman maksimal
+      const compressedLogo = await compressImageForPDF(profil.logo, logoSize * 6, logoSize * 6, 0.90);
+      doc.addImage(compressedLogo, "JPEG", logoX, y, logoSize, logoSize, undefined, "FAST");
     } catch (e) {
       console.error("Logo error:", e);
     }
