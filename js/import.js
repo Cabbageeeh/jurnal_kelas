@@ -61,16 +61,17 @@ function downloadTemplate(type) {
     },
     kelas: {
       sheet: "Kelas",
-      headers: ["nama", "tingkat", "jurusan"],
+      headers: ["nama", "tingkat", "jurusan", "jumlahSiswa"],
       contoh: [
-        ["X IPA 1", "X", "IPA"],
-        ["X IPS 1", "X", "IPS"],
-        ["XI IPA 1", "XI", "IPA"],
+        ["X IPA 1", "X", "IPA", 35],
+        ["X IPS 1", "X", "IPS", 32],
+        ["XI IPA 1", "XI", "IPA", 36],
       ],
       info: [
         ["PETUNJUK:"],
         ["tingkat: X / XI / XII"],
         ["jurusan: IPA / IPS / Bahasa / Umum"],
+        ["jumlahSiswa: total siswa di kelas (angka, boleh 0)"],
       ],
     },
     mapel: {
@@ -251,6 +252,7 @@ function parseKelas(rows) {
         nama,
         tingkat: String(r.tingkat).trim(),
         jurusan: String(r.jurusan).trim(),
+        jumlahSiswa: parseInt(r.jumlahSiswa) || 0,
         duplikat: !!exists,
         valid: !exists,
       };
@@ -369,6 +371,11 @@ function renderPreviewKelas() {
             <td>${k.tingkat}</td>
             <td>${k.jurusan}</td>
             <td>
+              <span class="badge badge-siswa">
+                <i class="fas fa-users"></i> ${k.jumlahSiswa || 0} siswa
+              </span>
+            </td>
+            <td>
               ${
                 k.duplikat
                   ? '<span class="badge badge-danger">Duplikat</span>'
@@ -379,7 +386,7 @@ function renderPreviewKelas() {
         `,
         )
         .join("")
-    : `<tr><td colspan="5"
+    : `<tr><td colspan="6"
           style="text-align:center;color:var(--gray-400);padding:24px">
           Tidak ada data kelas.
          </td></tr>`;
@@ -451,6 +458,7 @@ function konfirmasiImport() {
         nama: k.nama,
         tingkat: k.tingkat,
         jurusan: k.jurusan,
+        jumlahSiswa: k.jumlahSiswa || 0,
         aktif: true,
       });
       total++;

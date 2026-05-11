@@ -254,8 +254,51 @@
             </textarea>
           </div>
 
+          <!-- Info Total Siswa -->
+          <div
+            style="
+              background: linear-gradient(135deg, #059669, #047857);
+              border-radius: var(--radius-md);
+              padding: 14px 18px;
+              margin-bottom: 16px;
+              color: white;
+              display: flex;
+              align-items: center;
+              gap: 12px;
+            "
+          >
+            <div
+              style="
+                width: 42px;
+                height: 42px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.2);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                flex-shrink: 0;
+              "
+            >
+              👥
+            </div>
+            <div>
+              <div style="font-size: var(--text-xs); opacity: 0.85">
+                Total Siswa di Kelas
+              </div>
+              <div style="font-size: var(--text-2xl); font-weight: 700">
+                <span id="totalSiswaKelas">0</span> Siswa
+              </div>
+            </div>
+          </div>
+
           <!-- Kehadiran -->
-          <label class="form-label">Data Kehadiran</label>
+          <label class="form-label">
+            Jumlah Siswa yang Tidak Hadir
+            <span class="text-muted" style="font-weight: 400">
+              (Sisanya otomatis dihitung hadir)
+            </span>
+          </label>
           <div
             style="
               display: grid;
@@ -264,23 +307,6 @@
               margin-bottom: 12px;
             "
           >
-            <div class="form-group" style="margin: 0">
-              <label class="form-label" style="font-size: 11px">
-                <i
-                  class="fas fa-circle-check"
-                  style="color: var(--success)"
-                ></i>
-                Hadir
-              </label>
-              <input
-                type="number"
-                class="form-control"
-                id="formJurnalHadir"
-                min="0"
-                value="0"
-                oninput="hitungKehadiran()"
-              />
-            </div>
             <div class="form-group" style="margin: 0">
               <label class="form-label" style="font-size: 11px">
                 <i class="fas fa-circle-xmark" style="color: var(--danger)"></i>
@@ -312,6 +338,23 @@
                 oninput="hitungKehadiran()"
               />
             </div>
+            <div class="form-group" style="margin: 0">
+              <label class="form-label" style="font-size: 11px">
+                <i
+                  class="fas fa-circle-question"
+                  style="color: var(--gray-400)"
+                ></i>
+                Alpha
+              </label>
+              <input
+                type="number"
+                class="form-control"
+                id="formJurnalAlpha"
+                min="0"
+                value="0"
+                oninput="hitungKehadiran()"
+              />
+            </div>
           </div>
 
           <!-- Ringkasan kehadiran -->
@@ -320,29 +363,59 @@
               background: var(--gray-50);
               border: 1px solid var(--gray-200);
               border-radius: var(--radius-md);
-              padding: 12px;
+              padding: 14px 16px;
               margin-bottom: 16px;
-              display: flex;
-              gap: 20px;
-              flex-wrap: wrap;
               font-size: var(--text-sm);
             "
           >
-            <span>
-              <i class="fas fa-circle-check" style="color: var(--success)"></i>
-              Hadir: <strong id="ringkasHadir">0</strong>
-            </span>
-            <span>
-              <i class="fas fa-circle-xmark" style="color: var(--danger)"></i>
-              Sakit: <strong id="ringkasTotal">0</strong>
-            </span>
-            <span>
-              <i
-                class="fas fa-circle-question"
-                style="color: var(--gray-400)"
-              ></i>
-              Alpha: <strong id="ringkasAlpha">0</strong>
-            </span>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8px;
+              "
+            >
+              <span style="color: var(--gray-500)">Ringkasan Kehadiran:</span>
+              <span style="font-weight: 600; color: var(--gray-700)">
+                Total: <span id="totalSiswaRingkas">0</span> siswa
+              </span>
+            </div>
+            <div
+              style="
+                display: flex;
+                gap: 16px;
+                flex-wrap: wrap;
+                padding-top: 8px;
+                border-top: 1px solid var(--gray-200);
+              "
+            >
+              <span>
+                <i
+                  class="fas fa-circle-check"
+                  style="color: var(--success)"
+                ></i>
+                Hadir: <strong id="ringkasHadir">0</strong>
+              </span>
+              <span>
+                <i class="fas fa-circle-xmark" style="color: var(--danger)"></i>
+                Sakit: <strong id="ringkasSakit">0</strong>
+              </span>
+              <span>
+                <i
+                  class="fas fa-circle-minus"
+                  style="color: var(--warning)"
+                ></i>
+                Izin: <strong id="ringkasIzin">0</strong>
+              </span>
+              <span>
+                <i
+                  class="fas fa-circle-question"
+                  style="color: var(--gray-400)"
+                ></i>
+                Alpha: <strong id="ringkasAlpha">0</strong>
+              </span>
+            </div>
           </div>
 
           <!-- Keterangan -->

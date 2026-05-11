@@ -990,6 +990,11 @@ function renderKelasTable() {
           <td><span class="badge badge-gray">${k.tingkat}</span></td>
           <td>${k.jurusan}</td>
           <td>
+            <span class="badge badge-siswa" style="font-size:13px">
+              <i class="fas fa-users"></i> ${k.jumlahSiswa || 0} siswa
+            </span>
+          </td>
+          <td>
             <span class="badge ${k.aktif ? "badge-success" : "badge-gray"}">
               ${k.aktif ? "Aktif" : "Nonaktif"}
             </span>
@@ -1010,7 +1015,7 @@ function renderKelasTable() {
       `,
         )
         .join("")
-    : `<tr><td colspan="6" style="text-align:center;
+    : `<tr><td colspan="7" style="text-align:center;
         color:var(--gray-400);padding:32px">
         Belum ada kelas.
        </td></tr>`;
@@ -1025,6 +1030,7 @@ function openKelasModal(id = null) {
     document.getElementById("kelasNama").value = k.nama;
     document.getElementById("kelasTingkat").value = k.tingkat;
     document.getElementById("kelasJurusan").value = k.jurusan;
+    document.getElementById("kelasJumlahSiswa").value = k.jumlahSiswa || 0;
     document.getElementById("kelasAktif").value = String(k.aktif);
   } else {
     document.getElementById("modalKelasTitle").textContent = "Tambah Kelas";
@@ -1032,6 +1038,7 @@ function openKelasModal(id = null) {
     document.getElementById("kelasNama").value = "";
     document.getElementById("kelasTingkat").value = "X";
     document.getElementById("kelasJurusan").value = "IPA";
+    document.getElementById("kelasJumlahSiswa").value = 0;
     document.getElementById("kelasAktif").value = "true";
   }
   openModal("modalKelas");
@@ -1042,18 +1049,26 @@ function saveKelas() {
   const nama = document.getElementById("kelasNama").value.trim();
   const tingkat = document.getElementById("kelasTingkat").value;
   const jurusan = document.getElementById("kelasJurusan").value;
+  const jumlahSiswa =
+    parseInt(document.getElementById("kelasJumlahSiswa").value) || 0;
   const aktif = document.getElementById("kelasAktif").value === "true";
 
   if (!nama) return showFormError("kelasFormError", "Nama kelas wajib diisi.");
+  if (jumlahSiswa < 0)
+    return showFormError(
+      "kelasFormError",
+      "Jumlah siswa tidak boleh negatif.",
+    );
 
   if (id) {
-    dbUpdate(DB_KEYS.kelas, id, { nama, tingkat, jurusan, aktif });
+    dbUpdate(DB_KEYS.kelas, id, { nama, tingkat, jurusan, jumlahSiswa, aktif });
   } else {
     dbInsert(DB_KEYS.kelas, {
       id: generateId("kls"),
       nama,
       tingkat,
       jurusan,
+      jumlahSiswa,
       aktif,
     });
   }
@@ -1187,9 +1202,21 @@ function renderRekapJurnal() {
               </div>
             </td>
             <td>
-              <span class="badge badge-success">
-                ${j.jumlahHadir || 0} hadir
-              </span>
+              <div style="font-size:var(--text-xs);display:flex;
+                flex-direction:column;gap:2px">
+                <span style="color:var(--success)">
+                  ✓ ${j.jumlahHadir || 0} hadir
+                </span>
+                <span style="color:var(--danger)">
+                  ✗ ${j.jumlahSakit || 0} sakit
+                </span>
+                <span style="color:var(--warning)">
+                  ~ ${j.jumlahIzin || 0} izin
+                </span>
+                <span style="color:var(--gray-400)">
+                  ? ${j.jumlahAlpha || 0} alpha
+                </span>
+              </div>
             </td>
             <td style="font-size:var(--text-xs);color:var(--gray-500)">
               ${u?.nama || "—"}

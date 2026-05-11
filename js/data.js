@@ -113,17 +113,52 @@ const INITIAL_USERS = [
     aktif: true,
     createdAt: new Date().toISOString(),
   },
+
+  // Siswa tambahan untuk X IPA 2 (total 35 siswa)
+  ...Array.from({ length: 33 }, (_, i) => ({
+    id: `u${String(100 + i).padStart(3, "0")}`,
+    nama: `Siswa ${i + 1} X IPA 2`,
+    username: `siswa${i + 1}`,
+    password: "siswa123",
+    role: "siswa",
+    jabatan: null,
+    kelasId: "kls002",
+    aktif: true,
+    createdAt: new Date().toISOString(),
+  })),
 ];
 
 const INITIAL_KELAS = [
-  { id: "kls001", nama: "X IPA 1", tingkat: "X", jurusan: "IPA", aktif: true },
-  { id: "kls002", nama: "X IPA 2", tingkat: "X", jurusan: "IPA", aktif: true },
-  { id: "kls003", nama: "X IPS 1", tingkat: "X", jurusan: "IPS", aktif: true },
+  {
+    id: "kls001",
+    nama: "X IPA 1",
+    tingkat: "X",
+    jurusan: "IPA",
+    jumlahSiswa: 2,
+    aktif: true,
+  },
+  {
+    id: "kls002",
+    nama: "X IPA 2",
+    tingkat: "X",
+    jurusan: "IPA",
+    jumlahSiswa: 35,
+    aktif: true,
+  },
+  {
+    id: "kls003",
+    nama: "X IPS 1",
+    tingkat: "X",
+    jurusan: "IPS",
+    jumlahSiswa: 0,
+    aktif: true,
+  },
   {
     id: "kls004",
     nama: "XI IPA 1",
     tingkat: "XI",
     jurusan: "IPA",
+    jumlahSiswa: 0,
     aktif: true,
   },
   {
@@ -131,6 +166,7 @@ const INITIAL_KELAS = [
     nama: "XI IPS 1",
     tingkat: "XI",
     jurusan: "IPS",
+    jumlahSiswa: 0,
     aktif: true,
   },
   {
@@ -138,6 +174,7 @@ const INITIAL_KELAS = [
     nama: "XII IPA 1",
     tingkat: "XII",
     jurusan: "IPA",
+    jumlahSiswa: 0,
     aktif: true,
   },
 ];
@@ -455,6 +492,27 @@ function getJamAktifSekarang() {
       return jamSekarang >= toleransi && jamSekarang < j.selesai;
     })
     .map((j) => j.ke);
+}
+
+/**
+ * Cek apakah jadwal sudah terlewat (jam pelajaran sudah selesai)
+ * @param {array} jamKeArr - array jam pelajaran [1,2,3]
+ * @returns {boolean}
+ */
+function isJadwalTerlewat(jamKeArr) {
+  const jamSekarang = getJamSekarang();
+  const jams = dbGetAll(DB_KEYS.jamPelajaran).filter(
+    (j) => j.tipe === "pelajaran",
+  );
+
+  // Ambil jam terakhir dari jadwal
+  const jamTerakhir = Math.max(...jamKeArr);
+  const infoJamTerakhir = jams.find((j) => j.ke === jamTerakhir);
+
+  if (!infoJamTerakhir) return false;
+
+  // Jadwal terlewat jika jam sekarang sudah melewati jam selesai
+  return jamSekarang > infoJamTerakhir.selesai;
 }
 
 /**

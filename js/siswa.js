@@ -394,13 +394,22 @@ function renderBeranda() {
             </div>
             <div style="display:flex;flex-direction:column;
               align-items:flex-end;gap:4px">
-              <span class="badge ${konf ? "badge-success" : "badge-warning"}">
-                ${
-                  konf
-                    ? '<i class="fas fa-circle-check"></i> Guru Hadir'
-                    : '<i class="fas fa-clock"></i> Menunggu Guru'
+              ${(() => {
+                const terlewat = isJadwalTerlewat(j.jamKe);
+                if (konf) {
+                  return `<span class="badge badge-success">
+                    <i class="fas fa-circle-check"></i> Guru Hadir
+                  </span>`;
+                } else if (terlewat) {
+                  return `<span class="badge badge-danger">
+                    <i class="fas fa-circle-xmark"></i> Terlewat
+                  </span>`;
+                } else {
+                  return `<span class="badge badge-warning">
+                    <i class="fas fa-clock"></i> Menunggu Guru
+                  </span>`;
                 }
-              </span>
+              })()}
               <span class="badge ${jurnal ? "badge-siswa" : "badge-gray"}">
                 ${
                   jurnal
@@ -550,14 +559,23 @@ function renderKartuSesi(j) {
           <!-- Status badges -->
           <div style="display:flex;flex-direction:column;
             align-items:flex-end;gap:6px">
-            <span class="badge ${konf ? "badge-success" : "badge-warning"}">
-              ${
-                konf
-                  ? `<i class="fas fa-circle-check"></i>
-                   Guru Hadir — ${konfData?.waktuKonfirmasi || ""}`
-                  : `<i class="fas fa-clock"></i> Menunggu Guru`
+            ${(() => {
+              const terlewat = isJadwalTerlewat(j.jamKe);
+              if (konf) {
+                return `<span class="badge badge-success">
+                  <i class="fas fa-circle-check"></i>
+                  Guru Hadir — ${konfData?.waktuKonfirmasi || ""}
+                </span>`;
+              } else if (terlewat) {
+                return `<span class="badge badge-danger">
+                  <i class="fas fa-circle-xmark"></i> Terlewat
+                </span>`;
+              } else {
+                return `<span class="badge badge-warning">
+                  <i class="fas fa-clock"></i> Menunggu Guru
+                </span>`;
               }
-            </span>
+            })()}
             <span class="badge ${jurnal ? "badge-siswa" : "badge-gray"}">
               ${
                 jurnal
@@ -627,6 +645,9 @@ function renderKartuSesi(j) {
                        <span style="color:var(--warning)">
                          ~ ${jurnal.jumlahIzin || 0} izin
                        </span>
+                       <span style="color:var(--gray-400)">
+                         ? ${jurnal.jumlahAlpha || 0} alpha
+                       </span>
                      </div>
                    </div>
                  </div>
@@ -693,11 +714,18 @@ function isiJurnal(jadwalId) {
     </div>
   `;
 
+  // Hitung total siswa di kelas dari data kelas
+  const kelas = dbGetById(DB_KEYS.kelas, currentSession.kelasId);
+  const totalSiswa = kelas?.jumlahSiswa || 0;
+
+  document.getElementById("totalSiswaKelas").textContent = totalSiswa;
+  document.getElementById("totalSiswaRingkas").textContent = totalSiswa;
+
   // Reset form
   document.getElementById("formJurnalMateri").value = "";
-  document.getElementById("formJurnalHadir").value = 0;
   document.getElementById("formJurnalSakit").value = 0;
   document.getElementById("formJurnalIzin").value = 0;
+  document.getElementById("formJurnalAlpha").value = 0;
   document.getElementById("formJurnalKeterangan").value = "";
   hitungKehadiran();
 
@@ -731,11 +759,18 @@ function editJurnal(jurnalId, jadwalId) {
     </div>
   `;
 
+  // Hitung total siswa di kelas dari data kelas
+  const kelas = dbGetById(DB_KEYS.kelas, currentSession.kelasId);
+  const totalSiswa = kelas?.jumlahSiswa || 0;
+
+  document.getElementById("totalSiswaKelas").textContent = totalSiswa;
+  document.getElementById("totalSiswaRingkas").textContent = totalSiswa;
+
   // Isi form dengan data jurnal
   document.getElementById("formJurnalMateri").value = jurnal?.materi || "";
-  document.getElementById("formJurnalHadir").value = jurnal?.jumlahHadir || 0;
   document.getElementById("formJurnalSakit").value = jurnal?.jumlahSakit || 0;
   document.getElementById("formJurnalIzin").value = jurnal?.jumlahIzin || 0;
+  document.getElementById("formJurnalAlpha").value = jurnal?.jumlahAlpha || 0;
   document.getElementById("formJurnalKeterangan").value =
     jurnal?.keterangan || "";
   hitungKehadiran();
@@ -747,19 +782,31 @@ function simpanJurnal() {
   const id = document.getElementById("jurnalId").value;
   const jadwalId = document.getElementById("jurnalJadwalId").value;
   const materi = document.getElementById("formJurnalMateri").value.trim();
-  const hadir = parseInt(document.getElementById("formJurnalHadir").value) || 0;
   const sakit = parseInt(document.getElementById("formJurnalSakit").value) || 0;
   const izin = parseInt(document.getElementById("formJurnalIzin").value) || 0;
+  const alpha = parseInt(document.getElementById("formJurnalAlpha").value) || 0;
   const keterangan = document
     .getElementById("formJurnalKeterangan")
     .value.trim();
 
+  // Hitung total siswa dan hadir dari data kelas
+  const kelas = dbGetById(DB_KEYS.kelas, currentSession.kelasId);
+  const totalSiswa = kelas?.jumlahSiswa || 0;
+
+  const hadir = totalSiswa - sakit - izin - alpha;
+
   // Validasi
   if (!materi) return showFormError("jurnalFormError", "Materi wajib diisi.");
-  if (hadir < 0 || sakit < 0 || izin < 0)
+  if (sakit < 0 || izin < 0 || alpha < 0)
     return showFormError(
       "jurnalFormError",
       "Jumlah kehadiran tidak boleh negatif.",
+    );
+
+  if (hadir < 0)
+    return showFormError(
+      "jurnalFormError",
+      "Total tidak hadir melebihi jumlah siswa di kelas!",
     );
 
   // Cek konfirmasi guru masih valid
@@ -771,14 +818,6 @@ function simpanJurnal() {
   }
 
   const jadwal = dbGetById(DB_KEYS.jadwal, jadwalId);
-  const alpha = Math.max(
-    0,
-    dbGetAll(DB_KEYS.users).filter((u) => u.kelasId === currentSession.kelasId)
-      .length -
-      hadir -
-      sakit -
-      izin,
-  );
 
   const data = {
     kelasId: currentSession.kelasId,
@@ -838,19 +877,35 @@ function hapusJurnal(jurnalId) {
 // ── Hitung Kehadiran ──────────────────────────────────────
 
 function hitungKehadiran() {
-  const hadir = parseInt(document.getElementById("formJurnalHadir").value) || 0;
   const sakit = parseInt(document.getElementById("formJurnalSakit").value) || 0;
   const izin = parseInt(document.getElementById("formJurnalIzin").value) || 0;
+  const alpha = parseInt(document.getElementById("formJurnalAlpha").value) || 0;
 
-  const totalSiswa = dbGetAll(DB_KEYS.users).filter(
-    (u) => u.kelasId === currentSession?.kelasId,
-  ).length;
+  // Ambil jumlah siswa dari data kelas
+  const kelas = dbGetById(DB_KEYS.kelas, currentSession?.kelasId);
+  const totalSiswa = kelas?.jumlahSiswa || 0;
 
-  const alpha = Math.max(0, totalSiswa - hadir - sakit - izin);
+  const hadir = Math.max(0, totalSiswa - sakit - izin - alpha);
 
+  // Update ringkasan
   document.getElementById("ringkasHadir").textContent = hadir;
-  document.getElementById("ringkasTotal").textContent = sakit + izin;
+  document.getElementById("ringkasSakit").textContent = sakit;
+  document.getElementById("ringkasIzin").textContent = izin;
   document.getElementById("ringkasAlpha").textContent = alpha;
+
+  // Validasi visual jika total melebihi
+  const totalTidakHadir = sakit + izin + alpha;
+  const ringkasContainer = document
+    .getElementById("ringkasHadir")
+    .closest("div");
+
+  if (totalTidakHadir > totalSiswa) {
+    ringkasContainer.style.background = "#FEE2E2";
+    ringkasContainer.style.borderColor = "#EF4444";
+  } else {
+    ringkasContainer.style.background = "var(--gray-50)";
+    ringkasContainer.style.borderColor = "var(--gray-200)";
+  }
 }
 
 // ── Banner Hari Libur ─────────────────────────────────────

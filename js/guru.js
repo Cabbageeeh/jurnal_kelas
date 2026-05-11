@@ -34,6 +34,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const activePage = document.querySelector('[id^="page-"]:not(.hidden)');
     if (activePage?.id === "page-jadwal-aktif") {
       renderJadwalAktif();
+    } else if (activePage?.id === "page-jadwal-hari-ini") {
+      renderJadwalHariIni();
     }
   }, 60000);
 });
@@ -537,6 +539,7 @@ function renderJadwalHariIni() {
                   const sedangBerlangsung = j.jamKe.some((ke) =>
                     jamAktif.includes(ke),
                   );
+                  const terlewat = isJadwalTerlewat(j.jamKe);
 
                   return `
                   <tr style="${sedangBerlangsung ? "background:#ECFEFF;" : ""}">
@@ -573,7 +576,12 @@ function renderJadwalHariIni() {
                               onclick="bukaKonfirmasi('${j.id}')">
                               <i class="fas fa-camera"></i> Konfirmasi
                              </button>`
-                            : `<span class="badge badge-gray">Menunggu</span>`
+                            : terlewat
+                              ? `<span class="badge badge-danger">
+                                <i class="fas fa-circle-xmark"></i>
+                                Terlewat
+                               </span>`
+                              : `<span class="badge badge-gray">Menunggu</span>`
                       }
                     </td>
                   </tr>
