@@ -1253,6 +1253,32 @@ function renderRekapKonfirmasi() {
                 <i class="fas fa-clock"></i> ${k.waktuKonfirmasi || "—"}
               </span>
             </td>
+<td>
+  ${
+    k.lokasi
+      ? `<div style="font-size:var(--text-xs);max-width:150px">
+        <div style="color:var(--success);font-weight:600;
+          margin-bottom:2px">
+          <i class="fas fa-location-dot"></i>
+          ±${k.lokasi.akurasi}m
+        </div>
+        <div style="color:var(--gray-500);
+          white-space:nowrap;overflow:hidden;
+          text-overflow:ellipsis"
+          title="${k.lokasi.alamat}">
+          ${k.lokasi.alamat}
+        </div>
+        <a href="https://maps.google.com/?q=${k.lokasi.lat},${k.lokasi.lon}"
+          target="_blank"
+          style="font-size:var(--text-xs);color:var(--primary)">
+          <i class="fas fa-map"></i> Lihat di Maps
+        </a>
+       </div>`
+      : `<span class="badge badge-gray">
+        <i class="fas fa-location-slash"></i> Tidak ada
+       </span>`
+  }
+</td>
             <td>
               ${
                 k.foto
@@ -1299,6 +1325,29 @@ function lihatFoto(konfId) {
     Jam ${j?.jamKe?.join(", ") || "—"} •
     ${formatTanggal(k?.tanggal)} •
     ${k?.waktuKonfirmasi || "—"}
+  ${
+    k?.lokasi
+      ? `<br/><br/>
+         <i class="fas fa-location-dot"
+           style="color:var(--success)"></i>
+         <strong>Lokasi:</strong>
+         ${k.lokasi.alamat}<br/>
+         <span style="font-size:var(--text-xs);
+           color:var(--gray-400)">
+           Akurasi: ±${k.lokasi.akurasi}m •
+           ${k.lokasi.lat.toFixed(6)},
+           ${k.lokasi.lon.toFixed(6)}
+         </span><br/>
+         <a href="https://maps.google.com/?q=${k.lokasi.lat},${k.lokasi.lon}"
+           target="_blank" class="btn btn-sm btn-outline"
+           style="margin-top:8px;display:inline-flex">
+           <i class="fas fa-map"></i> Buka Google Maps
+         </a>`
+      : `<br/><span style="color:var(--gray-400);
+          font-size:var(--text-xs)">
+          Lokasi tidak tersedia
+         </span>`
+  }
   `;
   openModal("modalFoto");
 }
@@ -1740,4 +1789,3 @@ function clearFilterLibur() {
   document.getElementById("filterLiburTipe").value = "";
   renderHariLiburTable();
 }
-

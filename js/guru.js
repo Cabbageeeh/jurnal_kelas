@@ -8,6 +8,7 @@ let streamKamera = null;
 let fotoDataUrl = null;
 let jadwalKonfirmId = null; // jadwal yang sedang dikonfirmasi
 let autoRefreshTimer = null;
+let dataLokasi = null;
 
 // ── Init ──────────────────────────────────────────────────
 
@@ -59,6 +60,135 @@ function updateWaktu() {
       minute: "2-digit",
     },
   );
+}
+
+// ── Lokasi ────────────────────────────────────────────────
+
+async function ambilLokasi() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve(null);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        const akurasi = Math.round(position.coords.accuracy);
+
+        // Reverse geocoding via Nominatim
+        let alamat = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse` +
+              `?lat=${lat}&lon=${lon}&format=json&addressdetails=1`,
+            { headers: { "Accept-Language": "id" } },
+          );
+          const data = await res.json();
+
+          // Ambil bagian alamat yang relevan
+          const addr = data.address || {};
+          const parts = [
+            addr.road || addr.pedestrian || "",
+            addr.suburb || addr.village || "",
+            addr.city || addr.town || addr.county || "",
+          ].filter(Boolean);
+
+          alamat = parts.join(", ") || data.display_name || alamat;
+        } catch (e) {
+          // Gagal geocoding, pakai koordinat saja
+          console.warn("Reverse geocoding gagal:", e);
+        }
+
+        resolve({ lat, lon, akurasi, alamat });
+      },
+      (error) => {
+        // User tolak izin atau GPS tidak tersedia
+        console.warn("Geolocation error:", error.message);
+        resolve(null);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      },
+    );
+  });
+}
+
+function renderStatusLokasi(status) {
+  // Cari atau buat elemen status lokasi di modal
+  let el = document.getElementById("statusLokasi");
+  if (!el) {
+    // Sisipkan sebelum alert warning di modal
+    const alertEl = document.querySelector("#modalKonfirmasi .alert-warning");
+    if (alertEl) {
+      el = document.createElement("div");
+      el.id = "statusLokasi";
+      el.style.marginBottom = "12px";
+      alertEl.parentNode.insertBefore(el, alertEl);
+    }
+  }
+  if (!el) return;
+
+  if (status === "loading") {
+    el.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;
+        padding:10px 14px;background:var(--gray-50);
+        border:1px solid var(--gray-200);
+        border-radius:var(--radius-md);
+        font-size:var(--text-sm);color:var(--gray-500)">
+        <i class="fas fa-spinner fa-spin"
+          style="color:var(--primary)"></i>
+        Mengambil lokasi...
+      </div>
+    `;
+  } else if (status === "success" && dataLokasi) {
+    const akurasiColor =
+      dataLokasi.akurasi <= 50
+        ? "var(--success)"
+        : dataLokasi.akurasi <= 100
+          ? "var(--warning)"
+          : "var(--danger)";
+
+    el.innerHTML = `
+      <div style="padding:10px 14px;
+        background:#ECFDF5;border:1px solid #6EE7B7;
+        border-radius:var(--radius-md);font-size:var(--text-sm)">
+        <div style="display:flex;align-items:center;
+          gap:8px;margin-bottom:4px">
+          <i class="fas fa-location-dot"
+            style="color:var(--success)"></i>
+          <span style="font-weight:600;color:#065F46">
+            Lokasi Terdeteksi
+          </span>
+          <span style="margin-left:auto;font-size:var(--text-xs);
+            color:${akurasiColor};font-weight:600">
+            ±${dataLokasi.akurasi}m
+          </span>
+        </div>
+        <div style="font-size:var(--text-xs);color:var(--gray-600);
+          padding-left:22px;line-height:1.5">
+          📍 ${dataLokasi.alamat}
+        </div>
+      </div>
+    `;
+  } else {
+    el.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;
+        padding:10px 14px;
+        background:#FEF3C7;border:1px solid #FCD34D;
+        border-radius:var(--radius-md);
+        font-size:var(--text-sm);color:#92400E">
+        <i class="fas fa-location-crosshairs"></i>
+        <span>
+          Lokasi tidak tersedia. Konfirmasi tetap bisa dilakukan
+          tanpa data lokasi.
+        </span>
+      </div>
+    `;
+  }
 }
 
 // ── Banner Hari Libur ─────────────────────────────────────
@@ -460,7 +590,7 @@ function renderJadwalHariIni() {
 
 // ── KONFIRMASI KEHADIRAN ──────────────────────────────────
 
-function bukaKonfirmasi(jadwalId) {
+async function bukaKonfirmasi(jadwalId) {
   // Cek ulang apakah jam masih aktif
   const jadwal = dbGetById(DB_KEYS.jadwal, jadwalId);
   const jamAktif = getJamAktifSekarang();
@@ -482,6 +612,7 @@ function bukaKonfirmasi(jadwalId) {
 
   jadwalKonfirmId = jadwalId;
   fotoDataUrl = null;
+  dataLokasi = null;
 
   // Reset modal
   const kelas = dbGetById(DB_KEYS.kelas, jadwal.kelasId);
@@ -504,7 +635,12 @@ function bukaKonfirmasi(jadwalId) {
   document.getElementById("konfirmasiError").classList.add("hidden");
   document.getElementById("btnSimpanKonfirmasi").disabled = true;
 
+  renderStatusLokasi("loading");
+
   openModal("modalKonfirmasi");
+
+  dataLokasi = await ambilLokasi();
+  renderStatusLokasi(dataLokasi ? "success" : "gagal");
 }
 
 function resetKameraUI() {
@@ -534,13 +670,27 @@ async function aktifkanKamera() {
     document.getElementById("btnAmbilFoto").classList.remove("hidden");
 
     showToast("Kamera aktif! Siap mengambil foto.", "info");
+    // Tombol ambil foto disable dulu sampai lokasi dapat
+    document.getElementById("btnAmbilFoto").disabled = true;
+    renderStatusLokasi("loading");
+
+    dataLokasi = await ambilLokasi();
+    renderStatusLokasi(dataLokasi ? "success" : "gagal");
+
+    // Aktifkan tombol ambil foto setelah lokasi selesai
+    document.getElementById("btnAmbilFoto").disabled = false;
+
+    if (dataLokasi) {
+      showToast("Lokasi terdeteksi! Siap ambil foto.", "success");
+    } else {
+      showToast(
+        "Lokasi tidak tersedia. Foto tetap bisa diambil.",
+        "warning",
+        4000,
+      );
+    }
   } catch (err) {
-    // Jika kamera tidak tersedia, konfirmasi tetap bisa tanpa foto
-    showToast(
-      "Kamera tidak tersedia. Konfirmasi akan dilakukan tanpa foto.",
-      "warning",
-      4000,
-    );
+    showToast("Kamera tidak tersedia. Konfirmasi tanpa foto.", "warning", 4000);
     document.getElementById("kameraPlaceholder").innerHTML = `
       <i class="fas fa-camera-slash"
         style="font-size:48px;opacity:0.5;color:white"></i>
@@ -549,7 +699,6 @@ async function aktifkanKamera() {
       </p>
     `;
     document.getElementById("btnAktifkanKamera").classList.add("hidden");
-    // Aktifkan tombol simpan meski tanpa foto
     document.getElementById("btnSimpanKonfirmasi").disabled = false;
   }
 }
@@ -563,24 +712,106 @@ function ambilFoto() {
   canvas.height = video.videoHeight || 480;
 
   const ctx = canvas.getContext("2d");
-  // Mirror horizontal agar tidak terbalik
+
+  // Gambar video normal (tidak mirror) ke canvas
+  ctx.save();
   ctx.translate(canvas.width, 0);
   ctx.scale(-1, 1);
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  ctx.restore();
 
-  fotoDataUrl = canvas.toDataURL("image/jpeg", 0.7);
+  // ── Timestamp & Info Overlay ──────────────────────────
+  const now = new Date();
+  const tanggal = now.toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  const waktu = now.toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 
-  // Tampilkan preview foto
+  const jadwal = dbGetById(DB_KEYS.jadwal, jadwalKonfirmId);
+  const kelas = dbGetById(DB_KEYS.kelas, jadwal?.kelasId);
+  const mapel = dbGetById(DB_KEYS.mapel, jadwal?.mapelId);
+  const profil = getProfilSekolah();
+
+  const lines = [
+    profil.namaSekolah || "Jurnal Kelas Digital",
+    `${currentSession.nama}`,
+    `${kelas?.nama || "—"} — ${mapel?.nama || "—"}`,
+    `Jam ${jadwal?.jamKe?.join(", ") || "—"}`,
+    `${tanggal}  ${waktu}`,
+    dataLokasi
+      ? `📍 ${dataLokasi.alamat.substring(0, 50)}${
+          dataLokasi.alamat.length > 50 ? "..." : ""
+        } (±${dataLokasi.akurasi}m)`
+      : "📍 Lokasi tidak tersedia",
+  ];
+
+  const padding = 12;
+  const fontSize = Math.max(12, canvas.width * 0.022);
+  const lineHeight = fontSize * 1.5;
+  const boxHeight = lines.length * lineHeight + padding * 2;
+  const boxY = canvas.height - boxHeight;
+
+  // Background semi-transparan
+  ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+  ctx.fillRect(0, boxY, canvas.width, boxHeight);
+
+  // Garis atas box
+  ctx.fillStyle = "#4F46E5";
+  ctx.fillRect(0, boxY, canvas.width, 3);
+
+  // Teks — pastikan tidak ada transform aktif
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+  ctx.textAlign = "left";
+
+  lines.forEach((line, i) => {
+    const y = boxY + padding + i * lineHeight + fontSize;
+
+    // Shadow
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.fillText(line, padding + 1, y + 1);
+
+    // Warna teks
+    if (i === 0) {
+      ctx.fillStyle = "#A5B4FC";
+    } else if (i === lines.length - 1) {
+      ctx.fillStyle = "#FCD34D";
+    } else {
+      ctx.fillStyle = "#FFFFFF";
+    }
+    ctx.fillText(line, padding, y);
+  });
+
+  // Verifikasi di pojok kanan
+  ctx.textAlign = "right";
+  ctx.fillStyle = "#4ADE80";
+  ctx.fillText(
+    "✓ TERVERIFIKASI",
+    canvas.width - padding,
+    boxY + padding + fontSize,
+  );
+
+  ctx.restore();
+  // ─────────────────────────────────────────────────────
+
+  fotoDataUrl = canvas.toDataURL("image/jpeg", 0.85);
+
   result.src = fotoDataUrl;
   result.style.display = "block";
   video.style.display = "none";
 
-  // Update tombol
   document.getElementById("btnAmbilFoto").classList.add("hidden");
   document.getElementById("btnRetake").classList.remove("hidden");
   document.getElementById("btnSimpanKonfirmasi").disabled = false;
 
-  // Hentikan kamera
   hentikanKamera();
   showToast("Foto berhasil diambil!", "success");
 }
@@ -649,6 +880,7 @@ function simpanKonfirmasi() {
     tanggal: getTodayStr(),
     waktuKonfirmasi: waktu,
     foto: fotoDataUrl || null,
+    lokasi: dataLokasi || null,
     createdAt: now.toISOString(),
   });
 
