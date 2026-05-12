@@ -180,19 +180,35 @@ function konfirmasiLogout() {
 // ── Init Halaman Login ────────────────────────────────────
 
 (function initLoginPage() {
-  // Hanya jalankan jika ini halaman login
   if (!document.getElementById("loginForm")) return;
 
-  // Bersihkan localStorage session lama jika ada
-  // (migrasi dari versi sebelumnya yang pakai localStorage)
-  if (localStorage.getItem(SESSION_KEY)) {
-    localStorage.removeItem(SESSION_KEY);
-  }
-
-  // Jika sessionStorage masih ada (tab masih aktif), redirect
   const session = getSession();
   if (session) {
     redirectToDashboard(session.role);
     return;
   }
+
+  // Load profil sekolah ke halaman login
+  loadProfilKeLogin();
 })();
+
+function loadProfilKeLogin() {
+  const profil = getProfilSekolah();
+
+  // Nama sekolah
+  const elNama = document.getElementById("loginNamaSekolah");
+  if (elNama) elNama.textContent = profil.namaSekolah || "Jurnal Kelas Digital";
+
+  // Alamat
+  const elAlamat = document.getElementById("loginAlamatSekolah");
+  if (elAlamat) elAlamat.textContent = profil.alamat || "";
+
+  // Logo
+  const elLogo = document.getElementById("loginLogo");
+  const elLogoDefault = document.getElementById("loginLogoDefault");
+  if (elLogo && profil.logo) {
+    elLogo.src = profil.logo;
+    elLogo.style.display = "block";
+    if (elLogoDefault) elLogoDefault.style.display = "none";
+  }
+}

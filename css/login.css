@@ -1,150 +1,255 @@
 /* ============================================
-   css/login.css — Halaman Login
+   css/login.css — Halaman Login v2.0
    ============================================ */
 
+/* ── Layout Utama ── */
 .login-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #0891b2 100%);
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
   padding: 20px;
   position: relative;
   overflow: hidden;
 }
 
-/* Dekorasi lingkaran latar belakang */
-.login-page::before,
-.login-page::after {
-  content: "";
+/* Dekorasi lingkaran */
+.login-bg-circle {
   position: absolute;
   border-radius: 50%;
-  opacity: 0.12;
+  opacity: 0.08;
   background: white;
+  pointer-events: none;
 }
 
-.login-page::before {
-  width: 500px;
-  height: 500px;
-  top: -150px;
-  right: -100px;
+.login-bg-circle-1 {
+  width: 600px;
+  height: 600px;
+  top: -200px;
+  right: -150px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  opacity: 0.15;
 }
 
-.login-page::after {
-  width: 350px;
-  height: 350px;
-  bottom: -100px;
-  left: -80px;
+.login-bg-circle-2 {
+  width: 400px;
+  height: 400px;
+  bottom: -150px;
+  left: -100px;
+  background: linear-gradient(135deg, #0891b2, #059669);
+  opacity: 0.12;
 }
 
-/* Kotak login utama */
+.login-bg-circle-3 {
+  width: 200px;
+  height: 200px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  opacity: 0.03;
+}
+
+/* Container 2 panel */
 .login-container {
+  display: flex;
   width: 100%;
-  max-width: 440px;
+  max-width: 920px;
+  min-height: 560px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.4);
+  position: relative;
+  z-index: 1;
+  animation: fadeInUp 0.5s ease;
+}
+
+/* ── Panel Kiri ── */
+.login-left {
+  flex: 1.1;
+  background: linear-gradient(160deg, #4f46e5 0%, #7c3aed 60%, #0891b2 100%);
+  padding: 48px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-left::before {
+  content: "";
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  top: -80px;
+  right: -80px;
+}
+
+.login-left::after {
+  content: "";
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  bottom: -60px;
+  left: -60px;
+}
+
+/* Info sekolah */
+.login-school-info {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.login-school-logo-wrapper {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.login-school-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 8px;
+  line-height: 1.3;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.login-school-address {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.5;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+/* Fitur */
+.login-features {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   position: relative;
   z-index: 1;
 }
 
-.login-card {
-  background: var(--white);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-xl);
-  overflow: hidden;
+.login-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  padding: 14px 16px;
+  transition: all 0.25s ease;
 }
 
-/* Bagian atas kartu (header) */
-.login-header {
-  padding: 36px 36px 28px;
+.login-feature-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateX(4px);
+}
+
+.login-feature-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-feature-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 2px;
+}
+
+.login-feature-desc {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.login-left-footer {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
-.login-logo {
-  width: 64px;
-  height: 64px;
+/* ── Panel Kanan ── */
+.login-right {
+  flex: 0.9;
+  background: var(--white);
+  padding: 40px 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-card {
+  width: 100%;
+}
+
+/* Header form */
+.login-form-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.login-form-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
   background: linear-gradient(135deg, var(--primary), var(--color-admin));
-  border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 16px;
-  font-size: 28px;
+  font-size: 22px;
   color: white;
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
 }
 
-.login-title {
-  font-size: var(--text-2xl);
+.login-form-title {
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--gray-800);
   margin-bottom: 6px;
 }
 
-.login-subtitle {
-  font-size: var(--text-sm);
+.login-form-subtitle {
+  font-size: 0.875rem;
   color: var(--gray-500);
 }
 
-/* Tab pilihan role */
-.role-tabs {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  padding: 0 28px 24px;
-}
-
-.role-tab {
-  padding: 10px 6px;
-  border-radius: var(--radius-md);
-  border: 2px solid var(--gray-200);
-  background: var(--white);
-  cursor: pointer;
-  text-align: center;
-  transition: var(--transition);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--gray-500);
-}
-
-.role-tab .tab-icon {
-  font-size: 20px;
-  display: block;
-  margin-bottom: 4px;
-}
-
-.role-tab:hover {
-  border-color: var(--primary-light);
-  color: var(--primary);
-}
-
-/* Warna aktif berdasarkan peran */
-.role-tab.active[data-role="admin"] {
-  border-color: var(--color-admin);
-  background: #f5f3ff;
-  color: var(--color-admin);
-}
-
-.role-tab.active[data-role="guru"] {
-  border-color: var(--color-guru);
-  background: #ecfeff;
-  color: var(--color-guru);
-}
-
-.role-tab.active[data-role="siswa"] {
-  border-color: var(--color-siswa);
-  background: #ecfdf5;
-  color: var(--color-siswa);
-}
-
-/* Form login */
-.login-form {
-  padding: 0 28px 28px;
-}
-
+/* Input */
 .input-icon-wrapper {
   position: relative;
 }
 
 .input-icon-wrapper .form-control {
   padding-left: 42px;
+  height: 48px;
 }
 
 .input-icon-wrapper .icon {
@@ -153,7 +258,7 @@
   top: 50%;
   transform: translateY(-50%);
   color: var(--gray-400);
-  font-size: 16px;
+  font-size: 15px;
   pointer-events: none;
 }
 
@@ -163,7 +268,7 @@
   top: 50%;
   transform: translateY(-50%);
   color: var(--gray-400);
-  font-size: 16px;
+  font-size: 15px;
   cursor: pointer;
 }
 
@@ -171,62 +276,50 @@
   color: var(--gray-600);
 }
 
-/* Tombol login berubah warna sesuai role */
+/* Tombol login */
 .btn-login {
   width: 100%;
-  padding: 13px;
+  height: 50px;
   border-radius: var(--radius-md);
   font-size: var(--text-base);
   font-weight: 600;
-  color: var(--white);
-  background: var(--primary);
-  transition: var(--transition);
-  margin-top: 6px;
-  position: relative;
-  overflow: hidden;
+  color: white;
+  background: linear-gradient(135deg, var(--primary), var(--color-admin));
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
 }
 
 .btn-login:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
+  box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
 }
 
-.btn-login.role-admin {
-  background: var(--color-admin);
-}
-.btn-login.role-admin:hover {
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+.btn-login:active {
+  transform: translateY(0);
 }
 
-.btn-login.role-guru {
-  background: var(--color-guru);
-}
-.btn-login.role-guru:hover {
-  box-shadow: 0 6px 20px rgba(8, 145, 178, 0.35);
-}
-
-.btn-login.role-siswa {
-  background: var(--color-siswa);
-}
-.btn-login.role-siswa:hover {
-  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.35);
-}
-
-/* Footer login */
-.login-footer {
-  padding: 16px 28px;
-  background: var(--gray-50);
-  border-top: 1px solid var(--gray-100);
+/* Footer form */
+.login-form-footer {
   text-align: center;
-  font-size: var(--text-xs);
+  font-size: 0.75rem;
   color: var(--gray-400);
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--gray-100);
 }
 
-/* Loading spinner di tombol */
+/* Loading spinner */
 .btn-spinner {
   display: none;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border: 2px solid rgba(255, 255, 255, 0.4);
   border-top-color: white;
   border-radius: 50%;
@@ -240,13 +333,7 @@
   display: block;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Error shake animation */
+/* Shake animation */
 @keyframes shake {
   0%,
   100% {
@@ -266,63 +353,63 @@
   animation: shake 0.4s ease;
 }
 
-/* Responsif mobile */
-@media (max-width: 480px) {
-  .login-header {
-    padding: 28px 20px 20px;
-  }
-  .role-tabs {
-    padding: 0 16px 20px;
-  }
-  .login-form {
-    padding: 0 16px 20px;
-  }
-  .login-footer {
-    padding: 14px 16px;
-  }
+/* ── Dark Mode ── */
+[data-theme="dark"] .login-page {
+  background: linear-gradient(135deg, #0f0c29, #1e1b4b, #0c1445);
 }
 
-/* Tambahan: Demo accounts info box */
-.demo-accounts {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.demo-account-item {
-  background: var(--gray-50);
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius-sm);
-  padding: 8px 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: var(--text-xs);
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.demo-account-item:hover {
+[data-theme="dark"] .login-right {
   background: var(--gray-100);
-  border-color: var(--primary-light);
 }
 
-.demo-account-item .demo-name {
-  font-weight: 600;
-  color: var(--gray-700);
+[data-theme="dark"] .login-form-title {
+  color: var(--gray-800);
 }
 
-.demo-account-item .demo-cred {
-  color: var(--gray-400);
-  font-family: monospace;
+[data-theme="dark"] .login-form-subtitle {
+  color: var(--gray-500);
 }
 
-/* Default tombol login (tanpa role tab) */
-.btn-login {
-  background: linear-gradient(135deg, var(--primary), var(--color-admin));
+[data-theme="dark"] .login-form-footer {
+  color: var(--gray-500);
+  border-color: var(--gray-200);
 }
 
-.btn-login:hover {
-  background: linear-gradient(135deg, var(--primary-dark), #6d28d9);
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
+/* ── Responsif ── */
+@media (max-width: 768px) {
+  .login-container {
+    flex-direction: column;
+    max-width: 440px;
+    min-height: auto;
+  }
+
+  .login-left {
+    padding: 32px 24px;
+    min-height: auto;
+  }
+
+  .login-features {
+    display: none;
+  }
+
+  .login-school-info {
+    margin-bottom: 0;
+  }
+
+  .login-left-footer {
+    margin-top: 16px;
+  }
+
+  .login-right {
+    padding: 32px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    padding: 12px;
+  }
+  .login-container {
+    border-radius: 16px;
+  }
 }

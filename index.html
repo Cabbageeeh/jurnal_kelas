@@ -4,15 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login — Jurnal Kelas Digital</title>
-
-    <!-- SEO & Meta -->
-    <meta
-      name="description"
-      content="Sistem Jurnal Kelas Digital — Pencatatan kegiatan belajar mengajar"
-    />
+    <meta name="description" content="Sistem Jurnal Kelas Digital" />
     <meta name="theme-color" content="#4F46E5" />
-
-    <!-- Favicon emoji (tidak perlu file gambar) -->
     <link
       rel="icon"
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📒</text></svg>"
@@ -26,69 +19,161 @@
   </head>
   <body>
     <div class="login-page">
+      <!-- Dekorasi background -->
+      <div class="login-bg-circle login-bg-circle-1"></div>
+      <div class="login-bg-circle login-bg-circle-2"></div>
+      <div class="login-bg-circle login-bg-circle-3"></div>
+
       <div class="login-container">
-        <div class="login-card">
-          <!-- Header -->
-          <div class="login-header">
-            <div class="login-logo">
-              <i class="fas fa-book-open"></i>
+        <!-- Panel Kiri — Info Sekolah -->
+        <div class="login-left">
+          <!-- Logo & Nama Sekolah -->
+          <div class="login-school-info">
+            <!-- Logo -->
+            <div class="login-school-logo-wrapper">
+              <img
+                id="loginLogo"
+                src=""
+                alt="Logo Sekolah"
+                style="
+                  display: none;
+                  width: 100%;
+                  height: 100%;
+                  object-fit: contain;
+                  border-radius: 50%;
+                "
+              />
+              <div
+                id="loginLogoDefault"
+                style="font-size: 56px; line-height: 1"
+              >
+                📒
+              </div>
             </div>
-            <h1 class="login-title">Jurnal Kelas Digital</h1>
-            <p class="login-subtitle">Masukkan username dan password Anda</p>
+
+            <!-- Nama & Alamat -->
+            <h1 class="login-school-name" id="loginNamaSekolah">
+              Jurnal Kelas Digital
+            </h1>
+            <p class="login-school-address" id="loginAlamatSekolah">
+              Sistem Pencatatan Jurnal Kelas
+            </p>
           </div>
 
-          <!-- Form Login -->
-          <form class="login-form" id="loginForm" onsubmit="handleLogin(event)">
-            <div class="alert alert-danger hidden" id="loginAlert">
-              <i class="fas fa-circle-exclamation"></i>
-              <span id="loginAlertMsg">Username atau password salah.</span>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="username">Username</label>
-              <div class="input-icon-wrapper">
-                <i class="fas fa-user icon"></i>
-                <input
-                  type="text"
-                  id="username"
-                  class="form-control"
-                  placeholder="Masukkan username"
-                  autocomplete="username"
-                  required
-                />
+          <!-- Fitur -->
+          <div class="login-features">
+            <div class="login-feature-item">
+              <div class="login-feature-icon">🛡️</div>
+              <div>
+                <div class="login-feature-title">Aman & Terpercaya</div>
+                <div class="login-feature-desc">Akses sesuai hak pengguna</div>
               </div>
             </div>
-
-            <div class="form-group">
-              <label class="form-label" for="password">Password</label>
-              <div class="input-icon-wrapper">
-                <i class="fas fa-lock icon"></i>
-                <input
-                  type="password"
-                  id="password"
-                  class="form-control"
-                  placeholder="Masukkan password"
-                  autocomplete="current-password"
-                  required
-                />
-                <i
-                  class="fas fa-eye icon-right"
-                  id="togglePassword"
-                  onclick="togglePasswordVisibility()"
-                ></i>
+            <div class="login-feature-item">
+              <div class="login-feature-icon">📸</div>
+              <div>
+                <div class="login-feature-title">Verifikasi Foto</div>
+                <div class="login-feature-desc">
+                  Konfirmasi kehadiran dengan selfie
+                </div>
               </div>
             </div>
+            <div class="login-feature-item">
+              <div class="login-feature-icon">📊</div>
+              <div>
+                <div class="login-feature-title">Rekap Lengkap</div>
+                <div class="login-feature-desc">
+                  Export PDF & Excel kapan saja
+                </div>
+              </div>
+            </div>
+          </div>
 
-            <button type="submit" class="btn-login" id="btnLogin">
-              <span class="btn-text">
+          <!-- Copyright -->
+          <div class="login-left-footer">
+            <i class="fas fa-shield-halved"></i>
+            Jurnal Kelas Digital &copy; 2025
+          </div>
+        </div>
+
+        <!-- Panel Kanan — Form Login -->
+        <div class="login-right">
+          <div class="login-card">
+            <!-- Header form -->
+            <div class="login-form-header">
+              <div class="login-form-icon">
                 <i class="fas fa-right-to-bracket"></i>
-                Masuk
-              </span>
-              <span class="btn-spinner"></span>
-            </button>
-          </form>
+              </div>
+              <h2 class="login-form-title">Masuk ke Sistem</h2>
+              <p class="login-form-subtitle">
+                Masukkan username dan password Anda
+              </p>
+            </div>
 
-          <div style="text-align: center; padding: 0 28px 16px">
+            <!-- Form -->
+            <form id="loginForm" onsubmit="handleLogin(event)">
+              <!-- Alert error -->
+              <div class="alert alert-danger hidden" id="loginAlert">
+                <i class="fas fa-circle-exclamation"></i>
+                <span id="loginAlertMsg"> Username atau password salah. </span>
+              </div>
+
+              <!-- Username -->
+              <div class="form-group">
+                <label class="form-label" for="username"> Username </label>
+                <div class="input-icon-wrapper">
+                  <i class="fas fa-user icon"></i>
+                  <input
+                    type="text"
+                    id="username"
+                    class="form-control"
+                    placeholder="Masukkan username"
+                    autocomplete="username"
+                    required
+                  />
+                </div>
+              </div>
+
+              <!-- Password -->
+              <div class="form-group">
+                <label class="form-label" for="password"> Password </label>
+                <div class="input-icon-wrapper">
+                  <i class="fas fa-lock icon"></i>
+                  <input
+                    type="password"
+                    id="password"
+                    class="form-control"
+                    placeholder="Masukkan password"
+                    autocomplete="current-password"
+                    required
+                  />
+                  <i
+                    class="fas fa-eye icon-right"
+                    id="togglePassword"
+                    onclick="togglePasswordVisibility()"
+                  ></i>
+                </div>
+              </div>
+
+              <!-- Tombol Login -->
+              <button type="submit" class="btn-login" id="btnLogin">
+                <span class="btn-text">
+                  <i class="fas fa-right-to-bracket"></i>
+                  Masuk
+                </span>
+                <span class="btn-spinner"></span>
+              </button>
+            </form>
+
+            <!-- Footer form -->
+            <div class="login-form-footer">
+              <i class="fas fa-info-circle"></i>
+              Hubungi Admin jika lupa password
+            </div>
+          </div>
+
+          <!-- Toggle dark mode -->
+          <div style="text-align: center; margin-top: 16px">
             <button
               class="dark-mode-toggle"
               onclick="toggleDarkMode()"
@@ -99,10 +184,60 @@
               <i class="fas fa-moon"></i>
             </button>
           </div>
+        </div>
+      </div>
+    </div>
 
-          <div class="login-footer">
-            <i class="fas fa-shield-halved"></i>
-            Sistem Jurnal Kelas &copy; 2025 — Akses sesuai hak pengguna
+    <!-- MODAL: LOGOUT -->
+    <div class="modal-overlay" id="modalLogout">
+      <div class="modal" style="max-width: 380px">
+        <div class="modal-body" style="padding: 32px 24px; text-align: center">
+          <div
+            style="
+              width: 64px;
+              height: 64px;
+              border-radius: 50%;
+              background: #fee2e2;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin: 0 auto 16px;
+              font-size: 28px;
+            "
+          >
+            👋
+          </div>
+          <h3
+            style="
+              font-size: var(--text-xl);
+              font-weight: 700;
+              color: var(--gray-800);
+              margin-bottom: 8px;
+            "
+          >
+            Yakin ingin keluar?
+          </h3>
+          <p
+            style="
+              font-size: var(--text-sm);
+              color: var(--gray-500);
+              margin-bottom: 24px;
+              line-height: 1.6;
+            "
+          >
+            Anda akan keluar dari sistem.<br />
+            Pastikan semua data sudah tersimpan.
+          </p>
+          <div style="display: flex; gap: 10px">
+            <button
+              class="btn btn-outline w-full"
+              onclick="closeModal('modalLogout')"
+            >
+              <i class="fas fa-arrow-left"></i> Kembali
+            </button>
+            <button class="btn btn-danger w-full" onclick="konfirmasiLogout()">
+              <i class="fas fa-right-from-bracket"></i> Keluar
+            </button>
           </div>
         </div>
       </div>
