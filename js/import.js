@@ -1,11 +1,13 @@
 // ============================================
-// js/import.js — Import Data dari Excel v2.0
+// js/import.js — Import Data dari Excel v3.0
+// Tambah: Import Jadwal
 // ============================================
 
 let importData = {
   users: [],
   kelas: [],
   mapel: [],
+  jadwal: [], // ← TAMBAH
 };
 
 let currentPreviewTab = "users";
@@ -24,7 +26,7 @@ function resetImportModal() {
   document.getElementById("btnImport").classList.add("hidden");
   clearFile();
   hideImportError();
-  importData = { users: [], kelas: [], mapel: [] };
+  importData = { users: [], kelas: [], mapel: [], jadwal: [] };
 }
 
 // ── Download Template ─────────────────────────────────────
@@ -51,27 +53,22 @@ function downloadTemplate(type) {
       info: [
         ["PETUNJUK:"],
         ["role: admin / guru / siswa"],
-        [
-          "kelas_nama: isi jika role=siswa (harus sama persis dengan nama kelas)",
-        ],
-        ["jabatan: isi jika role=siswa (ketua / sekretaris)"],
-        ["Catatan: Guru tidak perlu mengisi kelas/mapel di sini"],
-        ["Jadwal guru diatur oleh admin lewat menu Jadwal Pelajaran"],
+        ["kelas_nama: isi jika role=siswa"],
+        ["jabatan: ketua / sekretaris (jika role=siswa)"],
       ],
     },
     kelas: {
       sheet: "Kelas",
-      headers: ["nama", "tingkat", "jurusan", "jumlahSiswa"],
+      headers: ["nama", "tingkat", "jurusan"],
       contoh: [
-        ["X IPA 1", "X", "IPA", 35],
-        ["X IPS 1", "X", "IPS", 32],
-        ["XI IPA 1", "XI", "IPA", 36],
+        ["X IPA 1", "X", "IPA"],
+        ["X IPS 1", "X", "IPS"],
+        ["XI IPA 1", "XI", "IPA"],
       ],
       info: [
         ["PETUNJUK:"],
         ["tingkat: X / XI / XII"],
         ["jurusan: IPA / IPS / Bahasa / Umum"],
-        ["jumlahSiswa: total siswa di kelas (angka, boleh 0)"],
       ],
     },
     mapel: {
@@ -84,8 +81,32 @@ function downloadTemplate(type) {
       ],
       info: [
         ["PETUNJUK:"],
-        ["kode: singkatan mapel huruf kapital (maks 6 karakter)"],
+        ["kode: singkatan mapel huruf kapital"],
         ["nama: nama lengkap mata pelajaran"],
+      ],
+    },
+    jadwal: {
+      sheet: "Jadwal",
+      headers: ["guru_username", "hari", "jam_ke", "kelas_nama", "mapel_kode"],
+      contoh: [
+        ["budi", "Senin", "1,2", "X IPA 1", "MTK"],
+        ["budi", "Senin", "6,7", "XI IPA 1", "FIS"],
+        ["siti", "Selasa", "3,4", "X IPS 1", "BIND"],
+        ["ahmad", "Rabu", "1,2,3", "XII IPA 1", "KIM"],
+        ["dewi", "Kamis", "1,2", "X IPA 1", "BIO"],
+      ],
+      info: [
+        ["PETUNJUK PENGISIAN JADWAL:"],
+        ["guru_username: username guru di sistem"],
+        ["hari: Senin/Selasa/Rabu/Kamis/Jumat/Sabtu"],
+        ["jam_ke: nomor jam dipisah koma, cth: 1,2 atau 3,4,5"],
+        ["kelas_nama: nama kelas persis seperti di sistem"],
+        ["mapel_kode: kode mapel persis seperti di sistem"],
+        [""],
+        ["PENTING:"],
+        ["- Satu baris = satu sesi mengajar"],
+        ["- Guru tidak boleh double jam di hari yang sama"],
+        ["- Kelas tidak boleh double guru di jam yang sama"],
       ],
     },
   };
@@ -101,7 +122,7 @@ function downloadTemplate(type) {
   XLSX.utils.book_append_sheet(wb, wsInfo, "Petunjuk");
 
   XLSX.writeFile(wb, `template_${type}.xlsx`);
-  showToast(`Template berhasil didownload!`, "success");
+  showToast("Template berhasil didownload!", "success");
 }
 
 // ── File Upload ───────────────────────────────────────────
@@ -168,7 +189,7 @@ function prosesFile() {
       const data = new Uint8Array(e.target.result);
       const wb = XLSX.read(data, { type: "array" });
 
-      importData = { users: [], kelas: [], mapel: [] };
+      importData = { users: [], kelas: [], mapel: [], jadwal: [] };
 
       wb.SheetNames.forEach((sheetName) => {
         const ws = wb.Sheets[sheetName];
@@ -181,25 +202,28 @@ function prosesFile() {
           importData.kelas = parseKelas(rows);
         } else if (name.includes("mapel") || name.includes("mata")) {
           importData.mapel = parseMapel(rows);
+        } else if (name.includes("jadwal")) {
+          importData.jadwal = parseJadwal(rows);
         }
       });
 
       const total =
         importData.users.length +
         importData.kelas.length +
-        importData.mapel.length;
+        importData.mapel.length +
+        importData.jadwal.length;
 
       if (total === 0) {
         showImportError(
-          "Tidak ada data yang terbaca. Pastikan nama sheet " +
-            "sesuai template (Pengguna / Kelas / Mapel).",
+          "Tidak ada data terbaca. Pastikan nama sheet sesuai " +
+            "(Pengguna / Kelas / Mapel / Jadwal).",
         );
         return;
       }
 
       tampilkanPreview();
     } catch (err) {
-      showImportError("Gagal membaca file. Pastikan format benar.");
+      showImportError("Gagal membaca file.");
       console.error(err);
     }
   };
@@ -221,16 +245,13 @@ function parseUsers(rows) {
       const exists = dbGetAll(DB_KEYS.users).find(
         (u) => u.username === String(r.username).trim(),
       );
-
       return {
         nama: String(r.nama).trim(),
         username: String(r.username).trim(),
         password: String(r.password).trim(),
         role,
         kelasId: kelas?.id || "",
-        kelasNama:
-          kelas?.nama ||
-          (r.kelas_nama ? `⚠️ ${r.kelas_nama} tidak ditemukan` : "—"),
+        kelasNama: kelas?.nama || (r.kelas_nama ? `⚠️ ${r.kelas_nama}` : "—"),
         jabatan: String(r.jabatan || "")
           .toLowerCase()
           .trim(),
@@ -252,7 +273,6 @@ function parseKelas(rows) {
         nama,
         tingkat: String(r.tingkat).trim(),
         jurusan: String(r.jurusan).trim(),
-        jumlahSiswa: parseInt(r.jumlahSiswa) || 0,
         duplikat: !!exists,
         valid: !exists,
       };
@@ -276,27 +296,291 @@ function parseMapel(rows) {
     });
 }
 
+function parseJadwal(rows) {
+  const userList = dbGetAll(DB_KEYS.users);
+  const kelasList = dbGetAll(DB_KEYS.kelas);
+  const mapelList = dbGetAll(DB_KEYS.mapel);
+  const periode = getPeriodeAktif();
+  const hariValid = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+
+  // Kumpulkan jadwal yang sudah ada untuk cek tabrakan
+  const jadwalExisting = dbGetAll(DB_KEYS.jadwal).filter(
+    (j) => j.periodeId === periode?.id,
+  );
+
+  // Kumpulkan jadwal baru dari file untuk cek tabrakan antar baris
+  const jadwalBaru = [];
+
+  return rows
+    .filter(
+      (r) =>
+        r.guru_username && r.hari && r.jam_ke && r.kelas_nama && r.mapel_kode,
+    )
+    .map((r, idx) => {
+      const username = String(r.guru_username).trim().toLowerCase();
+      const hari = String(r.hari).trim();
+      const jamKeStr = String(r.jam_ke).trim();
+      const kelasNama = String(r.kelas_nama).trim();
+      const mapelKode = String(r.mapel_kode).trim().toUpperCase();
+
+      // Cari referensi
+      const guru = userList.find(
+        (u) => u.username.toLowerCase() === username && u.role === "guru",
+      );
+      const kelas = kelasList.find(
+        (k) => k.nama.toLowerCase() === kelasNama.toLowerCase(),
+      );
+      const mapel = mapelList.find(
+        (m) => m.kode.toLowerCase() === mapelKode.toLowerCase(),
+      );
+
+      // Parse jam ke array angka
+      const jamKe = jamKeStr
+        .split(",")
+        .map((s) => parseInt(s.trim()))
+        .filter((n) => !isNaN(n));
+
+      // ── Validasi ─────────────────────────────────────
+
+      // 1. Cek referensi
+      if (!guru) {
+        return {
+          row: idx + 1,
+          username,
+          hari,
+          jamKeStr,
+          kelasNama,
+          mapelKode,
+          guruNama: "—",
+          kelasValid: !!kelas,
+          mapelValid: !!mapel,
+          status: "error",
+          pesan: `❌ Guru "${username}" tidak ditemukan`,
+        };
+      }
+      if (!kelas) {
+        return {
+          row: idx + 1,
+          username,
+          hari,
+          jamKeStr,
+          kelasNama,
+          mapelKode,
+          guruNama: guru.nama,
+          kelasValid: false,
+          mapelValid: !!mapel,
+          status: "error",
+          pesan: `❌ Kelas "${kelasNama}" tidak ditemukan`,
+        };
+      }
+      if (!mapel) {
+        return {
+          row: idx + 1,
+          username,
+          hari,
+          jamKeStr,
+          kelasNama,
+          mapelKode,
+          guruNama: guru.nama,
+          kelasValid: true,
+          mapelValid: false,
+          status: "error",
+          pesan: `❌ Mapel "${mapelKode}" tidak ditemukan`,
+        };
+      }
+      if (!hariValid.includes(hari)) {
+        return {
+          row: idx + 1,
+          username,
+          hari,
+          jamKeStr,
+          kelasNama,
+          mapelKode,
+          guruNama: guru.nama,
+          status: "error",
+          pesan: `❌ Hari "${hari}" tidak valid`,
+        };
+      }
+      if (jamKe.length === 0) {
+        return {
+          row: idx + 1,
+          username,
+          hari,
+          jamKeStr,
+          kelasNama,
+          mapelKode,
+          guruNama: guru.nama,
+          status: "error",
+          pesan: `❌ Format jam tidak valid`,
+        };
+      }
+
+      // 2. Cek tabrakan dengan jadwal EXISTING
+      const tabrakanGuru = jadwalExisting.find(
+        (j) =>
+          j.guruId === guru.id &&
+          j.hari === hari &&
+          j.jamKe.some((ke) => jamKe.includes(ke)),
+      );
+      if (tabrakanGuru) {
+        const k = dbGetById(DB_KEYS.kelas, tabrakanGuru.kelasId);
+        return {
+          row: idx + 1,
+          username,
+          hari,
+          jamKeStr,
+          kelasNama,
+          mapelKode,
+          guruNama: guru.nama,
+          status: "warning",
+          pesan: `⚠️ Guru sudah ada jadwal di jam ini (${k?.nama})`,
+        };
+      }
+
+      const tabrakanKelas = jadwalExisting.find(
+        (j) =>
+          j.kelasId === kelas.id &&
+          j.hari === hari &&
+          j.jamKe.some((ke) => jamKe.includes(ke)),
+      );
+      if (tabrakanKelas) {
+        const g = dbGetById(DB_KEYS.users, tabrakanKelas.guruId);
+        return {
+          row: idx + 1,
+          username,
+          hari,
+          jamKeStr,
+          kelasNama,
+          mapelKode,
+          guruNama: guru.nama,
+          status: "warning",
+          pesan: `⚠️ Kelas sudah ada guru lain di jam ini (${g?.nama})`,
+        };
+      }
+
+      // 3. Cek tabrakan dengan data BARU dari file yang sama
+      const tabrakanGuruBaru = jadwalBaru.find(
+        (j) =>
+          j.guruId === guru.id &&
+          j.hari === hari &&
+          j.jamKe.some((ke) => jamKe.includes(ke)),
+      );
+      if (tabrakanGuruBaru) {
+        return {
+          row: idx + 1,
+          username,
+          hari,
+          jamKeStr,
+          kelasNama,
+          mapelKode,
+          guruNama: guru.nama,
+          status: "warning",
+          pesan: `⚠️ Tabrakan dengan baris lain di file ini`,
+        };
+      }
+
+      const tabrakanKelasBaru = jadwalBaru.find(
+        (j) =>
+          j.kelasId === kelas.id &&
+          j.hari === hari &&
+          j.jamKe.some((ke) => jamKe.includes(ke)),
+      );
+      if (tabrakanKelasBaru) {
+        return {
+          row: idx + 1,
+          username,
+          hari,
+          jamKeStr,
+          kelasNama,
+          mapelKode,
+          guruNama: guru.nama,
+          status: "warning",
+          pesan: `⚠️ Kelas tabrakan dengan baris lain di file ini`,
+        };
+      }
+
+      // 4. Cek duplikat persis
+      const duplikat = jadwalExisting.find(
+        (j) =>
+          j.guruId === guru.id &&
+          j.kelasId === kelas.id &&
+          j.mapelId === mapel.id &&
+          j.hari === hari &&
+          JSON.stringify(j.jamKe.sort()) === JSON.stringify([...jamKe].sort()),
+      );
+      if (duplikat) {
+        return {
+          row: idx + 1,
+          username,
+          hari,
+          jamKeStr,
+          kelasNama,
+          mapelKode,
+          guruNama: guru.nama,
+          status: "duplikat",
+          pesan: `🔵 Jadwal ini sudah ada di sistem`,
+        };
+      }
+
+      // ✅ Valid — tambah ke jadwalBaru untuk cek baris berikutnya
+      jadwalBaru.push({
+        guruId: guru.id,
+        kelasId: kelas.id,
+        mapelId: mapel.id,
+        hari,
+        jamKe,
+      });
+
+      return {
+        row: idx + 1,
+        username,
+        hari,
+        jamKeStr,
+        kelasNama,
+        mapelKode,
+        guruNama: guru.nama,
+        kelasNama: kelas.nama,
+        mapelNama: mapel.nama,
+        guruId: guru.id,
+        kelasId: kelas.id,
+        mapelId: mapel.id,
+        jamKe,
+        status: "ok",
+        pesan: "✅ OK",
+      };
+    });
+}
+
 // ── Preview ───────────────────────────────────────────────
 
 function tampilkanPreview() {
   document.getElementById("countUsers").textContent = importData.users.length;
   document.getElementById("countKelas").textContent = importData.kelas.length;
   document.getElementById("countMapel").textContent = importData.mapel.length;
+  document.getElementById("countJadwal").textContent = importData.jadwal.length;
 
   renderPreviewUsers();
   renderPreviewKelas();
   renderPreviewMapel();
+  renderPreviewJadwal();
 
+  // Hitung warning & error
   const totalDup =
     importData.users.filter((u) => u.duplikat).length +
     importData.kelas.filter((k) => k.duplikat).length +
-    importData.mapel.filter((m) => m.duplikat).length;
+    importData.mapel.filter((m) => m.duplikat).length +
+    importData.jadwal.filter((j) => j.status === "duplikat").length;
+
+  const totalError = importData.jadwal.filter(
+    (j) => j.status === "error" || j.status === "warning",
+  ).length;
 
   const warnEl = document.getElementById("importWarning");
-  if (totalDup > 0) {
+  if (totalDup > 0 || totalError > 0) {
     warnEl.classList.remove("hidden");
     document.getElementById("importWarningMsg").textContent =
-      `${totalDup} data duplikat (baris merah) akan dilewati saat import.`;
+      `${totalDup} duplikat dan ${totalError} data bermasalah ` +
+      `akan dilewati saat import.`;
   } else {
     warnEl.classList.add("hidden");
   }
@@ -304,7 +588,8 @@ function tampilkanPreview() {
   const totalValid =
     importData.users.filter((u) => u.valid).length +
     importData.kelas.filter((k) => k.valid).length +
-    importData.mapel.filter((m) => m.valid).length;
+    importData.mapel.filter((m) => m.valid).length +
+    importData.jadwal.filter((j) => j.status === "ok").length;
 
   document.getElementById("importSuccessMsg").textContent =
     `File berhasil dibaca. ${totalValid} data siap diimport.`;
@@ -314,8 +599,9 @@ function tampilkanPreview() {
   document.getElementById("btnProses").classList.add("hidden");
   document.getElementById("btnImport").classList.remove("hidden");
 
-  // Tab default
-  if (importData.users.length > 0) switchPreviewTab("users");
+  // Default tab ke yang punya data
+  if (importData.jadwal.length > 0) switchPreviewTab("jadwal");
+  else if (importData.users.length > 0) switchPreviewTab("users");
   else if (importData.kelas.length > 0) switchPreviewTab("kelas");
   else switchPreviewTab("mapel");
 }
@@ -346,15 +632,15 @@ function renderPreviewUsers() {
                   ? '<span class="badge badge-danger">Duplikat</span>'
                   : u.valid
                     ? '<span class="badge badge-success">OK</span>'
-                    : '<span class="badge badge-warning">Cek Data</span>'
+                    : '<span class="badge badge-warning">Cek</span>'
               }
             </td>
           </tr>
         `,
         )
         .join("")
-    : `<tr><td colspan="6"
-          style="text-align:center;color:var(--gray-400);padding:24px">
+    : `<tr><td colspan="6" style="text-align:center;
+          color:var(--gray-400);padding:24px">
           Tidak ada data pengguna.
          </td></tr>`;
 }
@@ -371,11 +657,6 @@ function renderPreviewKelas() {
             <td>${k.tingkat}</td>
             <td>${k.jurusan}</td>
             <td>
-              <span class="badge badge-siswa">
-                <i class="fas fa-users"></i> ${k.jumlahSiswa || 0} siswa
-              </span>
-            </td>
-            <td>
               ${
                 k.duplikat
                   ? '<span class="badge badge-danger">Duplikat</span>'
@@ -386,8 +667,8 @@ function renderPreviewKelas() {
         `,
         )
         .join("")
-    : `<tr><td colspan="6"
-          style="text-align:center;color:var(--gray-400);padding:24px">
+    : `<tr><td colspan="5" style="text-align:center;
+          color:var(--gray-400);padding:24px">
           Tidak ada data kelas.
          </td></tr>`;
 }
@@ -413,28 +694,78 @@ function renderPreviewMapel() {
         `,
         )
         .join("")
-    : `<tr><td colspan="4"
-          style="text-align:center;color:var(--gray-400);padding:24px">
+    : `<tr><td colspan="4" style="text-align:center;
+          color:var(--gray-400);padding:24px">
           Tidak ada data mapel.
+         </td></tr>`;
+}
+
+function renderPreviewJadwal() {
+  const statusStyle = {
+    ok: "",
+    error: "background:#FEF2F2;color:#991B1B",
+    warning: "background:#FEF9C3;color:#92400E",
+    duplikat: "background:#EFF6FF;color:#1E40AF",
+  };
+
+  const statusBadge = {
+    ok: '<span class="badge badge-success">✅ OK</span>',
+    error: '<span class="badge badge-danger">❌ Error</span>',
+    warning: '<span class="badge badge-warning">⚠️ Tabrakan</span>',
+    duplikat: '<span class="badge badge-primary">🔵 Duplikat</span>',
+  };
+
+  document.getElementById("previewJadwalBody").innerHTML = importData.jadwal
+    .length
+    ? importData.jadwal
+        .map(
+          (j, i) => `
+          <tr style="${statusStyle[j.status] || ""}">
+            <td>${i + 1}</td>
+            <td style="font-size:var(--text-xs)">
+              ${j.guruNama || j.username}
+            </td>
+            <td>${j.hari}</td>
+            <td>
+              <span class="badge badge-guru">
+                Jam ${j.jamKeStr}
+              </span>
+            </td>
+            <td>${j.kelasNama}</td>
+            <td>${j.mapelNama || j.mapelKode}</td>
+            <td>
+              ${statusBadge[j.status] || ""}
+              <div style="font-size:10px;color:inherit;margin-top:2px">
+                ${j.pesan || ""}
+              </div>
+            </td>
+          </tr>
+        `,
+        )
+        .join("")
+    : `<tr><td colspan="7" style="text-align:center;
+          color:var(--gray-400);padding:24px">
+          Tidak ada data jadwal.
          </td></tr>`;
 }
 
 function switchPreviewTab(tab) {
   currentPreviewTab = tab;
-  ["users", "kelas", "mapel"].forEach((t) => {
+  ["users", "kelas", "mapel", "jadwal"].forEach((t) => {
     const key = t.charAt(0).toUpperCase() + t.slice(1);
-    document.getElementById(`preview${key}`).classList.add("hidden");
-    document.getElementById(`tab${key}`).classList.remove("active-tab");
+    document.getElementById(`preview${key}`)?.classList.add("hidden");
+    document.getElementById(`tab${key}`)?.classList.remove("active-tab");
   });
   const key = tab.charAt(0).toUpperCase() + tab.slice(1);
-  document.getElementById(`preview${key}`).classList.remove("hidden");
-  document.getElementById(`tab${key}`).classList.add("active-tab");
+  document.getElementById(`preview${key}`)?.classList.remove("hidden");
+  document.getElementById(`tab${key}`)?.classList.add("active-tab");
 }
 
 // ── Simpan Import ─────────────────────────────────────────
 
 function konfirmasiImport() {
   let total = 0;
+  const periode = getPeriodeAktif();
 
   // Import mapel dulu
   importData.mapel
@@ -458,7 +789,6 @@ function konfirmasiImport() {
         nama: k.nama,
         tingkat: k.tingkat,
         jurusan: k.jurusan,
-        jumlahSiswa: k.jumlahSiswa || 0,
         aktif: true,
       });
       total++;
@@ -474,7 +804,6 @@ function konfirmasiImport() {
       const kelas = kelasList.find(
         (k) => k.nama.toLowerCase() === u.kelasNama?.toLowerCase(),
       );
-
       const userData = {
         id: generateId("u"),
         nama: u.nama,
@@ -484,20 +813,39 @@ function konfirmasiImport() {
         aktif: true,
         createdAt: new Date().toISOString(),
       };
-
       if (u.role === "siswa") {
         userData.kelasId = u.kelasId || kelas?.id || "";
         userData.jabatan = u.jabatan;
       }
-
       dbInsert(DB_KEYS.users, userData);
       total++;
     });
+
+  // Import jadwal — hanya yang status 'ok'
+  if (periode) {
+    importData.jadwal
+      .filter((j) => j.status === "ok")
+      .forEach((j) => {
+        dbInsert(DB_KEYS.jadwal, {
+          id: generateId("jdw"),
+          periodeId: periode.id,
+          hari: j.hari,
+          jamKe: j.jamKe,
+          guruId: j.guruId,
+          kelasId: j.kelasId,
+          mapelId: j.mapelId,
+          aktif: true,
+          createdAt: new Date().toISOString(),
+        });
+        total++;
+      });
+  }
 
   closeModal("modalImport");
   renderUsersTable();
   renderKelasTable();
   renderMapelTable();
+  renderJadwalGrid();
   renderDashboard();
 
   showToast(`${total} data berhasil diimport!`, "success", 4000);

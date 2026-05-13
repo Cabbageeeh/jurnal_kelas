@@ -477,12 +477,64 @@
               <h2 class="page-title">Jadwal Pelajaran</h2>
               <p class="page-subtitle" id="jadwalPeriodeLabel">—</p>
             </div>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap">
+            <div
+              style="
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                align-items: center;
+              "
+            >
+              <!-- Toggle View -->
+              <div
+                style="
+                  display: flex;
+                  border: 1px solid var(--gray-200);
+                  border-radius: var(--radius-md);
+                  overflow: hidden;
+                "
+              >
+                <button
+                  id="btnViewGrid"
+                  onclick="setViewMode('grid')"
+                  style="
+                    padding: 8px 14px;
+                    border: none;
+                    cursor: pointer;
+                    background: var(--primary);
+                    color: white;
+                    font-size: var(--text-xs);
+                    font-weight: 600;
+                  "
+                  title="Tampilan Grid"
+                >
+                  <i class="fas fa-table-cells"></i> Grid
+                </button>
+                <button
+                  id="btnViewList"
+                  onclick="setViewMode('list')"
+                  style="
+                    padding: 8px 14px;
+                    border: none;
+                    cursor: pointer;
+                    background: var(--gray-100);
+                    color: var(--gray-600);
+                    font-size: var(--text-xs);
+                    font-weight: 600;
+                  "
+                  title="Tampilan List"
+                >
+                  <i class="fas fa-list"></i> List
+                </button>
+              </div>
+
+              <input type="hidden" id="jadwalViewMode" value="grid" />
+
               <select
                 class="form-control"
                 id="filterJadwalHari"
                 style="width: 140px"
-                onchange="renderJadwalTable()"
+                onchange="renderJadwalGrid()"
               >
                 <option value="">Semua Hari</option>
                 <option>Senin</option>
@@ -492,16 +544,41 @@
                 <option>Jumat</option>
                 <option>Sabtu</option>
               </select>
+
               <select
                 class="form-control"
                 id="filterJadwalGuru"
                 style="width: 180px"
-                onchange="renderJadwalTable()"
+                onchange="renderJadwalGrid()"
               >
                 <option value="">Semua Guru</option>
               </select>
-              <button class="btn btn-admin" onclick="openJadwalModal()">
-                <i class="fas fa-plus"></i> Tambah Jadwal
+
+              <select
+                class="form-control"
+                id="filterJadwalKelas"
+                style="width: 150px"
+                onchange="renderJadwalGrid()"
+              >
+                <option value="">Semua Kelas</option>
+              </select>
+
+              <button
+                class="btn btn-outline btn-sm"
+                onclick="clearFilterJadwal()"
+              >
+                <i class="fas fa-rotate-left"></i>
+              </button>
+
+              <button
+                class="btn btn-outline btn-sm"
+                onclick="openImportModal('jadwal')"
+              >
+                <i class="fas fa-file-excel"></i> Import
+              </button>
+
+              <button class="btn btn-admin btn-sm" onclick="openJadwalModal()">
+                <i class="fas fa-plus"></i> Tambah
               </button>
             </div>
           </div>
@@ -1498,6 +1575,12 @@
                   >
                     <i class="fas fa-download"></i> Template Mapel
                   </button>
+                  <button
+                    class="btn btn-sm btn-outline"
+                    onclick="downloadTemplate('jadwal')"
+                  >
+                    <i class="fas fa-download"></i> Template Jadwal
+                  </button>
                 </div>
               </div>
             </div>
@@ -1604,6 +1687,14 @@
                 <i class="fas fa-book"></i> Mapel (<span id="countMapel">0</span
                 >)
               </button>
+              <button
+                class="btn btn-sm btn-outline"
+                id="tabJadwal"
+                onclick="switchPreviewTab('jadwal')"
+              >
+                <i class="fas fa-calendar-week"></i>
+                Jadwal (<span id="countJadwal">0</span>)
+              </button>
             </div>
             <div id="previewUsers">
               <div
@@ -1660,6 +1751,27 @@
                     </tr>
                   </thead>
                   <tbody id="previewMapelBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div id="previewJadwal" class="hidden">
+              <div
+                class="table-wrapper"
+                style="max-height: 280px; overflow-y: auto"
+              >
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Guru</th>
+                      <th>Hari</th>
+                      <th>Jam</th>
+                      <th>Kelas</th>
+                      <th>Mapel</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="previewJadwalBody"></tbody>
                 </table>
               </div>
             </div>

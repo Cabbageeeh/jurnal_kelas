@@ -392,6 +392,16 @@ function populateJadwalFilters() {
     `<option value="">Semua Guru</option>` +
     gurus.map((g) => `<option value="${g.id}">${g.nama}</option>`).join("");
 
+  const kelasList = dbGetAll(DB_KEYS.kelas);
+  const selKelas = document.getElementById("filterJadwalKelas");
+  if (selKelas) {
+    selKelas.innerHTML =
+      `<option value="">Semua Kelas</option>` +
+      kelasList
+        .map((k) => `<option value="${k.id}">${k.nama}</option>`)
+        .join("");
+  }
+
   const periode = getPeriodeAktif();
   document.getElementById("jadwalPeriodeLabel").textContent = periode
     ? `Periode: ${periode.nama}`
@@ -401,6 +411,8 @@ function populateJadwalFilters() {
 function renderJadwalGrid() {
   const hariFilter = document.getElementById("filterJadwalHari").value;
   const guruFilter = document.getElementById("filterJadwalGuru").value;
+  const kelasFilter = document.getElementById("filterJadwalKelas")?.value || "";
+  const viewMode = document.getElementById("jadwalViewMode")?.value || "grid";
   const periode = getPeriodeAktif();
   const container = document.getElementById("jadwalGridView");
 
@@ -408,7 +420,7 @@ function renderJadwalGrid() {
     container.innerHTML = `
       <div class="empty-state">
         <i class="fas fa-calendar-xmark"></i>
-        <p>Belum ada periode aktif. Tambah periode terlebih dahulu.</p>
+        <p>Belum ada periode aktif.</p>
       </div>`;
     return;
   }
@@ -417,7 +429,194 @@ function renderJadwalGrid() {
     (j) => j.periodeId === periode.id,
   );
   if (guruFilter) jadwal = jadwal.filter((j) => j.guruId === guruFilter);
+  if (kelasFilter) jadwal = jadwal.filter((j) => j.kelasId === kelasFilter);
 
+  if (viewMode === "list") {
+    renderJadwalList(jadwal, hariFilter);
+  } else {
+    renderJadwalGridView(jadwal, hariFilter, guruFilter, kelasFilter);
+  }
+}
+
+function renderJadwalGridView(jadwal, hariFilter, guruFilter, kelasFilter) {
+  const container = document.getElementById("jadwalGridView");
+  const hariList = hariFilter ? [hariFilter] : HARI_LIST;
+  const jams = dbGetAll(DB_KEYS.jamPelajaran)
+    .filter((j) => j.tipe === "pelajaran" && j.ke !== null)
+    .sort((a, b) => a.ke - b.ke);
+
+  // Kelompokkan jadwal per hari per jam
+  const jadwalMap = {};
+  jadwal.forEach((j) => {
+    const minJam = Math.min(...j.jamKe);
+    const key = `${j.hari}_${minJam}`;
+    if (!jadwalMap[key]) jadwalMap[key] = [];
+    jadwalMap[key].push(j);
+  });
+
+  // Cari jam unik yang terpakai
+  const jamTerpakai = new Set();
+  jadwal.forEach((j) => j.jamKe.forEach((ke) => jamTerpakai.add(ke)));
+  const jamFilter = jams.filter((j) => jamTerpakai.has(j.ke));
+
+  if (jadwal.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-calendar-xmark"></i>
+        <p>Belum ada jadwal untuk filter yang dipilih.</p>
+      </div>`;
+    return;
+  }
+
+  // Buat tabel grid
+  container.innerHTML = `
+    <div class="card">
+      <div class="card-body" style="padding:0;overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;
+          min-width:700px">
+          <thead>
+            <tr style="background:var(--gray-50)">
+              <th style="padding:12px 16px;text-align:left;
+                font-size:var(--text-xs);font-weight:600;
+                color:var(--gray-500);border-bottom:2px solid var(--gray-200);
+                white-space:nowrap;min-width:100px">
+                JAM / HARI
+              </th>
+              ${hariList
+                .map(
+                  (hari) => `
+                <th style="padding:12px 16px;text-align:center;
+                  font-size:var(--text-sm);font-weight:600;
+                  color:var(--gray-700);
+                  border-bottom:2px solid var(--gray-200);
+                  border-left:1px solid var(--gray-200);
+                  min-width:160px">
+                  ${hari}
+                </th>
+              `,
+                )
+                .join("")}
+            </tr>
+          </thead>
+          <tbody>
+            ${jamFilter
+              .map(
+                (jam) => `
+              <tr>
+                <td style="padding:10px 16px;
+                  background:var(--gray-50);
+                  border-bottom:1px solid var(--gray-200);
+                  font-size:var(--text-xs);
+                  font-weight:600;white-space:nowrap">
+                  <div style="color:var(--color-guru)">
+                    Jam ${jam.ke}
+                  </div>
+                  <div style="color:var(--gray-400);
+                    font-weight:400;margin-top:2px">
+                    ${jam.mulai}–${jam.selesai}
+                  </div>
+                </td>
+                ${hariList
+                  .map((hari) => {
+                    // Cari jadwal yang mencakup jam ini di hari ini
+                    const sesi = jadwal.filter(
+                      (j) => j.hari === hari && j.jamKe.includes(jam.ke),
+                    );
+
+                    if (sesi.length === 0) {
+                      return `
+                      <td style="padding:8px;
+                        border-bottom:1px solid var(--gray-200);
+                        border-left:1px solid var(--gray-200);
+                        text-align:center">
+                        <span style="color:var(--gray-200);
+                          font-size:20px">—</span>
+                      </td>`;
+                    }
+
+                    return `
+                    <td style="padding:6px;
+                      border-bottom:1px solid var(--gray-200);
+                      border-left:1px solid var(--gray-200);
+                      vertical-align:top">
+                      ${sesi
+                        .map((j) => {
+                          const guru = dbGetById(DB_KEYS.users, j.guruId);
+                          const kelas = dbGetById(DB_KEYS.kelas, j.kelasId);
+                          const mapel = dbGetById(DB_KEYS.mapel, j.mapelId);
+                          const isFirst = Math.min(...j.jamKe) === jam.ke;
+                          if (!isFirst) return ""; // hanya tampil di jam pertama
+                          return `
+                          <div style="background:var(--gray-50);
+                            border:1px solid var(--gray-200);
+                            border-radius:var(--radius-sm);
+                            padding:6px 8px;margin-bottom:4px;
+                            font-size:11px;position:relative">
+                            <div style="font-weight:600;
+                              color:var(--gray-800);margin-bottom:2px;
+                              white-space:nowrap;overflow:hidden;
+                              text-overflow:ellipsis;max-width:140px"
+                              title="${guru?.nama || "—"}">
+                              ${guru?.nama?.split(",")[0] || "—"}
+                            </div>
+                            <div style="display:flex;gap:4px;
+                              flex-wrap:wrap;margin-bottom:2px">
+                              <span style="background:var(--color-guru);
+                                color:white;padding:1px 6px;
+                                border-radius:999px;font-size:10px">
+                                ${kelas?.nama || "—"}
+                              </span>
+                              <span style="background:var(--gray-200);
+                                color:var(--gray-600);padding:1px 6px;
+                                border-radius:999px;font-size:10px">
+                                ${mapel?.kode || "—"}
+                              </span>
+                            </div>
+                            <div style="font-size:10px;
+                              color:var(--gray-400)">
+                              Jam ${j.jamKe.join(",")}
+                            </div>
+                            <div style="position:absolute;
+                              top:4px;right:4px;
+                              display:flex;gap:2px">
+                              <button
+                                onclick="openJadwalModal('${j.id}')"
+                                style="background:none;border:none;
+                                cursor:pointer;color:var(--gray-400);
+                                font-size:10px;padding:2px"
+                                title="Edit">
+                                ✏️
+                              </button>
+                              <button
+                                onclick="confirmDelete('jadwal','${j.id}',
+                                'Jam ${j.jamKe.join(",")} ${hari}')"
+                                style="background:none;border:none;
+                                cursor:pointer;color:var(--gray-400);
+                                font-size:10px;padding:2px"
+                                title="Hapus">
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
+                        `;
+                        })
+                        .join("")}
+                    </td>`;
+                  })
+                  .join("")}
+              </tr>
+            `,
+              )
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function renderJadwalList(jadwal, hariFilter) {
+  const container = document.getElementById("jadwalGridView");
   const hariList = hariFilter ? [hariFilter] : HARI_LIST;
 
   container.innerHTML = hariList
@@ -432,7 +631,9 @@ function renderJadwalGrid() {
           <span class="card-title">
             <i class="fas fa-calendar-day"></i> ${hari}
           </span>
-          <span class="badge badge-gray">${jadwalHari.length} sesi</span>
+          <span class="badge badge-gray">
+            ${jadwalHari.length} sesi
+          </span>
         </div>
         <div class="card-body" style="padding:0">
           ${
@@ -442,7 +643,8 @@ function renderJadwalGrid() {
                   <thead>
                     <tr>
                       <th>Jam</th><th>Waktu</th><th>Guru</th>
-                      <th>Kelas</th><th>Mapel</th><th>Status</th><th>Aksi</th>
+                      <th>Kelas</th><th>Mapel</th>
+                      <th>Status</th><th>Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -458,7 +660,8 @@ function renderJadwalGrid() {
                               Jam ${j.jamKe.join(", ")}
                             </span>
                           </td>
-                          <td style="font-size:var(--text-xs);white-space:nowrap">
+                          <td style="font-size:var(--text-xs);
+                            white-space:nowrap">
                             ${formatRentangJam(j.jamKe)}
                           </td>
                           <td style="font-size:var(--text-sm)">
@@ -484,7 +687,8 @@ function renderJadwalGrid() {
                                 <i class="fas fa-pen"></i>
                               </button>
                               <button class="btn btn-sm btn-danger"
-                                onclick="confirmDelete('jadwal','${j.id}',
+                                onclick="confirmDelete('jadwal',
+                                '${j.id}',
                                 'Jam ${j.jamKe.join(",")} ${hari}')">
                                 <i class="fas fa-trash"></i>
                               </button>
@@ -507,6 +711,35 @@ function renderJadwalGrid() {
     `;
     })
     .join("");
+}
+
+function setViewMode(mode) {
+  document.getElementById("jadwalViewMode").value = mode;
+
+  const btnGrid = document.getElementById("btnViewGrid");
+  const btnList = document.getElementById("btnViewList");
+
+  if (mode === "grid") {
+    btnGrid.style.background = "var(--primary)";
+    btnGrid.style.color = "white";
+    btnList.style.background = "var(--gray-100)";
+    btnList.style.color = "var(--gray-600)";
+  } else {
+    btnList.style.background = "var(--primary)";
+    btnList.style.color = "white";
+    btnGrid.style.background = "var(--gray-100)";
+    btnGrid.style.color = "var(--gray-600)";
+  }
+
+  renderJadwalGrid();
+}
+
+function clearFilterJadwal() {
+  document.getElementById("filterJadwalHari").value = "";
+  document.getElementById("filterJadwalGuru").value = "";
+  const kelasEl = document.getElementById("filterJadwalKelas");
+  if (kelasEl) kelasEl.value = "";
+  renderJadwalGrid();
 }
 
 function openJadwalModal(id = null) {
@@ -1055,10 +1288,7 @@ function saveKelas() {
 
   if (!nama) return showFormError("kelasFormError", "Nama kelas wajib diisi.");
   if (jumlahSiswa < 0)
-    return showFormError(
-      "kelasFormError",
-      "Jumlah siswa tidak boleh negatif.",
-    );
+    return showFormError("kelasFormError", "Jumlah siswa tidak boleh negatif.");
 
   if (id) {
     dbUpdate(DB_KEYS.kelas, id, { nama, tingkat, jurusan, jumlahSiswa, aktif });

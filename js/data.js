@@ -478,20 +478,60 @@ function getJamSekarang() {
  * Toleransi: guru bisa konfirmasi mulai 5 menit sebelum jam mulai
  */
 function getJamAktifSekarang() {
-  const jamSekarang = getJamSekarang();
+  const now = new Date();
+  const menitSekarang = now.getHours() * 60 + now.getMinutes();
+
   const jams = dbGetAll(DB_KEYS.jamPelajaran).filter(
-    (j) => j.tipe === "pelajaran",
+    (j) => j.tipe === "pelajaran" && j.ke !== null,
   );
 
-  return jams
-    .filter((j) => {
-      // Toleransi 5 menit sebelum mulai
-      const mulaiDate = new Date(`1970-01-01T${j.mulai}:00`);
-      mulaiDate.setMinutes(mulaiDate.getMinutes() - 5);
-      const toleransi = mulaiDate.toTimeString().slice(0, 5);
-      return jamSekarang >= toleransi && jamSekarang < j.selesai;
-    })
-    .map((j) => j.ke);
+  const hariIni = getHariIni();
+  const periode = getPeriodeAktif();
+  if (!periode) return [];
+
+  const jadwalHariIni = dbGetAll(DB_KEYS.jadwal).filter(
+    (j) => j.periodeId === periode.id && j.hari === hariIni && j.aktif === true,
+  );
+
+  const jamAktif = [];
+
+  jadwalHariIni.forEach((jadwal) => {
+    const jamKeList = jadwal.jamKe;
+    if (jamKeList.length === 0) return;
+
+    const jamObjs = jamKeList
+      .map((ke) => jams.find((j) => j.ke === ke))
+      .filter(Boolean);
+
+    if (jamObjs.length === 0) return;
+
+    // Jam pertama (mulai paling awal)
+    const jamPertama = jamObjs.reduce((a, b) => {
+      const [ah, am] = a.mulai.split(":").map(Number);
+      const [bh, bm] = b.mulai.split(":").map(Number);
+      return ah * 60 + am < bh * 60 + bm ? a : b;
+    });
+
+    // Jam terakhir (selesai paling akhir)
+    const jamTerakhir = jamObjs.reduce((a, b) => {
+      const [ah, am] = a.selesai.split(":").map(Number);
+      const [bh, bm] = b.selesai.split(":").map(Number);
+      return ah * 60 + am > bh * 60 + bm ? a : b;
+    });
+
+    const [h1, m1] = jamPertama.mulai.split(":").map(Number);
+    const [h2, m2] = jamTerakhir.selesai.split(":").map(Number);
+
+    // Toleransi 5 menit sebelum mulai
+    const menitMulai = h1 * 60 + m1 - 5;
+    const menitSelesai = h2 * 60 + m2;
+
+    if (menitSekarang >= menitMulai && menitSekarang < menitSelesai) {
+      jamKeList.forEach((ke) => jamAktif.push(ke));
+    }
+  });
+
+  return [...new Set(jamAktif)];
 }
 
 /**
