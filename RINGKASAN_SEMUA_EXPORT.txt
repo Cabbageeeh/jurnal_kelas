@@ -1,0 +1,397 @@
+╔═══════════════════════════════════════════════════════════════════════╗
+║                                                                       ║
+║     📄 SEMUA EXPORT - DESAIN ELEGAN & RESMI 📊                       ║
+║                                                                       ║
+║              ✅ SEMUA EXPORT SUDAH KONSISTEN ✅                       ║
+║                                                                       ║
+╚═══════════════════════════════════════════════════════════════════════╝
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  📋 DAFTAR SEMUA EXPORT YANG TERSEDIA                                 │
+└───────────────────────────────────────────────────────────────────────┘
+
+ADMIN:
+  ✅ 1. Rekap Jurnal Kelas
+  ✅ 2. Rekap Konfirmasi Kehadiran Guru
+  ✅ 3. Rekap Absensi Siswa
+
+GURU:
+  ✅ 4. Riwayat Konfirmasi Guru
+
+SISWA:
+  ✅ 5. Riwayat Jurnal Kelas
+
+SEMUA EXPORT SEKARANG MENGGUNAKAN DESAIN YANG SAMA! 🎉
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  🎨 DESAIN UNIVERSAL (SEMUA EXPORT)                                   │
+└───────────────────────────────────────────────────────────────────────┘
+
+PDF HEADER:
+╔═══════════════════════════════════════════════════════════════════╗
+║                                                                   ║
+║                        [🏫 LOGO 28mm]                             ║
+║                     (Circle Background)                           ║
+║                                                                   ║
+║                  SMA NEGERI 15 SURABAYA                           ║
+║                  (Bold, 18pt, Centered)                           ║
+║                                                                   ║
+║        Jl. Dukuh Menanggal Sel. No.103, Gayungan, Surabaya       ║
+║                                                                   ║
+║        ☎ (031) 5678910 • ✉ info@sman15-sby.sch.id •              ║
+║                  🌐 www.sman15-sby.sch.id                         ║
+║                                                                   ║
+║      NPSN: 20533015 | Kepala Sekolah: Drs. Ahmad Subarjo, M.Pd  ║
+║                                                                   ║
+╠═══════════════════════════════════════════════════════════════════╣
+║ ═══════════════════════════════════════════════════════════════   ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+PDF TITLE:
+╔═══════════════════════════════════════════════════════════════════╗
+║  ┌─────────────────────────────────────────────────────────────┐  ║
+║  │     [JUDUL LAPORAN]                                         │  ║
+║  │     (White text on Indigo background)                       │  ║
+║  └─────────────────────────────────────────────────────────────┘  ║
+║  ┌─────────────────────────────────────────────────────────────┐  ║
+║  │ ╔═                                                       ═╗ │  ║
+║  │ ║  📋 Filter: [Info Filter]                              ║ │  ║
+║  │ ║  📅 Diekspor: [Tanggal]                                ║ │  ║
+║  │ ╚═                                                       ═╝ │  ║
+║  └─────────────────────────────────────────────────────────────┘  ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+PDF FOOTER:
+╔═══════════════════════════════════════════════════════════════════╗
+║ ═══════════════════════════════════════════════════════════════   ║
+║                                                                   ║
+║  [🏫]  SMA Negeri 15 Surabaya    ┌──────────────┐    14/05/2026 ║
+║  (8mm)  (Bold, Indigo)           │ Halaman 1/5  │    Dokumen    ║
+║                                  │ (Indigo Box) │    Resmi      ║
+║                                  └──────────────┘               ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+EXCEL HEADER:
+┌─────────────────────────────────────────────────────────────────┐
+│  SMA NEGERI 15 SURABAYA                                         │
+│  (16pt Bold, Gray-800, Light Gray BG, Indigo border)            │
+├─────────────────────────────────────────────────────────────────┤
+│  Jl. Dukuh Menanggal Sel. No.103, Gayungan, Surabaya           │
+├─────────────────────────────────────────────────────────────────┤
+│  ☎ (031) 5678910 • ✉ info@sman15-sby.sch.id • 🌐 website       │
+├─────────────────────────────────────────────────────────────────┤
+│  NPSN: 20533015 | Kepala Sekolah: Drs. Ahmad Subarjo, M.Pd     │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+├─────────────────────────────────────────────────────────────────┤
+│  [JUDUL LAPORAN]                                                │
+│  (14pt Bold, White text, Indigo BG)                             │
+├─────────────────────────────────────────────────────────────────┤
+│  📋 Filter: [Info Filter]                                       │
+├─────────────────────────────────────────────────────────────────┤
+│  📅 Diekspor: [Tanggal]                                         │
+└─────────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  📊 DETAIL SETIAP EXPORT                                              │
+└───────────────────────────────────────────────────────────────────────┘
+
+1. REKAP JURNAL KELAS (Admin)
+   ─────────────────────────────────────────────────────────────
+   Lokasi    : Dashboard Admin → Rekap Jurnal
+   Filter    : Tanggal (dari-sampai), Kelas
+   Orientasi : Landscape
+   Kolom     : Tanggal, Kelas, Jam, Mapel, Guru, Materi,
+               Hadir, Sakit, Izin, Alpha, Keterangan, Diisi Oleh
+   
+   Title     : REKAP JURNAL KELAS — [NAMA KELAS]
+   Filename  : rekap_jurnal_[kelas]_[tanggal]
+
+2. REKAP KONFIRMASI KEHADIRAN GURU (Admin)
+   ─────────────────────────────────────────────────────────────
+   Lokasi    : Dashboard Admin → Rekap Konfirmasi
+   Filter    : Tanggal (dari-sampai), Guru
+   Orientasi : Landscape
+   Kolom     : Tanggal, Guru, Kelas, Mapel, Jam,
+               Waktu Konfirmasi, Ada Foto
+   
+   Title     : REKAP KONFIRMASI — [NAMA GURU]
+   Filename  : rekap_konfirmasi_[guru]_[tanggal]
+
+3. REKAP ABSENSI SISWA (Admin)
+   ─────────────────────────────────────────────────────────────
+   Lokasi    : Dashboard Admin → Rekap Absensi
+   Filter    : Bulan, Kelas
+   Orientasi : Portrait
+   Kolom     : No, NIS, Nama Siswa, Kelas,
+               Sakit, Izin, Alpha, Total Tidak Hadir
+   
+   Title     : REKAP ABSENSI SISWA — [BULAN TAHUN]
+   Filename  : Rekap_Absensi_[Bulan_Tahun]
+
+4. RIWAYAT KONFIRMASI (Guru)
+   ─────────────────────────────────────────────────────────────
+   Lokasi    : Dashboard Guru → Riwayat Konfirmasi
+   Filter    : Tanggal (dari-sampai)
+   Orientasi : Landscape
+   Kolom     : Tanggal, Hari, Jam, Waktu, Kelas, Mapel,
+               Konfirmasi Pukul, Ada Foto
+   
+   Title     : RIWAYAT KONFIRMASI — [NAMA GURU]
+   Filename  : riwayat_konfirmasi_[username]
+
+5. RIWAYAT JURNAL KELAS (Siswa)
+   ─────────────────────────────────────────────────────────────
+   Lokasi    : Dashboard Siswa → Riwayat Jurnal
+   Filter    : Tanggal (dari-sampai)
+   Orientasi : Landscape
+   Kolom     : Tanggal, Jam, Waktu, Mapel, Guru, Materi,
+               Hadir, Sakit, Izin, Alpha, Keterangan, Diisi Oleh
+   
+   Title     : JURNAL KELAS — [NAMA KELAS]
+   Filename  : jurnal_[kelas]_[tanggal]
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  ✨ FITUR UNIVERSAL                                                   │
+└───────────────────────────────────────────────────────────────────────┘
+
+PDF:
+  ✓ Logo 28mm di header (centered, circle background)
+  ✓ Logo 8mm di footer (setiap halaman)
+  ✓ Informasi sekolah lengkap
+  ✓ Decorative corner accents
+  ✓ Icon untuk filter & tanggal (📋 📅)
+  ✓ Triple line separator
+  ✓ Table header Indigo dengan white text
+  ✓ Alternating row colors
+  ✓ Page number dengan box Indigo
+  ✓ Watermark "Dokumen Resmi"
+  ✓ Professional borders
+
+EXCEL:
+  ✓ Header dengan styling elegan
+  ✓ Icon integration (☎ ✉ 🌐 📋 📅)
+  ✓ Alternating row colors
+  ✓ Professional borders (thin, medium)
+  ✓ Font size hierarchy
+  ✓ Auto column width dengan padding
+  ✓ Optimal row heights
+  ✓ Color scheme konsisten
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  🎨 COLOR PALETTE (SEMUA EXPORT)                                      │
+└───────────────────────────────────────────────────────────────────────┘
+
+PRIMARY:
+  Indigo       : #4F46E5 (79, 70, 229)
+  Indigo Dark  : #4338CA (67, 56, 202)
+  Indigo Light : #6366F1 (99, 102, 241)
+
+NEUTRAL:
+  Gray-800     : #1F2937 - Text
+  Gray-600     : #4B5563 - Subtext
+  Gray-500     : #6B7280 - Light text
+  Gray-300     : #D1D5DB - Borders
+  Gray-200     : #E5E7EB - Light borders
+  Gray-100     : #F3F4F6 - BG light
+  Gray-50      : #F9FAFB - BG very light
+
+BACKGROUND:
+  White        : #FFFFFF
+  Indigo BG    : #EEF2FF
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  📐 UKURAN STANDAR (SEMUA EXPORT)                                     │
+└───────────────────────────────────────────────────────────────────────┘
+
+PDF:
+  Header Logo      : 28mm × 28mm
+  Footer Logo      : 8mm × 8mm
+  Header Height    : 50mm
+  Footer Height    : 15mm
+  Title Font       : 13pt Bold
+  Table Header     : 9pt Bold
+  Table Body       : 8.5pt
+
+EXCEL:
+  School Name      : 32pt height, 16pt font
+  Address/Contact  : 18pt/16pt height, 10pt font
+  NPSN/Kepsek      : 16pt height, 9pt font
+  Title            : 24pt height, 14pt font
+  Filter/Export    : 16pt height, 9pt font
+  Table Header     : 22pt height, 11pt font
+  Data Rows        : Auto height, 10pt font
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  🔧 FUNGSI YANG DIGUNAKAN                                             │
+└───────────────────────────────────────────────────────────────────────┘
+
+FILE: js/export.js
+
+CORE FUNCTIONS:
+  • exportPDF()  - Fungsi universal untuk semua PDF export
+  • exportXLSX() - Fungsi universal untuk semua Excel export
+
+HELPER FUNCTIONS:
+  • imageToBase64()        - Konversi logo path ke base64
+  • compressImageForPDF()  - Kompresi logo untuk PDF
+  • getNamaSekolah()       - Get nama sekolah dari profil
+  • getTanggalExport()     - Format tanggal export
+
+WRAPPER FUNCTIONS:
+  • exportRekapAdminWrapper()   - Wrapper untuk admin export
+  • exportDataWrapper()         - Wrapper untuk data export
+  • exportRiwayatGuruWrapper()  - Wrapper untuk guru export
+  • exportRiwayatSiswaWrapper() - Wrapper untuk siswa export
+
+SPECIFIC FUNCTIONS:
+  • exportRekapAdmin()    - Export rekap jurnal/konfirmasi (admin)
+  • exportData()          - Export data jurnal/konfirmasi
+  • exportRiwayatGuru()   - Export riwayat guru
+  • exportRiwayatSiswa()  - Export riwayat siswa
+
+FILE: js/absensi.js
+  • exportRekapAbsensi()  - Export rekap absensi (menggunakan exportPDF/XLSX)
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  ✅ KONSISTENSI DESAIN                                                │
+└───────────────────────────────────────────────────────────────────────┘
+
+SEMUA EXPORT MEMILIKI:
+  ✓ Logo SMAN 15 Surabaya di header & footer
+  ✓ Informasi sekolah lengkap
+  ✓ Layout centered untuk kesan formal
+  ✓ Decorative elements yang elegan
+  ✓ Icon integration (☎ ✉ 🌐 📋 📅)
+  ✓ Color scheme yang konsisten (Indigo + Gray)
+  ✓ Typography hierarchy yang jelas
+  ✓ Professional borders & separators
+  ✓ Alternating row colors untuk readability
+  ✓ Watermark "Dokumen Resmi" (PDF)
+  ✓ Page numbers dengan box Indigo (PDF)
+  ✓ Auto column width (Excel)
+  ✓ Optimal row heights (Excel)
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  📝 CARA MENGGUNAKAN                                                  │
+└───────────────────────────────────────────────────────────────────────┘
+
+ADMIN:
+  1. Login sebagai Admin
+  2. Pilih menu export yang diinginkan:
+     • Rekap Jurnal
+     • Rekap Konfirmasi
+     • Rekap Absensi
+  3. Pilih filter sesuai kebutuhan
+  4. Klik "Export PDF" atau "Export Excel"
+  5. File otomatis terdownload dengan desain elegan! ✨
+
+GURU:
+  1. Login sebagai Guru
+  2. Buka "Riwayat Konfirmasi"
+  3. Pilih filter tanggal (opsional)
+  4. Klik "Export PDF" atau "Export Excel"
+  5. File otomatis terdownload! ✨
+
+SISWA:
+  1. Login sebagai Siswa
+  2. Buka "Riwayat Jurnal"
+  3. Pilih filter tanggal (opsional)
+  4. Klik "Export PDF" atau "Export Excel"
+  5. File otomatis terdownload! ✨
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  💡 TIPS & BEST PRACTICES                                             │
+└───────────────────────────────────────────────────────────────────────┘
+
+1. LOGO QUALITY
+   • Pastikan logo PNG resolusi tinggi (min 512x512px)
+   • Logo otomatis dikompresi untuk ukuran file optimal
+   • Kualitas kompresi: 92% (balance antara quality & size)
+
+2. BROWSER
+   • Gunakan Chrome/Edge untuk hasil optimal
+   • Firefox dan Safari juga didukung
+   • Pastikan JavaScript enabled
+
+3. FILTER
+   • Pilih filter yang spesifik untuk data yang relevan
+   • Export dengan filter kosong akan export semua data
+   • Beberapa export wajib memilih filter (cth: Rekap Absensi)
+
+4. FILE SIZE
+   • Logo otomatis dikompresi
+   • PDF dengan banyak halaman akan lebih besar
+   • Excel lebih ringan untuk data besar
+
+5. PRINT
+   • Desain sudah dioptimalkan untuk print
+   • PDF: A4 landscape/portrait sesuai jenis laporan
+   • Margin sudah disesuaikan untuk print
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  📚 DOKUMENTASI                                                       │
+└───────────────────────────────────────────────────────────────────────┘
+
+• UPDATE_EXPORT_ELEGANT.md          - Dokumentasi lengkap PDF & Excel
+• SUMMARY_EXPORT_ELEGANT.txt        - Quick summary visual
+• UPDATE_EXPORT_REKAP_ABSENSI.txt   - Update rekap absensi
+• RINGKASAN_SEMUA_EXPORT.txt        - File ini (Overview semua export)
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  🎯 TESTING CHECKLIST                                                 │
+└───────────────────────────────────────────────────────────────────────┘
+
+ADMIN - REKAP JURNAL:
+  [✓] Export PDF dengan desain baru
+  [✓] Export Excel dengan desain baru
+  [✓] Logo muncul di header & footer
+  [✓] Filter berfungsi dengan baik
+
+ADMIN - REKAP KONFIRMASI:
+  [✓] Export PDF dengan desain baru
+  [✓] Export Excel dengan desain baru
+  [✓] Logo muncul di header & footer
+  [✓] Filter berfungsi dengan baik
+
+ADMIN - REKAP ABSENSI:
+  [✓] Export PDF dengan desain baru
+  [✓] Export Excel dengan desain baru
+  [✓] Logo muncul di header & footer
+  [✓] Filter berfungsi dengan baik
+
+GURU - RIWAYAT KONFIRMASI:
+  [✓] Export PDF dengan desain baru
+  [✓] Export Excel dengan desain baru
+  [✓] Logo muncul di header & footer
+  [✓] Filter berfungsi dengan baik
+
+SISWA - RIWAYAT JURNAL:
+  [✓] Export PDF dengan desain baru
+  [✓] Export Excel dengan desain baru
+  [✓] Logo muncul di header & footer
+  [✓] Filter berfungsi dengan baik
+
+VISUAL ELEMENTS:
+  [✓] Logo prominent di header (28mm)
+  [✓] Logo di footer (8mm)
+  [✓] Circle background untuk logo
+  [✓] Decorative corner accents
+  [✓] Icon integration (☎ ✉ 🌐 📋 📅)
+  [✓] Alternating row colors
+  [✓] Professional borders
+  [✓] Page number dengan box Indigo
+  [✓] Watermark "Dokumen Resmi"
+  [✓] Font hierarchy jelas
+  [✓] Color scheme konsisten
+
+╔═══════════════════════════════════════════════════════════════════════╗
+║                                                                       ║
+║              ✅ SEMUA EXPORT SUDAH KONSISTEN ✅                       ║
+║                                                                       ║
+║         Desain Elegan, Profesional, dan Resmi untuk Semua!           ║
+║                                                                       ║
+║              Terakhir Diperbarui: 14 Mei 2026                        ║
+║                      Versi: 3.1                                       ║
+║                                                                       ║
+╚═══════════════════════════════════════════════════════════════════════╝

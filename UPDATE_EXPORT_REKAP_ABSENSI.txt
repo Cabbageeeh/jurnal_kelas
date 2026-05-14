@@ -1,0 +1,233 @@
+═══════════════════════════════════════════════════════════════
+  UPDATE EXPORT REKAP ABSENSI - DESAIN ELEGAN & RESMI
+═══════════════════════════════════════════════════════════════
+
+✅ PERUBAHAN YANG DILAKUKAN:
+
+Export Rekap Absensi sekarang menggunakan desain yang SAMA dengan
+export Rekap Jurnal dan Rekap Konfirmasi yang baru!
+
+═══════════════════════════════════════════════════════════════
+
+📄 EXPORT PDF - DESAIN BARU
+
+HEADER (Centered & Elegant):
+  • Logo SMAN 15 Surabaya 28mm di tengah atas
+  • Circle background putih dengan shadow
+  • Nama sekolah Bold 18pt, centered
+  • Alamat lengkap, centered
+  • Kontak dengan icon (☎ ✉ 🌐)
+  • NPSN & Kepala Sekolah dalam satu baris
+
+TITLE SECTION:
+  • Background Indigo dengan white text
+  • Decorative corner accents di 4 sudut
+  • Icon untuk filter & tanggal (📋 📅)
+  • White box dengan border
+
+TABLE:
+  • Header Indigo dengan white text (9pt Bold)
+  • Body 8.5pt dengan alternating colors
+  • Cell padding lebih besar
+  • Border professional
+
+FOOTER:
+  • Logo kecil 8mm di footer kiri
+  • Double line separator
+  • Nomor halaman dengan box Indigo di tengah
+  • Watermark "Dokumen Resmi" di kanan
+
+═══════════════════════════════════════════════════════════════
+
+📊 EXPORT EXCEL - DESAIN BARU
+
+HEADER:
+  Row 1: Nama sekolah (16pt Bold, 32pt height)
+  Row 2: Alamat (10pt)
+  Row 3: Kontak dengan icon (☎ ✉ 🌐)
+  Row 4: NPSN & Kepala Sekolah (Bold Indigo)
+
+TITLE:
+  Row 6: Title (14pt Bold, White on Indigo, 24pt height)
+  Row 7: Filter dengan icon 📋
+  Row 8: Tanggal export dengan icon 📅
+
+TABLE:
+  • Headers: 11pt Bold, White on Indigo, 22pt height
+  • Data: 10pt, alternating colors (White & Light Gray)
+  • Professional borders
+  • Auto column width dengan padding
+
+═══════════════════════════════════════════════════════════════
+
+🔧 PERUBAHAN TEKNIS
+
+FILE: js/absensi.js
+
+SEBELUM:
+  • Fungsi exportRekapAbsensiXLSX() - Desain lama
+  • Fungsi exportRekapAbsensiPDF() - Desain lama
+  • Header simple tanpa logo
+  • Styling minimal
+
+SESUDAH:
+  • Menggunakan exportXLSX() dari export.js
+  • Menggunakan exportPDF() dari export.js
+  • Header dengan logo prominent
+  • Styling elegan & professional
+  • Konsisten dengan export lainnya
+
+FUNGSI YANG DIHAPUS:
+  ✗ exportRekapAbsensiXLSX() - Tidak digunakan lagi
+  ✗ exportRekapAbsensiPDF() - Tidak digunakan lagi
+
+FUNGSI YANG DIUPDATE:
+  ✓ exportRekapAbsensi() - Sekarang menggunakan fungsi baru
+
+═══════════════════════════════════════════════════════════════
+
+📋 STRUKTUR DATA EXPORT
+
+HEADERS:
+  1. No
+  2. NIS
+  3. Nama Siswa
+  4. Kelas
+  5. Sakit
+  6. Izin
+  7. Alpha
+  8. Total Tidak Hadir
+
+FILTER INFO:
+  • Periode: [Nama Bulan Tahun]
+  • Kelas: [Nama Kelas atau "Semua Kelas"]
+
+TITLE:
+  REKAP ABSENSI SISWA — [NAMA BULAN TAHUN]
+
+FILENAME:
+  Rekap_Absensi_[Nama_Bulan_Tahun].[pdf/xlsx]
+
+═══════════════════════════════════════════════════════════════
+
+✨ KEUNGGULAN DESAIN BARU
+
+✅ KONSISTENSI
+   • Semua export (Jurnal, Konfirmasi, Absensi) sekarang
+     memiliki desain yang SAMA
+   • Branding SMAN 15 Surabaya konsisten
+   • Color scheme yang seragam
+
+✅ PROFESIONAL
+   • Logo prominent di header & footer
+   • Layout centered untuk kesan formal
+   • Decorative elements yang elegan
+   • Watermark "Dokumen Resmi"
+
+✅ INFORMATIVE
+   • Informasi sekolah lengkap
+   • Contact info dengan icon
+   • NPSN & Kepala Sekolah
+   • Export date & page numbers
+
+✅ READABLE
+   • Font size lebih besar
+   • Cell padding optimal
+   • Alternating row colors
+   • Clear visual hierarchy
+
+═══════════════════════════════════════════════════════════════
+
+🎯 CARA MENGGUNAKAN
+
+1. Login sebagai Admin
+2. Buka menu "Rekap Absensi"
+3. Pilih bulan (wajib)
+4. Pilih kelas (opsional - default: Semua Kelas)
+5. Klik "Export PDF" atau "Export Excel"
+6. File otomatis terdownload dengan desain baru! ✨
+
+═══════════════════════════════════════════════════════════════
+
+✅ TESTING CHECKLIST
+
+PDF:
+  [✓] Logo muncul di header (centered, 28mm)
+  [✓] Logo muncul di footer (8mm)
+  [✓] Informasi sekolah lengkap
+  [✓] Decorative elements tampil
+  [✓] Icon di filter & tanggal
+  [✓] Alternating row colors
+  [✓] Page number dengan box Indigo
+  [✓] Watermark "Dokumen Resmi"
+
+EXCEL:
+  [✓] Header dengan styling elegan
+  [✓] Icon muncul (☎ ✉ 🌐 📋 📅)
+  [✓] Alternating row colors
+  [✓] Border professional
+  [✓] Font hierarchy jelas
+  [✓] Auto column width
+  [✓] Row heights optimal
+
+═══════════════════════════════════════════════════════════════
+
+📊 PERBANDINGAN
+
+SEBELUM:
+┌─────────────────────────────────────┐
+│ Jurnal Kelas Digital                │
+│ Alamat...                           │
+│ REKAP ABSENSI SISWA                 │
+│ Mei 2026                            │
+├─────────────────────────────────────┤
+│ No │ NIS │ Nama │ Kelas │ ...      │
+│ (Simple table, minimal styling)     │
+└─────────────────────────────────────┘
+
+SESUDAH:
+┌─────────────────────────────────────┐
+│         [🏫 LOGO 28mm]              │
+│    SMA NEGERI 15 SURABAYA           │
+│    Alamat Lengkap                   │
+│ ☎ Telepon • ✉ Email • 🌐 Website   │
+│ NPSN: xxx | Kepala Sekolah: xxx     │
+├═════════════════════════════════════┤
+│ REKAP ABSENSI SISWA — MEI 2026      │
+│ (White on Indigo, Decorative)       │
+├─────────────────────────────────────┤
+│ 📋 Filter: Mei 2026 | Semua Kelas   │
+│ 📅 Diekspor: Kamis, 14 Mei 2026     │
+├─────────────────────────────────────┤
+│ No │ NIS │ Nama │ Kelas │ ...      │
+│ (Professional table, elegant)       │
+├─────────────────────────────────────┤
+│ [🏫] SMAN 15 │ Hal 1/2 │ 14/05/26  │
+│              │ (Box)   │ Dok Resmi │
+└─────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════
+
+💡 CATATAN PENTING
+
+1. Desain sekarang KONSISTEN dengan:
+   • Export Rekap Jurnal
+   • Export Rekap Konfirmasi
+   • Export Riwayat Guru
+   • Export Riwayat Siswa
+
+2. Semua menggunakan fungsi yang sama:
+   • exportPDF() untuk PDF
+   • exportXLSX() untuk Excel
+
+3. Logo otomatis dikompresi untuk ukuran file optimal
+
+4. Orientation PDF: Portrait (cocok untuk data absensi)
+
+═══════════════════════════════════════════════════════════════
+
+Terakhir Diperbarui: 14 Mei 2026
+Versi: 3.1
+Status: ✅ Selesai
+
+═══════════════════════════════════════════════════════════════

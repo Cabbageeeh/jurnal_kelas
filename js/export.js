@@ -1,6 +1,8 @@
 // ============================================
-// js/export.js — Export PDF & XLSX v2.0
+// js/export.js — Export PDF & XLSX v3.0
 // ============================================
+
+console.log("export.js loaded successfully");
 
 // ── Wrapper Functions untuk onclick (karena async) ────────
 
@@ -216,7 +218,7 @@ async function exportRekapAdmin(type, format) {
 
 function getNamaSekolah() {
   const profil = getProfilSekolah();
-  return "Jurnal Kelas Digital";
+  return profil.namaSekolah || "SMAN 15 Surabaya";
 }
 
 function getTanggalExport() {
@@ -561,114 +563,194 @@ function exportXLSX({ filename, sheetName, title, filter, headers, rows }) {
   const wb = XLSX.utils.book_new();
   const profil = getProfilSekolah();
 
+  // Header yang lebih elegan dan profesional
   const sheetData = [
-    // Header dengan styling
-    [profil.namaSekolah || "Jurnal Kelas Digital"],
+    // Baris 1: Nama Sekolah (Bold, Large, Centered)
+    [profil.namaSekolah || "SMA NEGERI 15 SURABAYA"],
+    // Baris 2: Alamat
     [profil.alamat || ""],
+    // Baris 3: Kontak
     [
-      [profil.telepon, profil.email, profil.website]
+      [
+        profil.telepon ? `☎ ${profil.telepon}` : "",
+        profil.email ? `✉ ${profil.email}` : "",
+        profil.website ? `🌐 ${profil.website}` : ""
+      ]
         .filter(Boolean)
-        .join(" | ") || "",
+        .join("  •  ") || "",
     ],
-    [`NPSN: ${profil.npsn || "—"}`],
-    [], // baris kosong
+    // Baris 4: NPSN & Kepala Sekolah
+    [
+      [
+        profil.npsn ? `NPSN: ${profil.npsn}` : "",
+        profil.kepalaSekolah ? `Kepala Sekolah: ${profil.kepalaSekolah}` : ""
+      ]
+        .filter(Boolean)
+        .join("  |  ") || ""
+    ],
+    [], // Baris kosong
+    // Baris 6: Title (Bold, Centered, Colored)
     [title],
-    [filter],
-    [`Kepala Sekolah: ${profil.kepalaSekolah || "—"}`],
-    [`Diekspor: ${getTanggalExport()}`],
-    [], // baris kosong
+    // Baris 7: Filter
+    [`📋 ${filter}`],
+    // Baris 8: Tanggal Export
+    [`📅 Diekspor: ${getTanggalExport()}`],
+    [], // Baris kosong
+    // Baris 10: Table headers
     headers,
+    // Data rows
     ...rows,
   ];
 
   const ws = XLSX.utils.aoa_to_sheet(sheetData);
 
-  // Auto lebar kolom
+  // Auto lebar kolom dengan padding lebih besar
   ws["!cols"] = headers.map((h, i) => ({
     wch: Math.min(
-      Math.max(h.length, ...rows.map((r) => String(r[i] || "").length)) + 4,
-      40,
+      Math.max(h.length, ...rows.map((r) => String(r[i] || "").length)) + 6,
+      50,
     ),
   }));
 
-  // Merge sel header
+  // Merge sel header untuk tampilan yang lebih rapi
   ws["!merges"] = [
     { s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } }, // Nama sekolah
     { s: { r: 1, c: 0 }, e: { r: 1, c: headers.length - 1 } }, // Alamat
     { s: { r: 2, c: 0 }, e: { r: 2, c: headers.length - 1 } }, // Kontak
-    { s: { r: 3, c: 0 }, e: { r: 3, c: headers.length - 1 } }, // NPSN
+    { s: { r: 3, c: 0 }, e: { r: 3, c: headers.length - 1 } }, // NPSN & Kepsek
     { s: { r: 5, c: 0 }, e: { r: 5, c: headers.length - 1 } }, // Title
     { s: { r: 6, c: 0 }, e: { r: 6, c: headers.length - 1 } }, // Filter
-    { s: { r: 7, c: 0 }, e: { r: 7, c: headers.length - 1 } }, // Kepala Sekolah
-    { s: { r: 8, c: 0 }, e: { r: 8, c: headers.length - 1 } }, // Tanggal Export
+    { s: { r: 7, c: 0 }, e: { r: 7, c: headers.length - 1 } }, // Tanggal Export
   ];
 
-  // Styling header
-  const headerStyle = {
-    font: { bold: true, sz: 14, color: { rgb: "1F2937" } },
+  // ═══════════════════════════════════════════════════════
+  // STYLING - Elegant & Professional
+  // ═══════════════════════════════════════════════════════
+
+  // Style untuk Nama Sekolah (Row 1)
+  const schoolNameStyle = {
+    font: { bold: true, sz: 16, color: { rgb: "1F2937" } },
     alignment: { horizontal: "center", vertical: "center" },
-    fill: { fgColor: { rgb: "EEF2FF" } },
+    fill: { fgColor: { rgb: "F3F4F6" } },
+    border: {
+      bottom: { style: "medium", color: { rgb: "4F46E5" } },
+    },
   };
 
+  // Style untuk Alamat & Kontak (Row 2-3)
   const subHeaderStyle = {
-    font: { sz: 9, color: { rgb: "6B7280" } },
+    font: { sz: 10, color: { rgb: "6B7280" } },
     alignment: { horizontal: "center", vertical: "center" },
+    fill: { fgColor: { rgb: "F9FAFB" } },
   };
 
-  const titleStyle = {
-    font: { bold: true, sz: 12, color: { rgb: "4F46E5" } },
+  // Style untuk NPSN & Kepala Sekolah (Row 4)
+  const infoStyle = {
+    font: { bold: true, sz: 9, color: { rgb: "4F46E5" } },
     alignment: { horizontal: "center", vertical: "center" },
     fill: { fgColor: { rgb: "EEF2FF" } },
   };
 
-  const tableHeaderStyle = {
-    font: { bold: true, sz: 10, color: { rgb: "FFFFFF" } },
+  // Style untuk Title (Row 6)
+  const titleStyle = {
+    font: { bold: true, sz: 14, color: { rgb: "FFFFFF" } },
     alignment: { horizontal: "center", vertical: "center" },
     fill: { fgColor: { rgb: "4F46E5" } },
     border: {
-      top: { style: "thin", color: { rgb: "4F46E5" } },
-      bottom: { style: "thin", color: { rgb: "4F46E5" } },
-      left: { style: "thin", color: { rgb: "4F46E5" } },
-      right: { style: "thin", color: { rgb: "4F46E5" } },
+      top: { style: "medium", color: { rgb: "4338CA" } },
+      bottom: { style: "medium", color: { rgb: "4338CA" } },
+      left: { style: "medium", color: { rgb: "4338CA" } },
+      right: { style: "medium", color: { rgb: "4338CA" } },
+    },
+  };
+
+  // Style untuk Filter & Export info (Row 7-8)
+  const filterStyle = {
+    font: { sz: 9, color: { rgb: "374151" } },
+    alignment: { horizontal: "center", vertical: "center" },
+    fill: { fgColor: { rgb: "FFFFFF" } },
+    border: {
+      left: { style: "thin", color: { rgb: "E5E7EB" } },
+      right: { style: "thin", color: { rgb: "E5E7EB" } },
+      bottom: { style: "thin", color: { rgb: "E5E7EB" } },
+    },
+  };
+
+  // Style untuk Table Headers (Row 10)
+  const tableHeaderStyle = {
+    font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } },
+    alignment: { horizontal: "center", vertical: "center", wrapText: true },
+    fill: { fgColor: { rgb: "4F46E5" } },
+    border: {
+      top: { style: "medium", color: { rgb: "4338CA" } },
+      bottom: { style: "medium", color: { rgb: "4338CA" } },
+      left: { style: "thin", color: { rgb: "6366F1" } },
+      right: { style: "thin", color: { rgb: "6366F1" } },
+    },
+  };
+
+  // Style untuk Data Cells
+  const dataCellStyle = {
+    font: { sz: 10, color: { rgb: "1F2937" } },
+    alignment: { horizontal: "left", vertical: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "E5E7EB" } },
+      bottom: { style: "thin", color: { rgb: "E5E7EB" } },
+      left: { style: "thin", color: { rgb: "E5E7EB" } },
+      right: { style: "thin", color: { rgb: "E5E7EB" } },
     },
   };
 
   // Apply styles
-  ws["A1"].s = headerStyle;
-  ws["A2"].s = subHeaderStyle;
-  ws["A3"].s = subHeaderStyle;
-  ws["A4"].s = subHeaderStyle;
-  ws["A6"].s = titleStyle;
-  ws["A7"].s = subHeaderStyle;
-  ws["A8"].s = subHeaderStyle;
-  ws["A9"].s = subHeaderStyle;
+  if (ws["A1"]) ws["A1"].s = schoolNameStyle;
+  if (ws["A2"]) ws["A2"].s = subHeaderStyle;
+  if (ws["A3"]) ws["A3"].s = subHeaderStyle;
+  if (ws["A4"]) ws["A4"].s = infoStyle;
+  if (ws["A6"]) ws["A6"].s = titleStyle;
+  if (ws["A7"]) ws["A7"].s = filterStyle;
+  if (ws["A8"]) ws["A8"].s = filterStyle;
 
-  // Style table headers
+  // Style table headers (Row 10)
   headers.forEach((_, i) => {
-    const cell = XLSX.utils.encode_cell({ r: 10, c: i });
+    const cell = XLSX.utils.encode_cell({ r: 9, c: i });
     if (!ws[cell]) ws[cell] = { t: "s", v: "" };
     ws[cell].s = tableHeaderStyle;
   });
 
-  // Set row heights
+  // Style data cells dengan alternating colors
+  rows.forEach((row, rowIdx) => {
+    const isEven = rowIdx % 2 === 0;
+    row.forEach((_, colIdx) => {
+      const cell = XLSX.utils.encode_cell({ r: 10 + rowIdx, c: colIdx });
+      if (ws[cell]) {
+        ws[cell].s = {
+          ...dataCellStyle,
+          fill: { fgColor: { rgb: isEven ? "FFFFFF" : "F9FAFB" } },
+        };
+      }
+    });
+  });
+
+  // Set row heights untuk tampilan yang lebih baik
   ws["!rows"] = [
-    { hpt: 24 }, // Row 1 - Nama sekolah
-    { hpt: 16 }, // Row 2 - Alamat
-    { hpt: 14 }, // Row 3 - Kontak
-    { hpt: 14 }, // Row 4 - NPSN
-    { hpt: 8 }, // Row 5 - Kosong
-    { hpt: 20 }, // Row 6 - Title
-    { hpt: 14 }, // Row 7 - Filter
-    { hpt: 14 }, // Row 8 - Kepala Sekolah
-    { hpt: 14 }, // Row 9 - Tanggal
-    { hpt: 8 }, // Row 10 - Kosong
-    { hpt: 18 }, // Row 11 - Table header
+    { hpt: 32 }, // Row 1 - Nama sekolah (lebih tinggi)
+    { hpt: 18 }, // Row 2 - Alamat
+    { hpt: 16 }, // Row 3 - Kontak
+    { hpt: 16 }, // Row 4 - NPSN & Kepsek
+    { hpt: 10 }, // Row 5 - Kosong
+    { hpt: 24 }, // Row 6 - Title (lebih tinggi)
+    { hpt: 16 }, // Row 7 - Filter
+    { hpt: 16 }, // Row 8 - Tanggal
+    { hpt: 10 }, // Row 9 - Kosong
+    { hpt: 22 }, // Row 10 - Table header (lebih tinggi)
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, sheetName);
   XLSX.writeFile(wb, `${filename}.xlsx`);
   showToast("File XLSX berhasil didownload!", "success");
 }
+
+console.log("exportXLSX function defined");
 
 // ── Helper: Kompresi Gambar untuk PDF ────────────────────
 
@@ -711,15 +793,8 @@ function compressImageForPDF(base64Image, maxWidth, maxHeight, quality = 0.85) {
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, width, height);
         
-        // Deteksi format original
-        const isPNG = base64Image.startsWith('data:image/png');
-        
-        // Untuk PNG dengan kemungkinan transparansi, gunakan kualitas lebih tinggi
-        // Untuk format lain, gunakan kualitas yang diberikan
-        const finalQuality = isPNG ? Math.max(quality, 0.85) : quality;
-        
-        // Convert ke JPEG dengan kompresi
-        const compressed = canvas.toDataURL('image/jpeg', finalQuality);
+        // Convert ke JPEG dengan kompresi (gunakan quality yang diberikan)
+        const compressed = canvas.toDataURL('image/jpeg', quality);
         resolve(compressed);
       };
       
@@ -736,6 +811,57 @@ function compressImageForPDF(base64Image, maxWidth, maxHeight, quality = 0.85) {
   }
 }
 
+// ── Helper: Convert Image Path/URL to Base64 ─────────────
+
+async function imageToBase64(imagePath) {
+  return new Promise((resolve, reject) => {
+    // Jika sudah base64, return langsung
+    if (imagePath && imagePath.startsWith('data:image')) {
+      resolve(imagePath);
+      return;
+    }
+
+    // Jika kosong, return null
+    if (!imagePath) {
+      resolve(null);
+      return;
+    }
+
+    // Load image dan convert ke base64
+    const img = new Image();
+    img.crossOrigin = 'Anonymous'; // Untuk menghindari CORS issue
+    
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      
+      const ctx = canvas.getContext('2d');
+      
+      // Fill white background untuk transparansi
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.drawImage(img, 0, 0);
+      
+      try {
+        const base64 = canvas.toDataURL('image/png');
+        resolve(base64);
+      } catch (e) {
+        console.error('Error converting to base64:', e);
+        resolve(null);
+      }
+    };
+    
+    img.onerror = function(e) {
+      console.error('Error loading image:', e);
+      resolve(null);
+    };
+    
+    img.src = imagePath;
+  });
+}
+
 // ── Core: PDF ─────────────────────────────────────────────
 
 async function exportPDF({
@@ -749,148 +875,78 @@ async function exportPDF({
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation, unit: "mm", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
-  let y = 12;
+  let y = 15;
 
   const profil = getProfilSekolah();
-  const logoSize = 24;
-  const headerHeight = 42;
 
   // ═══════════════════════════════════════════════════════
-  // HEADER SECTION - Modern Design
+  // HEADER SECTION - Simple & Clean
   // ═══════════════════════════════════════════════════════
 
-  // Background header dengan gradient effect (simulasi dengan rectangle)
-  doc.setFillColor(238, 242, 255); // Light indigo
-  doc.rect(0, 0, pageW, headerHeight, "F");
-
-  // Garis atas accent (indigo bold)
-  doc.setDrawColor(79, 70, 229);
-  doc.setLineWidth(2);
-  doc.line(0, 0, pageW, 0);
-
-  y = 10;
-
-  // Logo di kiri (jika ada)
-  let logoX = 16;
+  // Logo (jika ada) - dengan kompresi seimbang
   if (profil.logo) {
     try {
-      // Border putih untuk logo
-      doc.setFillColor(255, 255, 255);
-      doc.roundedRect(logoX - 1, y - 1, logoSize + 2, logoSize + 2, 2, 2, "F");
-
-      // Kompresi logo untuk mengurangi ukuran file PDF
-      // Gunakan resolusi lebih tinggi (6x) dan kualitas 90% untuk ketajaman maksimal
-      const compressedLogo = await compressImageForPDF(profil.logo, logoSize * 6, logoSize * 6, 0.90);
-      doc.addImage(compressedLogo, "JPEG", logoX, y, logoSize, logoSize, undefined, "FAST");
+      let logoBase64 = profil.logo;
+      if (!profil.logo.startsWith('data:image')) {
+        logoBase64 = await imageToBase64(profil.logo);
+      }
+      if (logoBase64) {
+        // PENTING: Kompresi logo untuk mengurangi ukuran file PDF
+        // Resize ke ukuran lebih besar dengan kualitas tinggi
+        const logoSize = 20;
+        const compressedLogo = await compressImageForPDF(logoBase64, 160, 160, 0.85);
+        doc.addImage(compressedLogo, "JPEG", 14, y, logoSize, logoSize);
+      }
     } catch (e) {
       console.error("Logo error:", e);
     }
   }
 
-  // Konten header di sebelah kanan logo
-  const contentX = profil.logo ? logoX + logoSize + 8 : logoX;
-  const contentY = y + 3;
-
-  // Nama Sekolah (Bold, Large)
-  doc.setFontSize(16);
+  // Nama Sekolah
+  doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(31, 41, 55); // Gray-800
-  doc.text(profil.namaSekolah || "Jurnal Kelas Digital", contentX, contentY);
+  doc.text(profil.namaSekolah || "SMA Negeri 15 Surabaya", pageW / 2, y + 5, { align: "center" });
 
   // Alamat
   if (profil.alamat) {
-    doc.setFontSize(8);
+    doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(75, 85, 99); // Gray-600
-    const alamatLines = doc.splitTextToSize(profil.alamat, pageW - contentX - 20);
-    doc.text(alamatLines[0], contentX, contentY + 6);
+    doc.text(profil.alamat, pageW / 2, y + 10, { align: "center" });
   }
 
-  // Kontak (Telepon, Email, Website)
-  const kontakInfo = [profil.telepon, profil.email, profil.website]
-    .filter(Boolean)
-    .join("  •  ");
-
-  if (kontakInfo) {
-    doc.setFontSize(7.5);
-    doc.setTextColor(107, 114, 128); // Gray-500
-    doc.text(kontakInfo, contentX, contentY + 11);
-  }
-
-  // NPSN di pojok kanan atas
-  if (profil.npsn) {
+  // Kontak
+  const kontakParts = [];
+  if (profil.telepon) kontakParts.push(`Telp: ${profil.telepon}`);
+  if (profil.email) kontakParts.push(`Email: ${profil.email}`);
+  
+  if (kontakParts.length > 0) {
     doc.setFontSize(8);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(79, 70, 229); // Indigo
-    doc.text(`NPSN: ${profil.npsn}`, pageW - 16, y + 4, { align: "right" });
+    doc.text(kontakParts.join(" | "), pageW / 2, y + 15, { align: "center" });
   }
 
-  // Kepala Sekolah di pojok kanan
-  if (profil.kepalaSekolah) {
-    doc.setFontSize(7);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(107, 114, 128);
-    doc.text("Kepala Sekolah:", pageW - 16, y + 10, { align: "right" });
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(75, 85, 99);
-    doc.text(profil.kepalaSekolah, pageW - 16, y + 14, { align: "right" });
-  }
+  y += 22;
 
-  y = headerHeight + 2;
-
-  // Garis pemisah dengan shadow effect
-  doc.setDrawColor(79, 70, 229);
-  doc.setLineWidth(0.8);
+  // Garis pemisah
+  doc.setLineWidth(0.5);
   doc.line(14, y, pageW - 14, y);
+  y += 8;
 
-  doc.setDrawColor(203, 213, 225); // Gray-300
-  doc.setLineWidth(0.3);
-  doc.line(14, y + 0.5, pageW - 14, y + 0.5);
-
-  y += 6;
-
-  // ═══════════════════════════════════════════════════════
-  // TITLE & INFO SECTION
-  // ═══════════════════════════════════════════════════════
-
-  // Judul Laporan (Bold, Centered, dengan background)
-  doc.setFillColor(249, 250, 251); // Gray-50
-  doc.roundedRect(14, y - 3, pageW - 28, 10, 2, 2, "F");
-
+  // Title
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(79, 70, 229); // Indigo
-  doc.text(title, pageW / 2, y + 3, { align: "center" });
-
-  y += 12;
-
-  // Filter & Info (dalam box)
-  doc.setFillColor(255, 255, 255);
-  doc.setDrawColor(229, 231, 235); // Gray-200
-  doc.setLineWidth(0.3);
-  doc.roundedRect(14, y - 2, pageW - 28, 12, 1.5, 1.5, "FD");
-
-  doc.setFontSize(8.5);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(75, 85, 99); // Gray-600
+  doc.text(title, pageW / 2, y, { align: "center" });
+  y += 7;
 
   // Filter
-  doc.setFont("helvetica", "bold");
-  doc.text("Filter: ", 18, y + 3);
+  doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.text(filter, 32, y + 3);
+  doc.text(filter, pageW / 2, y, { align: "center" });
+  y += 7;
 
   // Tanggal Export
-  const tanggalExport = getTanggalExport();
-  doc.setFont("helvetica", "bold");
-  doc.text("Diekspor: ", 18, y + 7);
-  doc.setFont("helvetica", "normal");
-  doc.text(tanggalExport, 35, y + 7);
-
-  y += 15;
-
-  // Reset text color untuk tabel
-  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(8);
+  doc.text(`Diekspor: ${getTanggalExport()}`, pageW / 2, y, { align: "center" });
+  y += 8;
 
   // ═══════════════════════════════════════════════════════
   // TABLE SECTION
@@ -900,72 +956,51 @@ async function exportPDF({
     startY: y,
     head: [headers],
     body: rows,
-    theme: "grid",
+    theme: "striped",
     headStyles: {
-      fillColor: [79, 70, 229], // Indigo
-      textColor: [255, 255, 255],
+      fillColor: [41, 128, 185],
+      textColor: 255,
       fontStyle: "bold",
-      fontSize: 8.5,
       halign: "center",
-      valign: "middle",
-      lineWidth: 0.1,
-      lineColor: [67, 56, 202], // Indigo-700
     },
-    bodyStyles: {
+    styles: {
       fontSize: 8,
-      textColor: [31, 41, 55], // Gray-800
-      lineWidth: 0.1,
-      lineColor: [229, 231, 235], // Gray-200
+      cellPadding: 2,
     },
     alternateRowStyles: {
-      fillColor: [249, 250, 251], // Gray-50
-    },
-    columnStyles: {
-      0: { cellWidth: "auto", halign: "left" },
+      fillColor: [245, 245, 245],
     },
     margin: { left: 14, right: 14 },
     didDrawPage: (data) => {
       // Footer
       const pageCount = doc.internal.getNumberOfPages();
       const pageHeight = doc.internal.pageSize.getHeight();
-
-      // Background footer
-      doc.setFillColor(249, 250, 251);
-      doc.rect(0, pageHeight - 12, pageW, 12, "F");
-
-      // Garis atas footer
-      doc.setDrawColor(229, 231, 235);
-      doc.setLineWidth(0.3);
-      doc.line(0, pageHeight - 12, pageW, pageHeight - 12);
-
-      // Teks footer
-      doc.setFontSize(7.5);
+      
+      doc.setFontSize(8);
       doc.setFont("helvetica", "normal");
-      doc.setTextColor(107, 114, 128); // Gray-500
-
-      // Nama sekolah di kiri
-      doc.text(
-        profil.namaSekolah || "Jurnal Kelas Digital",
-        14,
-        pageHeight - 6,
-      );
-
-      // Nomor halaman di tengah
-      doc.setFont("helvetica", "bold");
+      
+      // Halaman
       doc.text(
         `Halaman ${data.pageNumber} dari ${pageCount}`,
         pageW / 2,
-        pageHeight - 6,
-        { align: "center" },
+        pageHeight - 10,
+        { align: "center" }
       );
-
+      
+      // Nama sekolah di footer
+      doc.setFontSize(7);
+      doc.text(
+        profil.namaSekolah || "SMA Negeri 15 Surabaya",
+        14,
+        pageHeight - 10
+      );
+      
       // Tanggal di kanan
-      doc.setFont("helvetica", "normal");
       doc.text(
         new Date().toLocaleDateString("id-ID"),
         pageW - 14,
-        pageHeight - 6,
-        { align: "right" },
+        pageHeight - 10,
+        { align: "right" }
       );
     },
   });
@@ -973,3 +1008,5 @@ async function exportPDF({
   doc.save(`${filename}.pdf`);
   showToast("File PDF berhasil didownload!", "success");
 }
+
+console.log("exportPDF function defined");

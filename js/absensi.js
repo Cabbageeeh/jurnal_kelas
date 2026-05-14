@@ -415,7 +415,7 @@ function clearFilterAbsensi() {
   renderRekapAbsensi();
 }
 
-function exportRekapAbsensi(format) {
+async function exportRekapAbsensi(format) {
   const bulan = document.getElementById("filterAbsensiBulan").value;
   
   if (!bulan) {
@@ -488,28 +488,30 @@ function exportRekapAbsensi(format) {
   // Sort berdasarkan total
   rekapData.sort((a, b) => b.total - a.total);
 
-  if (format === "xlsx") {
-    exportRekapAbsensiXLSX(rekapData, namaBulan);
-  } else if (format === "pdf") {
-    exportRekapAbsensiPDF(rekapData, namaBulan);
+  if (rekapData.length === 0) {
+    showToast("Tidak ada data untuk diexport.", "warning");
+    return;
   }
-}
 
-function exportRekapAbsensiXLSX(data, namaBulan) {
-  const profil = getProfilSekolah();
-  const wb = XLSX.utils.book_new();
+  // Prepare data untuk export dengan format baru
+  const namaKelas = kelasId
+    ? dbGetById(DB_KEYS.kelas, kelasId)?.nama
+    : "Semua Kelas";
 
-  // Header
-  const header = [
-    [profil.namaSekolah || "Jurnal Kelas Digital"],
-    [profil.alamat || ""],
-    [`REKAP ABSENSI SISWA - ${namaBulan}`],
-    [],
-    ["No", "NIS", "Nama Siswa", "Kelas", "Sakit", "Izin", "Alpha", "Total Tidak Hadir"],
+  const filter = `Periode: ${namaBulan} | Kelas: ${namaKelas}`;
+
+  const headers = [
+    "No",
+    "NIS",
+    "Nama Siswa",
+    "Kelas",
+    "Sakit",
+    "Izin",
+    "Alpha",
+    "Total Tidak Hadir",
   ];
 
-  // Data
-  const rows = data.map((r, i) => [
+  const rows = rekapData.map((r, i) => [
     i + 1,
     r.nis,
     r.nama,
@@ -520,67 +522,33 @@ function exportRekapAbsensiXLSX(data, namaBulan) {
     r.total,
   ]);
 
-  const ws = XLSX.utils.aoa_to_sheet([...header, ...rows]);
-  
-  // Styling
-  ws["!cols"] = [
-    { wch: 5 },
-    { wch: 12 },
-    { wch: 30 },
-    { wch: 10 },
-    { wch: 8 },
-    { wch: 8 },
-    { wch: 8 },
-    { wch: 15 },
-  ];
+  const title = `REKAP ABSENSI SISWA — ${namaBulan.toUpperCase()}`;
+  const filename = `Rekap_Absensi_${namaBulan.replace(/ /g, "_")}`;
 
-  XLSX.utils.book_append_sheet(wb, ws, "Rekap Absensi");
-  XLSX.writeFile(wb, `Rekap_Absensi_${namaBulan.replace(/ /g, "_")}.xlsx`);
-  
-  showToast("File Excel berhasil didownload!", "success");
-}
-
-function exportRekapAbsensiPDF(data, namaBulan) {
-  const profil = getProfilSekolah();
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-
-  // Header
-  doc.setFontSize(16);
-  doc.setFont(undefined, "bold");
-  doc.text(profil.namaSekolah || "Jurnal Kelas Digital", 14, 15);
-  
-  doc.setFontSize(9);
-  doc.setFont(undefined, "normal");
-  doc.text(profil.alamat || "", 14, 20);
-  
-  doc.setFontSize(12);
-  doc.setFont(undefined, "bold");
-  doc.text(`REKAP ABSENSI SISWA`, 14, 30);
-  doc.text(namaBulan, 14, 36);
-
-  // Tabel
-  const tableData = data.map((r, i) => [
-    i + 1,
-    r.nis,
-    r.nama,
-    r.kelas,
-    r.sakit,
-    r.izin,
-    r.alpha,
-    r.total,
-  ]);
-
-  doc.autoTable({
-    startY: 42,
-    head: [["No", "NIS", "Nama Siswa", "Kelas", "Sakit", "Izin", "Alpha", "Total"]],
-    body: tableData,
-    styles: { fontSize: 8 },
-    headStyles: { fillColor: [79, 70, 229] },
-  });
-
-  doc.save(`Rekap_Absensi_${namaBulan.replace(/ /g, "_")}.pdf`);
-  showToast("File PDF berhasil didownload!", "success");
+  try {
+    if (format === "xlsx") {
+      exportXLSX({
+        filename,
+        sheetName: "Rekap Absensi",
+        title,
+        filter,
+        headers,
+        rows,
+      });
+    } else if (format === "pdf") {
+      await exportPDF({
+        filename,
+        title,
+        orientation: "portrait",
+        filter,
+        headers,
+        rows,
+      });
+    }
+  } catch (error) {
+    console.error("Export error:", error);
+    showToast("Terjadi kesalahan saat export: " + error.message, "error");
+  }
 }
 
 // ── Inisialisasi Filter ───────────────────────────────────

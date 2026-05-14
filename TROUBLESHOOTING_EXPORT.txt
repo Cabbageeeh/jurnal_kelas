@@ -1,0 +1,178 @@
+═══════════════════════════════════════════════════════════════
+  TROUBLESHOOTING EXPORT - LANGKAH PERBAIKAN
+═══════════════════════════════════════════════════════════════
+
+ERROR: "exportXLSX is not defined" dan "exportPDF is not defined"
+
+PENYEBAB KEMUNGKINAN:
+1. Browser cache yang lama
+2. File export.js tidak ter-load dengan benar
+3. Syntax error di file export.js
+4. Urutan loading script yang salah
+
+═══════════════════════════════════════════════════════════════
+
+LANGKAH PERBAIKAN:
+
+1. CLEAR BROWSER CACHE (PENTING!)
+   ─────────────────────────────────────────────────────────
+   Chrome/Edge:
+   • Tekan Ctrl + Shift + Delete
+   • Pilih "Cached images and files"
+   • Pilih "All time"
+   • Klik "Clear data"
+   
+   ATAU
+   
+   • Tekan Ctrl + F5 (Hard Refresh)
+   • Atau Shift + F5
+
+2. PERIKSA CONSOLE
+   ─────────────────────────────────────────────────────────
+   • Tekan F12 untuk membuka Developer Tools
+   • Buka tab "Console"
+   • Refresh halaman (F5)
+   • Periksa apakah ada pesan:
+     ✓ "export.js loaded successfully"
+     ✓ "exportXLSX function defined"
+     ✓ "exportPDF function defined"
+   
+   Jika TIDAK ADA pesan tersebut:
+   → File export.js tidak ter-load atau ada syntax error
+
+3. PERIKSA NETWORK TAB
+   ─────────────────────────────────────────────────────────
+   • Buka tab "Network" di Developer Tools
+   • Refresh halaman (F5)
+   • Cari file "export.js"
+   • Periksa status:
+     ✓ Status 200 = OK
+     ✗ Status 404 = File tidak ditemukan
+     ✗ Status 500 = Server error
+   
+   • Klik file "export.js"
+   • Buka tab "Response"
+   • Periksa apakah isi file benar
+
+4. PERIKSA URUTAN SCRIPT
+   ─────────────────────────────────────────────────────────
+   Di dashboard-admin.html, urutan script harus:
+   
+   <script src="js/data.js"></script>
+   <script src="js/auth.js"></script>
+   <script src="js/utils.js"></script>
+   <script src="js/darkmode.js"></script>
+   <script src="js/admin.js"></script>
+   <script src="js/import.js"></script>
+   <script src="js/export.js"></script>  ← HARUS ADA
+   <script src="js/absensi.js"></script>
+
+5. TEST MANUAL DI CONSOLE
+   ─────────────────────────────────────────────────────────
+   Buka Console (F12) dan ketik:
+   
+   typeof exportXLSX
+   
+   Hasil yang diharapkan: "function"
+   Jika hasilnya: "undefined" → Fungsi tidak ter-load
+   
+   typeof exportPDF
+   
+   Hasil yang diharapkan: "function"
+   Jika hasilnya: "undefined" → Fungsi tidak ter-load
+
+6. PERIKSA SYNTAX ERROR
+   ─────────────────────────────────────────────────────────
+   Di Console, periksa apakah ada error merah seperti:
+   • "Uncaught SyntaxError"
+   • "Unexpected token"
+   • "Missing }"
+   
+   Jika ada, catat baris error dan file-nya
+
+═══════════════════════════════════════════════════════════════
+
+SOLUSI ALTERNATIF:
+
+Jika masih error setelah clear cache, coba:
+
+1. RESTART BROWSER
+   • Tutup semua tab browser
+   • Tutup browser sepenuhnya
+   • Buka browser lagi
+   • Buka aplikasi
+
+2. GUNAKAN INCOGNITO/PRIVATE MODE
+   • Chrome: Ctrl + Shift + N
+   • Edge: Ctrl + Shift + P
+   • Firefox: Ctrl + Shift + P
+   • Buka aplikasi di mode incognito
+
+3. GUNAKAN BROWSER LAIN
+   • Jika pakai Chrome, coba Edge
+   • Jika pakai Edge, coba Chrome
+   • Jika pakai Firefox, coba Chrome
+
+4. PERIKSA FILE EXPORT.JS
+   • Buka file: d:\project\website\jurnal_kelas\js\export.js
+   • Periksa apakah file ada
+   • Periksa ukuran file (harus > 20 KB)
+   • Periksa tanggal modifikasi (harus hari ini)
+
+═══════════════════════════════════════════════════════════════
+
+DEBUGGING LANJUTAN:
+
+Jika masih error, tambahkan di Console:
+
+// Test apakah file ter-load
+console.log("Testing export functions...");
+console.log("exportXLSX:", typeof exportXLSX);
+console.log("exportPDF:", typeof exportPDF);
+console.log("getProfilSekolah:", typeof getProfilSekolah);
+console.log("XLSX:", typeof XLSX);
+console.log("jsPDF:", typeof window.jspdf);
+
+Hasil yang diharapkan:
+✓ exportXLSX: "function"
+✓ exportPDF: "function"
+✓ getProfilSekolah: "function"
+✓ XLSX: "object"
+✓ jsPDF: "object"
+
+Jika ada yang "undefined":
+→ Library atau fungsi tidak ter-load
+
+═══════════════════════════════════════════════════════════════
+
+CHECKLIST:
+
+[ ] Clear browser cache (Ctrl + Shift + Delete)
+[ ] Hard refresh (Ctrl + F5)
+[ ] Periksa console untuk pesan "export.js loaded successfully"
+[ ] Periksa console untuk pesan "exportXLSX function defined"
+[ ] Periksa console untuk pesan "exportPDF function defined"
+[ ] Test typeof exportXLSX di console
+[ ] Test typeof exportPDF di console
+[ ] Periksa Network tab untuk export.js (status 200)
+[ ] Periksa tidak ada syntax error di console
+[ ] Restart browser jika perlu
+[ ] Coba incognito mode jika perlu
+
+═══════════════════════════════════════════════════════════════
+
+JIKA SEMUA SUDAH DICOBA:
+
+Silakan screenshot:
+1. Console tab (F12 → Console)
+2. Network tab dengan export.js selected
+3. Error message yang muncul
+
+Dan kirimkan untuk analisis lebih lanjut.
+
+═══════════════════════════════════════════════════════════════
+
+Terakhir Diperbarui: 14 Mei 2026
+Status: Troubleshooting Guide
+
+═══════════════════════════════════════════════════════════════

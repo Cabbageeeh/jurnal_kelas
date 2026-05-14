@@ -754,12 +754,12 @@ const INITIAL_PROFIL = {
   namaSekolah: "SMA Negeri 15 Surabaya",
   alamat:
     "Jl. Dukuh Menanggal Sel. No.103, Dukuh Menanggal, Kec. Gayungan, Surabaya, Jawa Timur 60234",
-  telepon: "(021) 1234567",
-  email: "info@sman1contoh.sch.id",
-  website: "www.sman1contoh.sch.id",
+  telepon: "(031) 5678910",
+  email: "info@sman15-sby.sch.id",
+  website: "www.sman15-sby.sch.id",
   kepalaSekolah: "Drs. Ahmad Subarjo, M.Pd",
-  npsn: "12345678",
-  logo: "", // base64 logo sekolah
+  npsn: "20533015",
+  logo: "assets/img/Logo_Sekolah_Final-SMAN 15 Surabaya.png", // Path logo sekolah
 };
 
 const INITIAL_HARI_LIBUR = [

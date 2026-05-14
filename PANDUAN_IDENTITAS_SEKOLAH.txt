@@ -1,0 +1,122 @@
+═══════════════════════════════════════════════════════════════
+  PANDUAN IDENTITAS SMAN 15 SURABAYA - JURNAL KELAS DIGITAL
+═══════════════════════════════════════════════════════════════
+
+✅ PERUBAHAN YANG TELAH DILAKUKAN:
+
+1. HALAMAN LOGIN
+   - Logo SMAN 15 Surabaya ditampilkan
+   - Nama sekolah: "SMAN 15 Surabaya"
+   - Footer: "SMAN 15 Surabaya © 2025"
+
+2. DASHBOARD (Admin, Guru, Siswa)
+   - Logo SMAN 15 Surabaya di header sidebar
+   - Nama aplikasi: "SMAN 15 Surabaya"
+   - Sub-judul sesuai role (Panel Admin/Portal Guru/Portal Siswa)
+
+3. EXPORT PDF
+   - Logo SMAN 15 Surabaya di header dokumen
+   - Informasi lengkap sekolah:
+     * Nama: SMA Negeri 15 Surabaya
+     * Alamat: Jl. Dukuh Menanggal Sel. No.103, Gayungan, Surabaya
+     * NPSN: 20533015
+     * Telepon: (031) 5678910
+     * Email: info@sman15-sby.sch.id
+     * Website: www.sman15-sby.sch.id
+
+4. EXPORT EXCEL
+   - Header dengan informasi SMAN 15 Surabaya
+   - Styling konsisten dengan tema aplikasi
+
+═══════════════════════════════════════════════════════════════
+
+📝 CARA MENGUBAH PROFIL SEKOLAH (ADMIN):
+
+1. Login sebagai Admin
+2. Klik menu "Profil Sekolah"
+3. Edit informasi yang ingin diubah:
+   - Nama Sekolah
+   - NPSN
+   - Alamat
+   - Telepon
+   - Email
+   - Website
+   - Nama Kepala Sekolah
+4. Upload logo baru (opsional):
+   - Klik "Upload Logo"
+   - Pilih file gambar (JPG/PNG, maks 2MB)
+   - Disarankan ukuran persegi (1:1)
+5. Klik "Simpan Profil"
+
+Perubahan akan langsung terlihat di semua dashboard dan export!
+
+═══════════════════════════════════════════════════════════════
+
+📁 LOKASI FILE PENTING:
+
+Logo Sekolah:
+  assets/img/Logo_Sekolah_Final-SMAN 15 Surabaya.png
+
+Data Profil Default:
+  js/data.js (variabel INITIAL_PROFIL)
+
+Fungsi Export:
+  js/export.js
+
+═══════════════════════════════════════════════════════════════
+
+🎨 SPESIFIKASI LOGO:
+
+Format      : PNG (dengan transparansi) atau JPG
+Ukuran      : 512x512 px (rasio 1:1 disarankan)
+Ukuran File : Maksimal 2MB
+Background  : Transparan atau putih
+
+═══════════════════════════════════════════════════════════════
+
+⚠️ TROUBLESHOOTING:
+
+Jika logo tidak muncul:
+1. Pastikan file logo ada di folder assets/img/
+2. Periksa nama file sesuai: "Logo_Sekolah_Final-SMAN 15 Surabaya.png"
+3. Clear cache browser (Ctrl+Shift+Delete)
+4. Refresh halaman (Ctrl+F5)
+
+Jika perubahan tidak terlihat:
+1. Clear localStorage browser
+2. Logout dan login kembali
+3. Periksa console browser untuk error (F12)
+
+═══════════════════════════════════════════════════════════════
+
+📞 INFORMASI KONTAK SEKOLAH (DEFAULT):
+
+Nama     : SMA Negeri 15 Surabaya
+Alamat   : Jl. Dukuh Menanggal Sel. No.103, Dukuh Menanggal,
+           Kec. Gayungan, Surabaya, Jawa Timur 60234
+NPSN     : 20533015
+Telepon  : (031) 5678910
+Email    : info@sman15-sby.sch.id
+Website  : www.sman15-sby.sch.id
+
+Kepala Sekolah: Drs. Ahmad Subarjo, M.Pd
+
+* Informasi ini dapat diubah melalui menu Profil Sekolah
+
+═══════════════════════════════════════════════════════════════
+
+✨ FITUR TAMBAHAN:
+
+- Logo otomatis dikompresi untuk ukuran file PDF optimal
+- Kualitas tinggi (90%) untuk ketajaman maksimal
+- Support transparansi PNG
+- Responsive di semua ukuran layar
+- Konsisten di semua export (PDF & Excel)
+
+═══════════════════════════════════════════════════════════════
+
+Terakhir Diperbarui: 14 Mei 2026
+Versi: 2.0
+Status: ✅ Selesai
+
+═══════════════════════════════════════════════════════════════

@@ -1,0 +1,78 @@
+═══════════════════════════════════════════════════════════════
+  QUICK GUIDE - IDENTITAS SMAN 15 SURABAYA
+═══════════════════════════════════════════════════════════════
+
+✅ APA YANG BERUBAH?
+
+1. Logo SMAN 15 Surabaya muncul di:
+   • Halaman login
+   • Sidebar admin
+   • Sidebar guru
+   • Sidebar siswa
+   • Export PDF
+   • Export Excel
+
+2. Nama aplikasi berubah menjadi:
+   "SMAN 15 Surabaya"
+
+3. Informasi sekolah lengkap di semua export
+
+═══════════════════════════════════════════════════════════════
+
+📍 LOKASI LOGO
+
+File: assets/img/Logo_Sekolah_Final-SMAN 15 Surabaya.png
+
+Jika logo tidak muncul, pastikan file ada di lokasi tersebut!
+
+═══════════════════════════════════════════════════════════════
+
+🔧 CARA UBAH PROFIL SEKOLAH (ADMIN)
+
+1. Login sebagai Admin
+2. Menu "Profil Sekolah"
+3. Edit informasi
+4. Upload logo baru (opsional)
+5. Simpan
+
+═══════════════════════════════════════════════════════════════
+
+📊 INFO SEKOLAH DEFAULT
+
+Nama     : SMA Negeri 15 Surabaya
+NPSN     : 20533015
+Alamat   : Jl. Dukuh Menanggal Sel. No.103, Gayungan, Surabaya
+Telepon  : (031) 5678910
+Email    : info@sman15-sby.sch.id
+Website  : www.sman15-sby.sch.id
+Kepsek   : Drs. Ahmad Subarjo, M.Pd
+
+═══════════════════════════════════════════════════════════════
+
+⚠️ TROUBLESHOOTING
+
+Logo tidak muncul?
+→ Clear cache (Ctrl+Shift+Delete)
+→ Refresh (Ctrl+F5)
+→ Cek file logo ada
+
+Perubahan tidak terlihat?
+→ Logout & login lagi
+→ Clear localStorage
+→ Hard refresh
+
+═══════════════════════════════════════════════════════════════
+
+📄 DOKUMENTASI LENGKAP
+
+• IDENTITAS_SMAN15_SURABAYA.md
+• PANDUAN_IDENTITAS_SEKOLAH.txt
+• RINGKASAN_IDENTITAS_SMAN15.txt
+
+═══════════════════════════════════════════════════════════════
+
+✅ Status: SELESAI
+📅 Tanggal: 14 Mei 2026
+🔢 Versi: 2.0
+
+═══════════════════════════════════════════════════════════════

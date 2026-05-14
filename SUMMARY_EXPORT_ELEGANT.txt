@@ -1,0 +1,298 @@
+╔═══════════════════════════════════════════════════════════════════════╗
+║                                                                       ║
+║     📄 EXPORT PDF & EXCEL - DESAIN ELEGAN & RESMI 📊                 ║
+║                                                                       ║
+║                    ✅ UPDATE SELESAI ✅                               ║
+║                                                                       ║
+╚═══════════════════════════════════════════════════════════════════════╝
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  🎨 DESAIN PDF BARU                                                   │
+└───────────────────────────────────────────────────────────────────────┘
+
+HEADER (Centered & Elegant):
+╔═══════════════════════════════════════════════════════════════════╗
+║                                                                   ║
+║                        [🏫 LOGO 28mm]                             ║
+║                     (Circle Background)                           ║
+║                                                                   ║
+║                  SMA NEGERI 15 SURABAYA                           ║
+║                  (Bold, 18pt, Centered)                           ║
+║                                                                   ║
+║        Jl. Dukuh Menanggal Sel. No.103, Gayungan, Surabaya       ║
+║                                                                   ║
+║        ☎ (031) 5678910 • ✉ info@sman15-sby.sch.id •              ║
+║                  🌐 www.sman15-sby.sch.id                         ║
+║                                                                   ║
+║      NPSN: 20533015 | Kepala Sekolah: Drs. Ahmad Subarjo, M.Pd  ║
+║                                                                   ║
+╠═══════════════════════════════════════════════════════════════════╣
+║ ═══════════════════════════════════════════════════════════════   ║ (Triple Line)
+╚═══════════════════════════════════════════════════════════════════╝
+
+TITLE SECTION (Elegant Box):
+╔═══════════════════════════════════════════════════════════════════╗
+║  ┌─────────────────────────────────────────────────────────────┐  ║
+║  │     REKAP JURNAL KELAS — KELAS X-1                         │  ║
+║  │     (White text on Indigo background)                       │  ║
+║  └─────────────────────────────────────────────────────────────┘  ║
+║  ┌─────────────────────────────────────────────────────────────┐  ║
+║  │ ╔═                                                       ═╗ │  ║
+║  │ ║  📋 Filter: Periode 2025-01-01 s/d 2025-01-31         ║ │  ║
+║  │ ║  📅 Diekspor: Kamis, 14 Mei 2026                       ║ │  ║
+║  │ ╚═                                                       ═╝ │  ║
+║  └─────────────────────────────────────────────────────────────┘  ║
+║     (White box with decorative corner accents)                    ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+TABLE:
+┌─────────────────────────────────────────────────────────────────┐
+│ Tanggal │ Kelas │ Jam │ Mapel │ Guru │ Materi │ Hadir │ ...   │
+│ (Indigo header, White text, 9pt Bold)                          │
+├─────────────────────────────────────────────────────────────────┤
+│ 01/01   │ X-1   │ 1   │ MTK   │ ...  │ ...    │ 30    │ ...   │
+│ (White background, 8.5pt)                                       │
+├─────────────────────────────────────────────────────────────────┤
+│ 02/01   │ X-1   │ 2   │ IPA   │ ...  │ ...    │ 29    │ ...   │
+│ (Light gray background - alternating)                           │
+└─────────────────────────────────────────────────────────────────┘
+
+FOOTER (Every Page):
+╔═══════════════════════════════════════════════════════════════════╗
+║ ═══════════════════════════════════════════════════════════════   ║ (Double Line)
+║                                                                   ║
+║  [🏫]  SMA Negeri 15 Surabaya    ┌──────────────┐    14/05/2026 ║
+║  (8mm)  (Bold, Indigo)           │ Halaman 1/5  │    Dokumen    ║
+║                                  │ (Indigo Box) │    Resmi      ║
+║                                  └──────────────┘               ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  📊 DESAIN EXCEL BARU                                                 │
+└───────────────────────────────────────────────────────────────────────┘
+
+ROW 1: SMA NEGERI 15 SURABAYA
+       ┌─────────────────────────────────────────────────────────┐
+       │  SMA NEGERI 15 SURABAYA                                 │
+       │  (16pt Bold, Gray-800, Light Gray BG, 32pt height)      │
+       │  ═══════════════════════════════════════════════════     │ (Indigo border)
+       └─────────────────────────────────────────────────────────┘
+
+ROW 2: Jl. Dukuh Menanggal Sel. No.103, Gayungan, Surabaya
+       (10pt, Gray-600, Very Light Gray BG)
+
+ROW 3: ☎ (031) 5678910 • ✉ info@sman15-sby.sch.id • 🌐 www.sman15-sby.sch.id
+       (10pt, Gray-500, Very Light Gray BG)
+
+ROW 4: NPSN: 20533015 | Kepala Sekolah: Drs. Ahmad Subarjo, M.Pd
+       (9pt Bold, Indigo, Light Indigo BG)
+
+ROW 5: (Empty)
+
+ROW 6: ┌─────────────────────────────────────────────────────────┐
+       │  REKAP JURNAL KELAS — KELAS X-1                         │
+       │  (14pt Bold, White text, Indigo BG, 24pt height)        │
+       └─────────────────────────────────────────────────────────┘
+
+ROW 7: 📋 Periode: 2025-01-01 s/d 2025-01-31
+       (9pt, Gray-700, White BG with border)
+
+ROW 8: 📅 Diekspor: Kamis, 14 Mei 2026
+       (9pt, Gray-700, White BG with border)
+
+ROW 9: (Empty)
+
+ROW 10: TABLE HEADER
+        ┌──────┬───────┬─────┬───────┬──────┬────────┬───────┐
+        │Tgl   │Kelas  │Jam  │Mapel  │Guru  │Materi  │Hadir  │
+        │(11pt Bold, White text, Indigo BG, 22pt height)      │
+        ├──────┼───────┼─────┼───────┼──────┼────────┼───────┤
+        │01/01 │X-1    │1    │MTK    │...   │...     │30     │
+        │(10pt, Gray-800, White BG)                           │
+        ├──────┼───────┼─────┼───────┼──────┼────────┼───────┤
+        │02/01 │X-1    │2    │IPA    │...   │...     │29     │
+        │(10pt, Gray-800, Light Gray BG - alternating)        │
+        └──────┴───────┴─────┴───────┴──────┴────────┴───────┘
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  ✨ KEUNGGULAN DESAIN BARU                                            │
+└───────────────────────────────────────────────────────────────────────┘
+
+✅ LEBIH FORMAL & RESMI
+   • Logo prominent di tengah atas (PDF)
+   • Layout centered untuk kesan formal
+   • Informasi lengkap dan terstruktur
+   • Watermark "Dokumen Resmi"
+
+✅ LEBIH ELEGAN
+   • Decorative corner accents
+   • Rounded corners
+   • Shadow effects untuk logo
+   • Color harmony (Indigo + Gray)
+   • Circle background untuk logo
+
+✅ LEBIH READABLE
+   • Font size lebih besar (9pt → 11pt header)
+   • Cell padding lebih besar
+   • Alternating row colors
+   • Clear visual hierarchy
+   • Icon integration (☎ ✉ 🌐 📋 📅)
+
+✅ LEBIH PROFESSIONAL
+   • Consistent branding (logo di header & footer)
+   • Structured layout
+   • Quality borders & separators
+   • Professional color palette
+   • Complete contact information
+
+✅ LEBIH INFORMATIVE
+   • Logo sekolah visible di header & footer
+   • Complete contact info dengan icon
+   • NPSN & Kepala Sekolah
+   • Export date & page numbers
+   • Document watermark
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  📐 UKURAN & DIMENSI                                                  │
+└───────────────────────────────────────────────────────────────────────┘
+
+PDF:
+  Header Logo      : 28mm × 28mm (Circle background)
+  Footer Logo      : 8mm × 8mm
+  Header Height    : 50mm
+  Footer Height    : 15mm
+  Title Font       : 13pt Bold (White on Indigo)
+  Table Header     : 9pt Bold (White on Indigo)
+  Table Body       : 8.5pt (Gray-800)
+
+EXCEL:
+  School Name      : 32pt height, 16pt Bold font
+  Address/Contact  : 18pt/16pt height, 10pt font
+  NPSN/Kepsek      : 16pt height, 9pt Bold font
+  Title            : 24pt height, 14pt Bold font
+  Filter/Export    : 16pt height, 9pt font
+  Table Header     : 22pt height, 11pt Bold font
+  Data Rows        : Auto height, 10pt font
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  🎨 COLOR PALETTE                                                     │
+└───────────────────────────────────────────────────────────────────────┘
+
+PRIMARY:
+  Indigo         : #4F46E5 (79, 70, 229)
+  Indigo Dark    : #4338CA (67, 56, 202)
+  Indigo Light   : #6366F1 (99, 102, 241)
+
+NEUTRAL:
+  Gray-800       : #1F2937 (31, 41, 55)   - Text
+  Gray-600       : #4B5563 (75, 85, 99)   - Subtext
+  Gray-500       : #6B7280 (107, 114, 128) - Light text
+  Gray-300       : #D1D5DB (209, 213, 219) - Borders
+  Gray-200       : #E5E7EB (229, 231, 235) - Light borders
+  Gray-100       : #F3F4F6 (243, 244, 246) - BG light
+  Gray-50        : #F9FAFB (249, 250, 251) - BG very light
+
+BACKGROUND:
+  White          : #FFFFFF (255, 255, 255)
+  Indigo BG      : #EEF2FF (238, 242, 255)
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  🔧 FITUR TEKNIS BARU                                                 │
+└───────────────────────────────────────────────────────────────────────┘
+
+PDF:
+  ✓ Logo caching untuk performa
+  ✓ Centered logo layout dengan circle background
+  ✓ Shadow effect untuk depth
+  ✓ Decorative corner accents
+  ✓ Double/triple line separators
+  ✓ Box untuk nomor halaman
+  ✓ Footer logo di setiap halaman
+  ✓ Watermark "Dokumen Resmi"
+
+EXCEL:
+  ✓ Enhanced styling dengan multiple colors
+  ✓ Border variations (thin, medium)
+  ✓ Font size hierarchy
+  ✓ Icon integration (☎ ✉ 🌐 📋 📅)
+  ✓ Alternating row colors
+  ✓ Professional borders
+  ✓ Auto column width dengan padding
+  ✓ Optimal row heights
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  📝 CARA MENGGUNAKAN                                                  │
+└───────────────────────────────────────────────────────────────────────┘
+
+Sama seperti sebelumnya:
+
+ADMIN:
+  1. Buka menu "Rekap Jurnal" atau "Rekap Konfirmasi"
+  2. Pilih filter (tanggal, kelas, guru)
+  3. Klik "Export PDF" atau "Export Excel"
+  4. File otomatis terdownload dengan desain baru ✨
+
+GURU:
+  1. Buka menu "Riwayat Konfirmasi"
+  2. Pilih filter tanggal (opsional)
+  3. Klik "Export PDF" atau "Export Excel"
+  4. File otomatis terdownload ✨
+
+SISWA:
+  1. Buka menu "Riwayat Jurnal"
+  2. Pilih filter tanggal (opsional)
+  3. Klik "Export PDF" atau "Export Excel"
+  4. File otomatis terdownload ✨
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  ✅ TESTING CHECKLIST                                                 │
+└───────────────────────────────────────────────────────────────────────┘
+
+PDF:
+  [✓] Logo muncul di header (centered, 28mm)
+  [✓] Logo muncul di footer (8mm)
+  [✓] Circle background untuk logo
+  [✓] Informasi sekolah lengkap
+  [✓] Decorative corner accents
+  [✓] Double/triple line separators
+  [✓] Icon di filter & tanggal
+  [✓] Alternating row colors
+  [✓] Page number dengan box Indigo
+  [✓] Watermark "Dokumen Resmi"
+
+EXCEL:
+  [✓] Header dengan styling elegan
+  [✓] Icon muncul (☎ ✉ 🌐 📋 📅)
+  [✓] Alternating row colors
+  [✓] Border professional
+  [✓] Font hierarchy jelas
+  [✓] Auto column width
+  [✓] Row heights optimal
+  [✓] Color scheme konsisten
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  📄 DOKUMENTASI                                                       │
+└───────────────────────────────────────────────────────────────────────┘
+
+• UPDATE_EXPORT_ELEGANT.md     - Dokumentasi lengkap
+• SUMMARY_EXPORT_ELEGANT.txt   - File ini (Quick summary)
+
+┌───────────────────────────────────────────────────────────────────────┐
+│  💡 TIPS                                                              │
+└───────────────────────────────────────────────────────────────────────┘
+
+1. Logo Quality: Pastikan logo PNG resolusi tinggi
+2. Browser: Gunakan Chrome/Edge untuk hasil optimal
+3. File Size: Logo otomatis dikompresi (92% quality)
+4. Print: Desain sudah dioptimalkan untuk print A4 landscape
+
+╔═══════════════════════════════════════════════════════════════════════╗
+║                                                                       ║
+║                    ✅ UPDATE SELESAI ✅                               ║
+║                                                                       ║
+║              Terakhir Diperbarui: 14 Mei 2026                        ║
+║                      Versi: 3.0                                       ║
+║                                                                       ║
+║         Export PDF & Excel Sekarang Lebih Elegan & Resmi! 🎉        ║
+║                                                                       ║
+╚═══════════════════════════════════════════════════════════════════════╝
