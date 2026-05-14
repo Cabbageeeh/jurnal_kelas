@@ -1,0 +1,164 @@
+═══════════════════════════════════════════════════════════════
+  QUICK REFERENCE - STRUKTUR PENGGUNA SISTEM JURNAL KELAS
+═══════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────┐
+│ 🔐 PENGGUNA YANG BISA LOGIN                                 │
+└─────────────────────────────────────────────────────────────┘
+
+1. ADMIN
+   ✓ Akses penuh semua fitur
+   ✓ Mengelola pengguna, kelas, mapel, jadwal
+   ✓ Melihat semua jurnal dan rekap absensi
+
+2. GURU
+   ✓ Membuat jurnal mengajar
+   ✓ Mencatat absensi siswa
+   ✓ Melihat jadwal mengajar
+
+3. SISWA (HANYA KETUA & SEKRETARIS)
+   ✓ Melihat jurnal kelas
+   ✓ Melihat absensi kelas
+   ✓ Melihat jadwal kelas
+
+┌─────────────────────────────────────────────────────────────┐
+│ 📊 DATA SISWA (TIDAK BISA LOGIN)                            │
+└─────────────────────────────────────────────────────────────┘
+
+• Semua siswa di sekolah
+• Hanya untuk rekap absensi
+• Tidak punya username & password
+• Tidak bisa akses sistem web
+
+═══════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────┐
+│ 📥 CARA IMPORT                                              │
+└─────────────────────────────────────────────────────────────┘
+
+TEMPLATE PENGGUNA (users)
+─────────────────────────────────────────────────────────────
+Lokasi: Dashboard Admin → Pengguna → Import Data
+File: template_users.xlsx
+
+Kolom:
+• nama
+• username
+• password
+• role (admin/guru/siswa)
+• kelas_nama (untuk siswa)
+• jabatan (ketua/sekretaris untuk siswa)
+
+Contoh:
+┌──────────────┬──────────┬──────────┬───────┬───────┬────────────┐
+│ Nama         │ Username │ Password │ Role  │ Kelas │ Jabatan    │
+├──────────────┼──────────┼──────────┼───────┼───────┼────────────┤
+│ Admin        │ admin    │ admin123 │ admin │       │            │
+│ Budi S.Pd    │ budi     │ guru123  │ guru  │       │            │
+│ Ahmad Fauzi  │ ahmad_x1 │ siswa123 │ siswa │ X-1   │ ketua      │
+│ Siti N.      │ siti_x1  │ siswa123 │ siswa │ X-1   │ sekretaris │
+└──────────────┴──────────┴──────────┴───────┴───────┴────────────┘
+
+TEMPLATE SISWA (siswa)
+─────────────────────────────────────────────────────────────
+Lokasi: Dashboard Admin → Rekap Absensi → Import Data Siswa
+File: template_siswa.xlsx
+
+Kolom:
+• nis
+• nama
+• kelas_nama
+
+Contoh:
+┌───────┬──────────────────┬───────┐
+│ NIS   │ Nama             │ Kelas │
+├───────┼──────────────────┼───────┤
+│ 12001 │ Ahmad Fauzi      │ X-1   │
+│ 12002 │ Siti Nurhaliza   │ X-1   │
+│ 12003 │ Budi Santoso     │ X-1   │
+│ 12004 │ Dewi Lestari     │ X-1   │
+│ ...   │ ...              │ ...   │
+│ 12035 │ Zahra Amira      │ X-1   │
+└───────┴──────────────────┴───────┘
+
+═══════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────┐
+│ 🎯 CONTOH KASUS: KELAS X-1 (35 SISWA)                       │
+└─────────────────────────────────────────────────────────────┘
+
+PENGGUNA LOGIN (2 orang):
+─────────────────────────────────────────────────────────────
+1. Ahmad Fauzi (Ketua)
+   • Username: ahmad_x1
+   • Password: siswa123
+   • Bisa login: ✅ YA
+
+2. Siti Nurhaliza (Sekretaris)
+   • Username: siti_x1
+   • Password: siswa123
+   • Bisa login: ✅ YA
+
+DATA SISWA REKAP ABSENSI (35 orang):
+─────────────────────────────────────────────────────────────
+1. Ahmad Fauzi (NIS: 12001)
+2. Siti Nurhaliza (NIS: 12002)
+3. Budi Santoso (NIS: 12003)
+4. Dewi Lestari (NIS: 12004)
+...
+35. Zahra Amira (NIS: 12035)
+
+Semua siswa ini:
+• Bisa login: ❌ TIDAK
+• Tercatat di rekap absensi: ✅ YA
+
+⚠️ CATATAN: Ahmad & Siti muncul di kedua data!
+
+═══════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────┐
+│ ✅ CHECKLIST SETUP AWAL                                     │
+└─────────────────────────────────────────────────────────────┘
+
+[ ] 1. Import data kelas
+[ ] 2. Import data mata pelajaran
+[ ] 3. Buat periode semester aktif
+[ ] 4. Import akun admin
+[ ] 5. Import akun guru
+[ ] 6. Import akun ketua & sekretaris kelas
+[ ] 7. Import data semua siswa (rekap absensi)
+[ ] 8. Import jadwal pelajaran
+[ ] 9. Mulai operasional (isi jurnal & absensi)
+
+═══════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────┐
+│ ❓ FAQ SINGKAT                                              │
+└─────────────────────────────────────────────────────────────┘
+
+Q: Apakah semua siswa perlu akun login?
+A: TIDAK! Hanya ketua & sekretaris kelas.
+
+Q: Siswa lainnya bagaimana?
+A: Import via Template Siswa (untuk rekap absensi saja).
+
+Q: Ketua/sekretaris perlu diimport 2 kali?
+A: YA! Di Template Pengguna (login) dan Template Siswa (absensi).
+
+Q: Bagaimana guru catat absensi?
+A: Guru buat jurnal → pilih siswa tidak hadir → sistem catat otomatis.
+
+Q: Siapa yang bisa lihat rekap absensi?
+A: Admin (semua), Guru (kelas diajar), Siswa (kelas sendiri).
+
+═══════════════════════════════════════════════════════════════
+
+📚 DOKUMENTASI LENGKAP:
+• STRUKTUR_PENGGUNA_SISTEM.md - Penjelasan detail
+• CONTOH_TEMPLATE_SISWA.md - Panduan template siswa
+• README_REKAP_ABSENSI.md - Panduan rekap absensi
+• CONTOH_TEMPLATE_IMPORT.md - Panduan template pengguna
+
+═══════════════════════════════════════════════════════════════
+Versi: 1.0 | Update: Mei 2026
+═══════════════════════════════════════════════════════════════

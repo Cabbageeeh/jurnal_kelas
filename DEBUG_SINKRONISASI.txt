@@ -1,0 +1,255 @@
+═══════════════════════════════════════════════════════════════
+  DEBUG SINKRONISASI JUMLAH SISWA
+═══════════════════════════════════════════════════════════════
+
+⚠️ MASALAH:
+Setelah import data siswa dan klik tombol sinkronisasi, jumlah
+siswa masih tidak berubah.
+
+═══════════════════════════════════════════════════════════════
+
+🔍 LANGKAH DEBUGGING:
+
+STEP 1: CEK DATA SISWA DI DATABASE
+──────────────────────────────────────────────────────────────
+1. Buka Dashboard Admin
+2. Tekan F12 untuk buka Console Browser
+3. Ketik di console:
+
+   cekStatusSinkronisasi()
+
+4. Lihat output di console:
+   • Berapa jumlah siswa per kelas?
+   • Apakah kelasId cocok?
+   • Apakah siswa aktif?
+
+STEP 2: CEK DATA KELAS
+──────────────────────────────────────────────────────────────
+Ketik di console:
+
+   dbGetAll(DB_KEYS.kelas)
+
+Lihat output:
+• Berapa jumlahSiswa untuk setiap kelas?
+• Apakah id kelas benar?
+
+STEP 3: CEK DATA SISWA
+──────────────────────────────────────────────────────────────
+Ketik di console:
+
+   dbGetAll(DB_KEYS.siswa)
+
+Lihat output:
+• Berapa total siswa?
+• Apakah kelasId cocok dengan id kelas?
+• Apakah status aktif = true?
+
+STEP 4: JALANKAN SINKRONISASI DENGAN LOGGING
+──────────────────────────────────────────────────────────────
+1. Buka halaman "Kelola Kelas"
+2. Buka Console (F12)
+3. Klik tombol "Sinkronisasi Jumlah Siswa"
+4. Lihat output di console:
+   • Berapa kelas yang diupdate?
+   • Apa detail perubahannya?
+
+═══════════════════════════════════════════════════════════════
+
+🔧 KEMUNGKINAN MASALAH & SOLUSI:
+
+MASALAH 1: kelasId Tidak Cocok
+──────────────────────────────────────────────────────────────
+Gejala:
+• Data siswa ada, tapi tidak terhitung
+• Console menampilkan: jumlahSiswaAktual = 0
+
+Penyebab:
+• kelasId di data siswa tidak sama dengan id di data kelas
+• Mungkin karena kelas diimport ulang dengan id baru
+
+Solusi:
+1. Cek id kelas yang benar:
+   dbGetAll(DB_KEYS.kelas)
+   
+2. Cek kelasId di data siswa:
+   dbGetAll(DB_KEYS.siswa)
+   
+3. Jika tidak cocok, re-import data siswa
+
+MASALAH 2: Siswa Tidak Aktif
+──────────────────────────────────────────────────────────────
+Gejala:
+• Data siswa ada, tapi tidak terhitung
+• Console menampilkan: aktif = false
+
+Penyebab:
+• Status siswa diset false saat import
+
+Solusi:
+1. Cek status siswa:
+   dbGetAll(DB_KEYS.siswa).filter(s => !s.aktif)
+   
+2. Aktifkan siswa secara manual atau re-import
+
+MASALAH 3: Data Siswa Belum Diimport
+──────────────────────────────────────────────────────────────
+Gejala:
+• Console menampilkan: Total siswa = 0 atau sangat sedikit
+
+Penyebab:
+• Data siswa belum diimport
+• Import gagal
+
+Solusi:
+1. Cek total siswa:
+   dbGetAll(DB_KEYS.siswa).length
+   
+2. Jika 0 atau sedikit, import ulang data siswa
+
+MASALAH 4: Cache Browser
+──────────────────────────────────────────────────────────────
+Gejala:
+• Data di console benar, tapi tampilan tidak update
+
+Penyebab:
+• Cache browser
+
+Solusi:
+1. Hard refresh: Ctrl + Shift + R
+2. Clear cache: Ctrl + Shift + Delete
+3. Tutup dan buka ulang browser
+
+═══════════════════════════════════════════════════════════════
+
+📋 CONTOH OUTPUT CONSOLE:
+
+CONTOH 1: Data Sinkron
+──────────────────────────────────────────────────────────────
+> cekStatusSinkronisasi()
+
+=== STATUS SINKRONISASI ===
+X-1: {
+  kelasId: "kls001",
+  jumlahSiswaData: 25,
+  jumlahSiswaAktual: 25,
+  sinkron: "✅",
+  siswa: ["Ahmad (12001)", "Siti (12002)", ...]
+}
+X-2: {
+  kelasId: "kls002",
+  jumlahSiswaData: 35,
+  jumlahSiswaAktual: 35,
+  sinkron: "✅",
+  siswa: ["Budi (13001)", "Dewi (13002)", ...]
+}
+
+CONTOH 2: Data Tidak Sinkron
+──────────────────────────────────────────────────────────────
+> cekStatusSinkronisasi()
+
+=== STATUS SINKRONISASI ===
+X-1: {
+  kelasId: "kls001",
+  jumlahSiswaData: 2,
+  jumlahSiswaAktual: 25,
+  sinkron: "❌",
+  siswa: ["Ahmad (12001)", "Siti (12002)", ...]
+}
+
+→ Klik tombol "Sinkronisasi Jumlah Siswa"
+
+CONTOH 3: kelasId Tidak Cocok
+──────────────────────────────────────────────────────────────
+> cekStatusSinkronisasi()
+
+=== STATUS SINKRONISASI ===
+X-1: {
+  kelasId: "kls001",
+  jumlahSiswaData: 2,
+  jumlahSiswaAktual: 0,
+  sinkron: "❌",
+  siswa: []
+}
+
+> dbGetAll(DB_KEYS.siswa).filter(s => s.kelasId === "kls001")
+[]
+
+> dbGetAll(DB_KEYS.siswa)[0]
+{
+  id: "siswa001",
+  nis: "12001",
+  nama: "Ahmad",
+  kelasId: "kls999",  ← ID TIDAK COCOK!
+  aktif: true
+}
+
+→ Re-import data siswa dengan kelas yang benar
+
+═══════════════════════════════════════════════════════════════
+
+🔄 SOLUSI LENGKAP:
+
+OPSI 1: SINKRONISASI MANUAL (JIKA DATA SUDAH BENAR)
+──────────────────────────────────────────────────────────────
+1. Buka Console (F12)
+2. Jalankan: cekStatusSinkronisasi()
+3. Pastikan jumlahSiswaAktual benar
+4. Klik tombol "Sinkronisasi Jumlah Siswa"
+5. Refresh halaman (F5)
+
+OPSI 2: RE-IMPORT DATA SISWA (JIKA kelasId TIDAK COCOK)
+──────────────────────────────────────────────────────────────
+1. Buka "Rekap Absensi"
+2. Klik "Import Data Siswa"
+3. Upload file Excel yang sama
+4. Sistem akan:
+   • Validasi kelas
+   • Update kelasId yang benar
+   • Auto-update jumlahSiswa
+5. Refresh halaman (F5)
+
+OPSI 3: RESET DATABASE (JIKA SEMUA GAGAL)
+──────────────────────────────────────────────────────────────
+⚠️ HATI-HATI: Ini akan menghapus semua data!
+
+1. Backup data penting terlebih dahulu
+2. Buka Console (F12)
+3. Jalankan: resetDB()
+4. Refresh halaman (F5)
+5. Import ulang semua data:
+   • Kelas
+   • Siswa
+   • Pengguna
+   • Jadwal
+
+═══════════════════════════════════════════════════════════════
+
+📞 BANTUAN LEBIH LANJUT:
+
+Jika masih bermasalah, kirimkan output console:
+
+1. cekStatusSinkronisasi()
+2. dbGetAll(DB_KEYS.kelas)
+3. dbGetAll(DB_KEYS.siswa)
+
+Sertakan screenshot:
+• Halaman Kelola Kelas
+• Halaman Rekap Absensi
+• Form Pengisian Jurnal
+
+═══════════════════════════════════════════════════════════════
+
+✅ CHECKLIST VERIFIKASI:
+
+Setelah sinkronisasi, pastikan:
+
+[ ] Console menampilkan: "X kelas berhasil disinkronkan!"
+[ ] Tabel Kelola Kelas menampilkan jumlah siswa yang benar
+[ ] Form Jurnal menampilkan "Total Siswa: X" yang benar
+[ ] Rekap Absensi menampilkan jumlah siswa yang sama
+
+Jika semua ✅, maka data sudah sinkron!
+
+═══════════════════════════════════════════════════════════════
+Versi: 1.0 | Update: 14 Mei 2026
+═══════════════════════════════════════════════════════════════

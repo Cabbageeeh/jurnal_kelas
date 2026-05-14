@@ -1,0 +1,211 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                           ⚠️ INSTRUKSI PENTING ⚠️                           ║
+║                                                                              ║
+║              Template Download Masih Format Lama? Baca Ini!                 ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+MASALAH YANG ANDA ALAMI:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Template Excel yang di-download masih menampilkan:
+  ❌ X IPA 1, X IPS 1, XI IPA 1 (FORMAT LAMA)
+
+Seharusnya menampilkan:
+  ✅ X-1, X-2, XI-A, XII-A (FORMAT BARU)
+
+PENYEBAB:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Browser Anda masih menggunakan CACHE dari file JavaScript lama (import.js).
+File sudah diubah, tapi browser belum load ulang file yang baru.
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                        SOLUSI CEPAT (PILIH SALAH SATU)                      ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ CARA 1: HARD REFRESH (PALING MUDAH) ⭐ COBA INI DULU                        │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  1. Buka aplikasi di browser (index.html)                                  │
+│  2. Tekan tombol keyboard:                                                 │
+│                                                                              │
+│     Windows/Linux:  Ctrl + Shift + R                                       │
+│                     atau                                                    │
+│                     Ctrl + F5                                               │
+│                                                                              │
+│     Mac:            Cmd + Shift + R                                        │
+│                                                                              │
+│  3. Tunggu halaman reload                                                  │
+│  4. Login sebagai Admin                                                    │
+│  5. Test download template lagi                                            │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ CARA 2: CLEAR CACHE MANUAL                                                  │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  Chrome / Edge / Brave:                                                    │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  1. Tekan: Ctrl + Shift + Delete                                           │
+│  2. Pilih tab: "Advanced" atau "Lanjutan"                                  │
+│  3. Time range: "All time" atau "Semua waktu"                              │
+│  4. Centang HANYA:                                                         │
+│     ☑ Cached images and files                                              │
+│     ☑ Gambar dan file dalam cache                                          │
+│  5. Klik: "Clear data" atau "Hapus data"                                   │
+│  6. Tutup browser                                                          │
+│  7. Buka browser lagi                                                      │
+│  8. Buka index.html                                                        │
+│                                                                              │
+│  Firefox:                                                                   │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  1. Tekan: Ctrl + Shift + Delete                                           │
+│  2. Time range: "Everything" atau "Semua"                                  │
+│  3. Centang HANYA:                                                         │
+│     ☑ Cache                                                                 │
+│  4. Klik: "Clear Now" atau "Hapus Sekarang"                                │
+│  5. Tutup browser                                                          │
+│  6. Buka browser lagi                                                      │
+│  7. Buka index.html                                                        │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ CARA 3: INCOGNITO/PRIVATE MODE (PALING AMAN)                                │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  Chrome / Edge / Brave:                                                    │
+│  • Tekan: Ctrl + Shift + N                                                 │
+│                                                                              │
+│  Firefox:                                                                   │
+│  • Tekan: Ctrl + Shift + P                                                 │
+│                                                                              │
+│  Kemudian:                                                                  │
+│  1. Drag & drop file index.html ke window incognito                        │
+│  2. Atau klik kanan index.html → Open with → Browser (New Private Window) │
+│  3. Login dan test download template                                       │
+│                                                                              │
+│  Keuntungan: Tidak ada cache, selalu load file terbaru                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ CARA 4: DISABLE CACHE (UNTUK DEVELOPMENT)                                   │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  1. Buka aplikasi di browser                                               │
+│  2. Tekan F12 (buka Developer Tools)                                       │
+│  3. Klik tab "Network"                                                     │
+│  4. Centang: ☑ "Disable cache"                                             │
+│  5. JANGAN TUTUP Developer Tools (biarkan terbuka)                         │
+│  6. Refresh halaman (F5)                                                   │
+│  7. Test download template                                                 │
+│                                                                              │
+│  Catatan: Cache akan disabled selama DevTools terbuka                      │
+│           Ini cara terbaik untuk development/testing                       │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                          VERIFIKASI BERHASIL                                 ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+Setelah clear cache, test dengan langkah ini:
+
+1. Login sebagai Admin
+   Username: admin
+   Password: admin123
+
+2. Buka menu: Kelola Kelas
+
+3. Klik tombol: Import Data
+
+4. Klik: Download Template Kelas
+
+5. Buka file Excel yang baru di-download
+
+6. Lihat sheet "Kelas", baris 2-8:
+
+   ✅ BERHASIL jika muncul:
+   ┌──────┬─────────┬─────────┬─────────────┐
+   │ nama │ tingkat │ jurusan │ jumlahSiswa │
+   ├──────┼─────────┼─────────┼─────────────┤
+   │ X-1  │ X       │ 1       │ 35          │
+   │ X-2  │ X       │ 2       │ 32          │
+   │ X-12 │ X       │ 12      │ 30          │
+   │ XI-A │ XI      │ A       │ 36          │
+   │ XI-B │ XI      │ B       │ 34          │
+   │ XII-A│ XII     │ A       │ 33          │
+   │ XII-G│ XII     │ G       │ 31          │
+   └──────┴─────────┴─────────┴─────────────┘
+
+   ❌ GAGAL jika masih muncul:
+   ┌──────────┬─────────┬─────────┬─────────────┐
+   │ nama     │ tingkat │ jurusan │ jumlahSiswa │
+   ├──────────┼─────────┼─────────┼─────────────┤
+   │ X IPA 1  │ X       │ IPA     │ 35          │
+   │ X IPS 1  │ X       │ IPS     │ 32          │
+   │ XI IPA 1 │ XI      │ IPA     │ 36          │
+   └──────────┴─────────┴─────────┴─────────────┘
+
+7. Cek juga sheet "Petunjuk":
+   Harus ada teks:
+   "• Kelas 10 (X): X-1, X-2, X-3, ... X-12"
+   "• Kelas 11 (XI): XI-A, XI-B, XI-C, ... XI-G"
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                      JIKA MASIH BELUM BERHASIL                               ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+Jika setelah clear cache masih belum berhasil:
+
+1. TUTUP SEMUA TAB BROWSER
+2. TUTUP BROWSER SEPENUHNYA (pastikan tidak ada di taskbar)
+3. BUKA BROWSER LAGI
+4. Buka file index.html
+5. Test lagi
+
+Atau coba browser lain:
+• Jika pakai Chrome, coba Edge atau Firefox
+• Jika pakai Edge, coba Chrome atau Firefox
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                         KONFIRMASI FILE SUDAH BENAR                          ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+File import.js SUDAH BENAR dengan format baru!
+Saya sudah verifikasi isi file di baris 68-74:
+
+  contoh: [
+    ["X-1", "X", "1", 35],      ✅ Format baru
+    ["X-2", "X", "2", 32],      ✅ Format baru
+    ["X-12", "X", "12", 30],    ✅ Format baru
+    ["XI-A", "XI", "A", 36],    ✅ Format baru
+    ["XI-B", "XI", "B", 34],    ✅ Format baru
+    ["XII-A", "XII", "A", 33],  ✅ Format baru
+    ["XII-G", "XII", "G", 31],  ✅ Format baru
+  ],
+
+Masalahnya HANYA di browser cache, bukan di file!
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                            TIPS DEVELOPMENT                                  ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+Untuk menghindari masalah cache di masa depan:
+
+1. Selalu buka DevTools (F12) saat development
+2. Aktifkan "Disable cache" di tab Network
+3. Biarkan DevTools tetap terbuka saat testing
+4. Atau gunakan Incognito/Private mode untuk testing
+
+Dengan cara ini, browser akan SELALU load file JavaScript terbaru!
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║  Jika sudah berhasil, template Excel akan menampilkan format baru:          ║
+║  X-1, X-2, X-12, XI-A, XI-B, XII-A, XII-G                                   ║
+║                                                                              ║
+║  Selamat mencoba! 🚀                                                        ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝

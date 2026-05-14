@@ -14,6 +14,7 @@ const DB_KEYS = {
   jurnal: "jk_jurnal",
   profil: "jk_profil",
   hariLibur: "jk_hari_libur",
+  siswa: "jk_siswa",
 };
 
 // ── Data Awal ─────────────────────────────────────────────
@@ -114,10 +115,10 @@ const INITIAL_USERS = [
     createdAt: new Date().toISOString(),
   },
 
-  // Siswa tambahan untuk X IPA 2 (total 35 siswa)
+  // Siswa tambahan untuk X-2 (total 35 siswa)
   ...Array.from({ length: 33 }, (_, i) => ({
     id: `u${String(100 + i).padStart(3, "0")}`,
-    nama: `Siswa ${i + 1} X IPA 2`,
+    nama: `Siswa ${i + 1} X-2`,
     username: `siswa${i + 1}`,
     password: "siswa123",
     role: "siswa",
@@ -131,49 +132,49 @@ const INITIAL_USERS = [
 const INITIAL_KELAS = [
   {
     id: "kls001",
-    nama: "X IPA 1",
+    nama: "X-1",
     tingkat: "X",
-    jurusan: "IPA",
+    jurusan: "",
     jumlahSiswa: 2,
     aktif: true,
   },
   {
     id: "kls002",
-    nama: "X IPA 2",
+    nama: "X-2",
     tingkat: "X",
-    jurusan: "IPA",
+    jurusan: "",
     jumlahSiswa: 35,
     aktif: true,
   },
   {
     id: "kls003",
-    nama: "X IPS 1",
+    nama: "X-3",
     tingkat: "X",
-    jurusan: "IPS",
+    jurusan: "",
     jumlahSiswa: 0,
     aktif: true,
   },
   {
     id: "kls004",
-    nama: "XI IPA 1",
+    nama: "XI-A",
     tingkat: "XI",
-    jurusan: "IPA",
+    jurusan: "A",
     jumlahSiswa: 0,
     aktif: true,
   },
   {
     id: "kls005",
-    nama: "XI IPS 1",
+    nama: "XI-B",
     tingkat: "XI",
-    jurusan: "IPS",
+    jurusan: "B",
     jumlahSiswa: 0,
     aktif: true,
   },
   {
     id: "kls006",
-    nama: "XII IPA 1",
+    nama: "XII-A",
     tingkat: "XII",
-    jurusan: "IPA",
+    jurusan: "A",
     jumlahSiswa: 0,
     aktif: true,
   },
@@ -417,6 +418,9 @@ function initDB() {
   }
   if (!localStorage.getItem(DB_KEYS.profil)) {
     localStorage.setItem(DB_KEYS.profil, JSON.stringify(INITIAL_PROFIL));
+  }
+  if (!localStorage.getItem(DB_KEYS.siswa)) {
+    localStorage.setItem(DB_KEYS.siswa, JSON.stringify([]));
   }
 }
 

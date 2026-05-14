@@ -1,0 +1,208 @@
+═══════════════════════════════════════════════════════════════
+  QUICK GUIDE - AUTO-UPDATE JUMLAH SISWA
+═══════════════════════════════════════════════════════════════
+
+✨ FITUR BARU: OTOMATIS UPDATE JUMLAH SISWA
+
+Sistem sekarang OTOMATIS menghitung dan mengupdate jumlah siswa
+di data master kelas ketika Anda import data siswa!
+
+═══════════════════════════════════════════════════════════════
+
+CARA KERJA:
+
+1. Import Data Siswa
+   ↓
+2. Sistem Hitung Jumlah Siswa per Kelas
+   ↓
+3. Sistem Update Data Master Kelas
+   ↓
+4. Form Jurnal Tampilkan Jumlah Siswa Otomatis
+
+═══════════════════════════════════════════════════════════════
+
+CONTOH:
+
+SEBELUM:
+--------
+❌ Admin import 35 siswa untuk kelas X-1
+❌ Admin harus manual buka "Kelola Kelas"
+❌ Admin harus manual edit kelas X-1
+❌ Admin harus manual input: jumlahSiswa = 35
+❌ Rawan salah input atau lupa update
+
+SESUDAH:
+--------
+✅ Admin import 35 siswa untuk kelas X-1
+✅ Sistem otomatis hitung: X-1 = 35 siswa
+✅ Sistem otomatis update: X-1 → jumlahSiswa = 35
+✅ Siswa isi jurnal → Tampil: "Total Siswa: 35"
+✅ Tidak ada kesalahan, selalu akurat!
+
+═══════════════════════════════════════════════════════════════
+
+WORKFLOW LENGKAP:
+
+Step 1: Import Data Kelas
+┌─────────────────────────────────────────────────────────────┐
+│ Dashboard Admin → Kelola Kelas → Import Data                │
+│                                                              │
+│ Import kelas: X-1, X-2, XI-A, XII-B, dll                    │
+│ Status: jumlahSiswa = 0 (default)                           │
+└─────────────────────────────────────────────────────────────┘
+
+Step 2: Import Data Siswa
+┌─────────────────────────────────────────────────────────────┐
+│ Dashboard Admin → Rekap Absensi → Import Data Siswa         │
+│                                                              │
+│ Import siswa:                                                │
+│ • 35 siswa untuk X-1                                         │
+│ • 32 siswa untuk X-2                                         │
+│ • 36 siswa untuk XI-A                                        │
+│                                                              │
+│ ✨ OTOMATIS:                                                 │
+│ • Sistem hitung jumlah siswa per kelas                       │
+│ • Sistem update data master kelas:                           │
+│   - X-1: jumlahSiswa = 35                                    │
+│   - X-2: jumlahSiswa = 32                                    │
+│   - XI-A: jumlahSiswa = 36                                   │
+└─────────────────────────────────────────────────────────────┘
+
+Step 3: Siswa Isi Jurnal
+┌─────────────────────────────────────────────────────────────┐
+│ Dashboard Siswa → Jurnal Hari Ini → Isi Jurnal              │
+│                                                              │
+│ ✨ OTOMATIS TAMPIL:                                          │
+│ "Total Siswa di Kelas: 35 Siswa"                            │
+│                                                              │
+│ Input yang tidak hadir:                                      │
+│ • Sakit: 2                                                   │
+│ • Izin: 1                                                    │
+│ • Alpha: 0                                                   │
+│                                                              │
+│ ✨ OTOMATIS HITUNG:                                          │
+│ • Hadir: 32 (35 - 2 - 1 - 0)                                │
+└─────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════
+
+CONTOH KASUS NYATA:
+
+Kasus 1: Setup Awal Sekolah
+─────────────────────────────────────────────────────────────
+Sekolah punya 12 kelas X, 7 kelas XI, 7 kelas XII
+Total: 26 kelas
+
+1. Import 26 data kelas
+2. Import data siswa (misal total 900 siswa)
+3. ✨ Sistem otomatis update jumlah siswa untuk 26 kelas
+4. Selesai! Tidak perlu input manual 26 kali
+
+Kasus 2: Siswa Pindah Kelas
+─────────────────────────────────────────────────────────────
+Siswa A pindah dari X-1 ke X-2
+
+1. Admin hapus siswa A dari data siswa X-1
+2. Admin tambah siswa A ke data siswa X-2
+3. Re-import data siswa
+4. ✨ Sistem otomatis update:
+   - X-1: jumlahSiswa = 34 (dari 35)
+   - X-2: jumlahSiswa = 33 (dari 32)
+
+Kasus 3: Siswa Baru Masuk
+─────────────────────────────────────────────────────────────
+3 siswa baru masuk ke kelas X-1
+
+1. Admin tambah 3 siswa baru ke file Excel
+2. Import data siswa
+3. ✨ Sistem otomatis update:
+   - X-1: jumlahSiswa = 38 (dari 35)
+
+═══════════════════════════════════════════════════════════════
+
+MANFAAT:
+
+✅ EFISIEN
+   • Tidak perlu input manual jumlah siswa
+   • Hemat waktu setup awal
+   • Hemat waktu update data
+
+✅ AKURAT
+   • Sistem yang menghitung, tidak ada kesalahan
+   • Tidak ada typo atau salah input
+   • Selalu sesuai dengan data siswa
+
+✅ SINKRON
+   • Data siswa dan jumlah siswa selalu sama
+   • Tidak ada data yang tidak konsisten
+   • Real-time update
+
+✅ OTOMATIS
+   • Satu kali import, semua terupdate
+   • Tidak perlu action tambahan
+   • Plug and play
+
+✅ KONSISTEN
+   • Data konsisten di seluruh sistem
+   • Form jurnal selalu menampilkan data yang benar
+   • Tidak ada konflik data
+
+═══════════════════════════════════════════════════════════════
+
+VALIDASI OTOMATIS:
+
+✅ Hanya siswa VALID yang dihitung
+   • NIS tidak duplikat
+   • Kelas terdaftar
+   • Data lengkap
+
+✅ Hanya siswa AKTIF yang dihitung
+   • Status aktif = true
+   • Siswa non-aktif tidak dihitung
+
+✅ Perhitungan AKURAT
+   • Termasuk siswa yang sudah ada sebelumnya
+   • Plus siswa yang baru diimport
+   • Total siswa aktif di kelas
+
+═══════════════════════════════════════════════════════════════
+
+TROUBLESHOOTING:
+
+Q: Jumlah siswa tidak terupdate?
+A: • Cek preview import, pastikan semua siswa valid
+   • Pastikan kelas sudah terdaftar
+   • Pastikan NIS tidak duplikat
+   • Re-import data siswa
+
+Q: Jumlah siswa di form jurnal salah?
+A: • Refresh halaman (F5)
+   • Clear cache browser
+   • Cek data master kelas
+   • Re-import data siswa
+
+Q: Jumlah siswa tidak sesuai?
+A: • Cek berapa siswa yang valid di preview
+   • Cek berapa siswa aktif di database
+   • Pastikan tidak ada siswa duplikat
+
+═══════════════════════════════════════════════════════════════
+
+DOKUMENTASI LENGKAP:
+
+📚 Baca dokumentasi lengkap di:
+• FITUR_AUTO_UPDATE_JUMLAH_SISWA.md - Penjelasan detail
+• README_REKAP_ABSENSI.md - Panduan rekap absensi
+• CONTOH_TEMPLATE_SISWA.md - Panduan template siswa
+
+═══════════════════════════════════════════════════════════════
+
+KESIMPULAN:
+
+Import data siswa → Sistem otomatis update jumlah siswa
+                  → Form jurnal otomatis tampilkan jumlah siswa
+                  → Lebih efisien, akurat, dan konsisten!
+
+═══════════════════════════════════════════════════════════════
+Versi: 1.0 | Update: 14 Mei 2026
+═══════════════════════════════════════════════════════════════

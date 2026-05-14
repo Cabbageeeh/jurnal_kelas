@@ -1,0 +1,159 @@
+═══════════════════════════════════════════════════════════════
+  CARA SINKRONISASI JUMLAH SISWA
+═══════════════════════════════════════════════════════════════
+
+⚠️ MASALAH:
+Jumlah siswa di Rekap Absensi tidak sama dengan jumlah siswa
+di Data Master Kelas.
+
+Contoh:
+• Rekap Absensi: 25 siswa untuk kelas X-1
+• Data Master Kelas: 2 siswa untuk kelas X-1
+
+═══════════════════════════════════════════════════════════════
+
+✅ SOLUSI: SINKRONISASI MANUAL
+
+Ada 2 cara untuk sinkronisasi:
+
+CARA 1: TOMBOL SINKRONISASI (RECOMMENDED)
+──────────────────────────────────────────────────────────────
+1. Login sebagai Admin
+2. Buka menu "Kelola Kelas"
+3. Klik tombol "🔄 Sinkronisasi Jumlah Siswa"
+4. Sistem akan otomatis menghitung ulang jumlah siswa per kelas
+5. Selesai! Data sudah sinkron
+
+CARA 2: RE-IMPORT DATA SISWA
+──────────────────────────────────────────────────────────────
+1. Login sebagai Admin
+2. Buka menu "Rekap Absensi"
+3. Klik "Import Data Siswa"
+4. Upload file Excel yang sama (atau yang baru)
+5. Sistem akan otomatis update jumlah siswa
+6. Selesai! Data sudah sinkron
+
+═══════════════════════════════════════════════════════════════
+
+CARA KERJA SINKRONISASI:
+
+1. Sistem mengambil semua data kelas
+2. Sistem mengambil semua data siswa
+3. Untuk setiap kelas:
+   • Hitung jumlah siswa AKTIF di kelas tersebut
+   • Update field `jumlahSiswa` di data master kelas
+4. Refresh tampilan tabel kelas
+5. Tampilkan notifikasi berapa kelas yang diupdate
+
+═══════════════════════════════════════════════════════════════
+
+CONTOH KASUS:
+
+SEBELUM SINKRONISASI:
+─────────────────────────────────────────────────────────────
+Data Siswa:
+• X-1: 25 siswa aktif
+• X-2: 35 siswa aktif
+• XI-A: 36 siswa aktif
+
+Data Master Kelas:
+• X-1: jumlahSiswa = 2 ❌ (tidak sinkron)
+• X-2: jumlahSiswa = 0 ❌ (tidak sinkron)
+• XI-A: jumlahSiswa = 0 ❌ (tidak sinkron)
+
+SETELAH SINKRONISASI:
+─────────────────────────────────────────────────────────────
+Data Master Kelas:
+• X-1: jumlahSiswa = 25 ✅ (sinkron)
+• X-2: jumlahSiswa = 35 ✅ (sinkron)
+• XI-A: jumlahSiswa = 36 ✅ (sinkron)
+
+Notifikasi: "3 kelas berhasil disinkronkan!"
+
+═══════════════════════════════════════════════════════════════
+
+KAPAN PERLU SINKRONISASI MANUAL?
+
+1. Data siswa diimport SEBELUM fitur auto-update diterapkan
+2. Ada perubahan manual pada data siswa
+3. Ada siswa yang dinonaktifkan
+4. Ada siswa yang dihapus
+5. Data tidak sinkron karena alasan lain
+
+═══════════════════════════════════════════════════════════════
+
+VALIDASI:
+
+✅ Hanya siswa AKTIF yang dihitung
+   • Status aktif = true
+   • Siswa non-aktif tidak dihitung
+
+✅ Perhitungan AKURAT
+   • Berdasarkan data siswa yang ada di database
+   • Real-time counting
+
+✅ Update OTOMATIS
+   • Tidak perlu input manual
+   • Sistem yang menghitung dan update
+
+═══════════════════════════════════════════════════════════════
+
+NOTIFIKASI:
+
+Setelah sinkronisasi, sistem akan menampilkan:
+
+• Jika ada update:
+  "3 kelas berhasil disinkronkan!" (hijau)
+
+• Jika sudah sinkron:
+  "Semua data sudah sinkron!" (biru)
+
+═══════════════════════════════════════════════════════════════
+
+TROUBLESHOOTING:
+
+Q: Tombol sinkronisasi tidak muncul?
+A: • Pastikan Anda login sebagai Admin
+   • Refresh halaman (F5)
+   • Clear cache browser
+
+Q: Setelah sinkronisasi masih tidak sama?
+A: • Cek apakah ada siswa non-aktif
+   • Cek apakah data siswa sudah benar
+   • Coba re-import data siswa
+
+Q: Jumlah siswa jadi 0 setelah sinkronisasi?
+A: • Berarti tidak ada data siswa untuk kelas tersebut
+   • Import data siswa terlebih dahulu
+   • Atau tambah siswa manual
+
+═══════════════════════════════════════════════════════════════
+
+FITUR AUTO-UPDATE (UNTUK KE DEPAN):
+
+Mulai sekarang, setiap kali import data siswa:
+✅ Jumlah siswa OTOMATIS terupdate
+✅ Tidak perlu sinkronisasi manual lagi
+✅ Selalu sinkron antara data siswa dan jumlah siswa
+
+Sinkronisasi manual hanya diperlukan untuk:
+• Data lama yang belum sinkron
+• Perubahan manual pada data siswa
+• Troubleshooting
+
+═══════════════════════════════════════════════════════════════
+
+KESIMPULAN:
+
+Jika data tidak sinkron:
+1. Klik tombol "🔄 Sinkronisasi Jumlah Siswa"
+2. Tunggu notifikasi sukses
+3. Selesai! Data sudah sinkron
+
+Untuk ke depan:
+• Import data siswa → Otomatis sinkron
+• Tidak perlu sinkronisasi manual lagi
+
+═══════════════════════════════════════════════════════════════
+Versi: 1.0 | Update: 14 Mei 2026
+═══════════════════════════════════════════════════════════════

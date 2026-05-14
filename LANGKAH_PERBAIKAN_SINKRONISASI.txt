@@ -1,0 +1,168 @@
+═══════════════════════════════════════════════════════════════
+  LANGKAH PERBAIKAN SINKRONISASI - UNTUK ANDA
+═══════════════════════════════════════════════════════════════
+
+Berdasarkan screenshot yang Anda kirim:
+• Form Jurnal: X-2 = 35 siswa
+• Kelola Kelas: X-2 = 35 siswa
+• Rekap Absensi: X-1 = 25 siswa (yang Anda sebutkan)
+
+Sepertinya ada kebingungan antara kelas X-1 dan X-2.
+
+═══════════════════════════════════════════════════════════════
+
+🔍 LANGKAH 1: CEK DATA YANG ADA
+
+1. Login sebagai Admin
+2. Tekan F12 untuk buka Console Browser
+3. Ketik di console dan tekan Enter:
+
+   cekStatusSinkronisasi()
+
+4. Lihat output untuk SEMUA kelas:
+   • X-1: berapa jumlahSiswaData vs jumlahSiswaAktual?
+   • X-2: berapa jumlahSiswaData vs jumlahSiswaAktual?
+   • X-3: berapa jumlahSiswaData vs jumlahSiswaAktual?
+   • dst...
+
+5. Screenshot output console dan kirim ke saya
+
+═══════════════════════════════════════════════════════════════
+
+🔧 LANGKAH 2: JALANKAN SINKRONISASI
+
+1. Tetap di halaman "Kelola Kelas"
+2. Console masih terbuka (F12)
+3. Klik tombol "🔄 Sinkronisasi Jumlah Siswa"
+4. Lihat output di console:
+   • Berapa kelas yang diupdate?
+   • Apa detail perubahannya?
+5. Lihat notifikasi di layar
+
+═══════════════════════════════════════════════════════════════
+
+✅ LANGKAH 3: VERIFIKASI HASIL
+
+1. Refresh halaman (F5)
+2. Cek tabel "Kelola Kelas":
+   • X-1: berapa jumlah siswa sekarang?
+   • X-2: berapa jumlah siswa sekarang?
+   
+3. Buka "Rekap Absensi"
+   • Pilih bulan: Mei 2026
+   • Pilih kelas: X-1
+   • Lihat statistik: Total Siswa = ?
+   
+4. Login sebagai Siswa (ketua/sekretaris X-1)
+   • Buka "Jurnal Hari Ini"
+   • Klik "Isi Jurnal"
+   • Lihat: "Total Siswa di Kelas: ?"
+
+═══════════════════════════════════════════════════════════════
+
+📊 KEMUNGKINAN HASIL:
+
+HASIL 1: Data Sudah Benar (X-2 = 35 siswa)
+──────────────────────────────────────────────────────────────
+Jika memang data siswa yang Anda import adalah untuk X-2
+(bukan X-1), maka:
+
+• Kelola Kelas: X-2 = 35 siswa ✅
+• Form Jurnal X-2: 35 siswa ✅
+• Rekap Absensi X-2: 35 siswa ✅
+
+→ Data sudah sinkron! Tidak perlu perbaikan.
+
+HASIL 2: Data Tidak Sinkron (X-1 ≠ 25 siswa)
+──────────────────────────────────────────────────────────────
+Jika data siswa yang Anda import adalah untuk X-1 (25 siswa),
+tapi sistem menampilkan angka lain:
+
+Console output:
+X-1: {
+  jumlahSiswaData: 2,
+  jumlahSiswaAktual: 25,
+  sinkron: "❌"
+}
+
+→ Klik tombol "Sinkronisasi Jumlah Siswa"
+→ Refresh halaman (F5)
+→ Cek lagi
+
+HASIL 3: kelasId Tidak Cocok (jumlahSiswaAktual = 0)
+──────────────────────────────────────────────────────────────
+Console output:
+X-1: {
+  jumlahSiswaData: 2,
+  jumlahSiswaAktual: 0,
+  sinkron: "❌",
+  siswa: []
+}
+
+→ Data siswa tidak terhubung dengan kelas X-1
+→ Re-import data siswa:
+   1. Buka "Rekap Absensi"
+   2. Klik "Import Data Siswa"
+   3. Upload file Excel yang sama
+   4. Pastikan kolom "kelas_nama" = "X-1" (persis sama)
+   5. Klik Import
+
+═══════════════════════════════════════════════════════════════
+
+🎯 KLARIFIKASI YANG PERLU ANDA JAWAB:
+
+1. Data siswa yang Anda import adalah untuk kelas apa?
+   [ ] X-1 (25 siswa)
+   [ ] X-2 (35 siswa)
+   [ ] Kelas lain
+
+2. Di Rekap Absensi, kelas mana yang menampilkan 25 siswa?
+   [ ] X-1
+   [ ] X-2
+   [ ] Kelas lain
+
+3. Di Kelola Kelas, berapa jumlah siswa untuk:
+   • X-1: ___ siswa
+   • X-2: ___ siswa
+
+4. Output console dari cekStatusSinkronisasi():
+   (Screenshot atau copy-paste)
+
+═══════════════════════════════════════════════════════════════
+
+💡 TIPS:
+
+1. Pastikan nama kelas di file Excel PERSIS SAMA dengan nama
+   kelas di sistem:
+   • "X-1" ✅
+   • "x-1" ❌ (huruf kecil)
+   • "X - 1" ❌ (ada spasi)
+   • "X-01" ❌ (ada leading zero)
+
+2. Jika masih bingung, kirimkan:
+   • Screenshot tabel Kelola Kelas
+   • Screenshot Rekap Absensi (dengan filter kelas)
+   • Screenshot Form Jurnal
+   • Output console dari cekStatusSinkronisasi()
+
+3. Jika semua gagal, opsi terakhir adalah re-import semua data:
+   • Export data penting (jurnal, konfirmasi)
+   • Reset database
+   • Import ulang: Kelas → Siswa → Pengguna → Jadwal
+
+═══════════════════════════════════════════════════════════════
+
+📞 NEXT STEPS:
+
+Setelah Anda jalankan cekStatusSinkronisasi() dan kirim
+outputnya, saya bisa memberikan solusi yang lebih spesifik.
+
+Untuk sementara:
+1. Jalankan cekStatusSinkronisasi() di console
+2. Screenshot output
+3. Kirim ke saya
+4. Saya akan analisis dan berikan solusi
+
+═══════════════════════════════════════════════════════════════
+Versi: 1.0 | Update: 14 Mei 2026
+═══════════════════════════════════════════════════════════════

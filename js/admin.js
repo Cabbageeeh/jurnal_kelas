@@ -39,6 +39,7 @@ const PAGE_TITLES = {
   mapel: "Kelola Mata Pelajaran",
   "rekap-jurnal": "Rekap Jurnal",
   "rekap-konfirmasi": "Rekap Konfirmasi",
+  "rekap-absensi": "Rekap Absensi",
 };
 
 function showPage(page) {
@@ -81,6 +82,10 @@ function showPage(page) {
     "rekap-konfirmasi": () => {
       populateFilterGuru();
       renderRekapKonfirmasi();
+    },
+    "rekap-absensi": () => {
+      initFilterAbsensi();
+      renderRekapAbsensi();
     },
   };
   if (actions[page]) actions[page]();
@@ -1262,6 +1267,7 @@ function openKelasModal(id = null) {
     document.getElementById("kelasId").value = k.id;
     document.getElementById("kelasNama").value = k.nama;
     document.getElementById("kelasTingkat").value = k.tingkat;
+    updateJurusanOptions();
     document.getElementById("kelasJurusan").value = k.jurusan;
     document.getElementById("kelasJumlahSiswa").value = k.jumlahSiswa || 0;
     document.getElementById("kelasAktif").value = String(k.aktif);
@@ -1270,25 +1276,47 @@ function openKelasModal(id = null) {
     document.getElementById("kelasId").value = "";
     document.getElementById("kelasNama").value = "";
     document.getElementById("kelasTingkat").value = "X";
-    document.getElementById("kelasJurusan").value = "IPA";
+    updateJurusanOptions();
+    document.getElementById("kelasJurusan").value = "";
     document.getElementById("kelasJumlahSiswa").value = 0;
     document.getElementById("kelasAktif").value = "true";
   }
   openModal("modalKelas");
 }
 
+function updateJurusanOptions() {
+  const tingkat = document.getElementById("kelasTingkat").value;
+  const jurusanSelect = document.getElementById("kelasJurusan");
+  
+  if (tingkat === "X") {
+    // Kelas 10: nomor 1-12
+    jurusanSelect.innerHTML = '<option value="">— Pilih Nomor —</option>' +
+      Array.from({ length: 12 }, (_, i) => i + 1)
+        .map(n => `<option value="${n}">${n}</option>`)
+        .join('');
+  } else {
+    // Kelas 11 & 12: huruf A-G
+    jurusanSelect.innerHTML = '<option value="">— Pilih Jurusan —</option>' +
+      ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+        .map(h => `<option value="${h}">${h}</option>`)
+        .join('');
+  }
+}
+
 function saveKelas() {
   const id = document.getElementById("kelasId").value;
-  const nama = document.getElementById("kelasNama").value.trim();
   const tingkat = document.getElementById("kelasTingkat").value;
   const jurusan = document.getElementById("kelasJurusan").value;
   const jumlahSiswa =
     parseInt(document.getElementById("kelasJumlahSiswa").value) || 0;
   const aktif = document.getElementById("kelasAktif").value === "true";
 
-  if (!nama) return showFormError("kelasFormError", "Nama kelas wajib diisi.");
+  if (!jurusan) return showFormError("kelasFormError", "Jurusan/Nomor kelas wajib dipilih.");
   if (jumlahSiswa < 0)
     return showFormError("kelasFormError", "Jumlah siswa tidak boleh negatif.");
+
+  // Generate nama kelas otomatis berdasarkan tingkat dan jurusan
+  const nama = `${tingkat}-${jurusan}`;
 
   if (id) {
     dbUpdate(DB_KEYS.kelas, id, { nama, tingkat, jurusan, jumlahSiswa, aktif });
@@ -2045,4 +2073,89 @@ function clearFilterLibur() {
   populateFilterTahun();
   document.getElementById("filterLiburTipe").value = "";
   renderHariLiburTable();
+}
+
+
+// ── SINKRONISASI JUMLAH SISWA ────────────────────────────
+
+function sinkronisasiJumlahSiswa() {
+  const kelasList = dbGetAll(DB_KEYS.kelas);
+  const siswaList = dbGetAll(DB_KEYS.siswa);
+  
+  console.log("=== SINKRONISASI JUMLAH SISWA ===");
+  console.log("Total kelas:", kelasList.length);
+  console.log("Total siswa:", siswaList.length);
+  
+  let totalUpdated = 0;
+  const details = [];
+  
+  kelasList.forEach((kelas) => {
+    // Hitung jumlah siswa aktif di kelas ini
+    const siswaKelas = siswaList.filter(
+      (s) => s.kelasId === kelas.id && s.aktif
+    );
+    const jumlahSiswa = siswaKelas.length;
+    
+    const before = kelas.jumlahSiswa || 0;
+    
+    console.log(`Kelas ${kelas.nama}:`, {
+      kelasId: kelas.id,
+      sebelum: before,
+      sesudah: jumlahSiswa,
+      siswa: siswaKelas.map(s => s.nama)
+    });
+    
+    // Update jika berbeda
+    if (kelas.jumlahSiswa !== jumlahSiswa) {
+      // PERBAIKAN: Gunakan dbUpdate dengan parameter yang benar
+      dbUpdate(DB_KEYS.kelas, kelas.id, { jumlahSiswa: jumlahSiswa });
+      totalUpdated++;
+      details.push(`${kelas.nama}: ${before} → ${jumlahSiswa}`);
+    }
+  });
+  
+  console.log("Total kelas diupdate:", totalUpdated);
+  console.log("Detail:", details);
+  
+  // Refresh tampilan
+  renderKelasTable();
+  
+  if (totalUpdated > 0) {
+    showToast(
+      `${totalUpdated} kelas berhasil disinkronkan! ${details.join(", ")}`,
+      "success",
+      5000
+    );
+  } else {
+    showToast(
+      "Semua data sudah sinkron!",
+      "info",
+      3000
+    );
+  }
+}
+
+// Fungsi untuk cek status sinkronisasi (untuk debugging)
+function cekStatusSinkronisasi() {
+  const kelasList = dbGetAll(DB_KEYS.kelas);
+  const siswaList = dbGetAll(DB_KEYS.siswa);
+  
+  console.log("=== STATUS SINKRONISASI ===");
+  
+  kelasList.forEach((kelas) => {
+    const siswaKelas = siswaList.filter(
+      (s) => s.kelasId === kelas.id && s.aktif
+    );
+    const jumlahSiswaAktual = siswaKelas.length;
+    const jumlahSiswaData = kelas.jumlahSiswa || 0;
+    const sinkron = jumlahSiswaAktual === jumlahSiswaData;
+    
+    console.log(`${kelas.nama}:`, {
+      kelasId: kelas.id,
+      jumlahSiswaData: jumlahSiswaData,
+      jumlahSiswaAktual: jumlahSiswaAktual,
+      sinkron: sinkron ? "✅" : "❌",
+      siswa: siswaKelas.map(s => `${s.nama} (${s.nis})`)
+    });
+  });
 }

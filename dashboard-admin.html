@@ -83,6 +83,9 @@
           <button class="nav-item admin" onclick="showPage('rekap-konfirmasi')">
             <i class="fas fa-user-check"></i> Rekap Konfirmasi
           </button>
+          <button class="nav-item admin" onclick="showPage('rekap-absensi')">
+            <i class="fas fa-clipboard-user"></i> Rekap Absensi
+          </button>
         </nav>
 
         <!-- Tombol Keluar -->
@@ -787,6 +790,13 @@
             <div style="display: flex; gap: 10px">
               <button
                 class="btn btn-outline"
+                onclick="sinkronisasiJumlahSiswa()"
+                title="Sinkronkan jumlah siswa dengan data siswa yang ada"
+              >
+                <i class="fas fa-sync"></i> Sinkronisasi Jumlah Siswa
+              </button>
+              <button
+                class="btn btn-outline"
                 onclick="openImportModal('kelas')"
               >
                 <i class="fas fa-file-excel"></i> Import Excel
@@ -1034,6 +1044,114 @@
                     </tr>
                   </thead>
                   <tbody id="rekapKonfirmasiBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAGE: REKAP ABSENSI -->
+        <div class="page-content hidden" id="page-rekap-absensi">
+          <div class="page-header d-flex justify-between align-center">
+            <div>
+              <h2 class="page-title">Rekap Absensi Siswa</h2>
+              <p class="page-subtitle">
+                Rekap ketidakhadiran siswa berdasarkan jurnal kelas
+              </p>
+            </div>
+            <div style="display: flex; gap: 10px">
+              <button
+                class="btn btn-outline"
+                onclick="openImportModal('siswa')"
+              >
+                <i class="fas fa-file-excel"></i> Import Data Siswa
+              </button>
+              <button
+                class="btn btn-outline"
+                onclick="exportRekapAbsensi('xlsx')"
+              >
+                <i class="fas fa-file-excel"></i> Export XLSX
+              </button>
+              <button
+                class="btn btn-outline"
+                onclick="exportRekapAbsensi('pdf')"
+              >
+                <i class="fas fa-file-pdf"></i> Export PDF
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter -->
+          <div class="card mb-4">
+            <div class="card-body" style="padding: 16px">
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr 1fr 1fr auto;
+                  gap: 12px;
+                  align-items: end;
+                "
+              >
+                <div>
+                  <label class="form-label">Bulan</label>
+                  <input
+                    type="month"
+                    class="form-control"
+                    id="filterAbsensiBulan"
+                    onchange="renderRekapAbsensi()"
+                  />
+                </div>
+                <div>
+                  <label class="form-label">Kelas</label>
+                  <select
+                    class="form-control"
+                    id="filterAbsensiKelas"
+                    onchange="renderRekapAbsensi()"
+                  >
+                    <option value="">Semua Kelas</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label">Status</label>
+                  <select
+                    class="form-control"
+                    id="filterAbsensiStatus"
+                    onchange="renderRekapAbsensi()"
+                  >
+                    <option value="">Semua Status</option>
+                    <option value="sakit">Sakit</option>
+                    <option value="izin">Izin</option>
+                    <option value="alpha">Alpha</option>
+                  </select>
+                </div>
+                <button class="btn btn-outline" onclick="clearFilterAbsensi()">
+                  <i class="fas fa-rotate-left"></i> Reset
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Statistik -->
+          <div class="stats-grid mb-4" id="statsAbsensi"></div>
+
+          <!-- Tabel Rekap -->
+          <div class="card">
+            <div class="card-body" style="padding: 0">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>No</th>
+                      <th>Nama Siswa</th>
+                      <th>Kelas</th>
+                      <th>Sakit</th>
+                      <th>Izin</th>
+                      <th>Alpha</th>
+                      <th>Total Tidak Hadir</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rekapAbsensiBody"></tbody>
                 </table>
               </div>
             </div>
@@ -1351,32 +1469,24 @@
         </div>
         <div class="modal-body">
           <input type="hidden" id="kelasId" />
-          <div class="form-group">
-            <label class="form-label">Nama Kelas</label>
-            <input
-              type="text"
-              class="form-control"
-              id="kelasNama"
-              placeholder="cth: X IPA 1"
-            />
-          </div>
+          <input type="hidden" id="kelasNama" />
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
             <div class="form-group">
               <label class="form-label">Tingkat</label>
-              <select class="form-control" id="kelasTingkat">
-                <option value="X">X</option>
-                <option value="XI">XI</option>
-                <option value="XII">XII</option>
+              <select class="form-control" id="kelasTingkat" onchange="updateJurusanOptions()">
+                <option value="X">X (Kelas 10)</option>
+                <option value="XI">XI (Kelas 11)</option>
+                <option value="XII">XII (Kelas 12)</option>
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Jurusan</label>
+              <label class="form-label">Jurusan / Nomor</label>
               <select class="form-control" id="kelasJurusan">
-                <option value="IPA">IPA</option>
-                <option value="IPS">IPS</option>
-                <option value="Bahasa">Bahasa</option>
-                <option value="Umum">Umum</option>
+                <option value="">— Pilih —</option>
               </select>
+              <p class="form-hint" style="margin-top: 4px; font-size: 11px;">
+                Kelas X: 1-12 | Kelas XI & XII: A-G
+              </p>
             </div>
           </div>
           <div class="form-group">
@@ -1581,6 +1691,12 @@
                   >
                     <i class="fas fa-download"></i> Template Jadwal
                   </button>
+                  <button
+                    class="btn btn-sm btn-outline"
+                    onclick="downloadTemplate('siswa')"
+                  >
+                    <i class="fas fa-download"></i> Template Siswa
+                  </button>
                 </div>
               </div>
             </div>
@@ -1694,6 +1810,14 @@
               >
                 <i class="fas fa-calendar-week"></i>
                 Jadwal (<span id="countJadwal">0</span>)
+              </button>
+              <button
+                class="btn btn-sm btn-outline"
+                id="tabSiswa"
+                onclick="switchPreviewTab('siswa')"
+              >
+                <i class="fas fa-user-graduate"></i>
+                Siswa (<span id="countSiswa">0</span>)
               </button>
             </div>
             <div id="previewUsers">
@@ -1979,6 +2103,34 @@
       </div>
     </div>
 
+    <!-- MODAL: DETAIL ABSENSI SISWA -->
+    <div class="modal-overlay" id="modalDetailAbsensi">
+      <div class="modal" style="max-width: 720px">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalDetailAbsensiTitle">
+            Detail Absensi Siswa
+          </h3>
+          <button
+            class="modal-close"
+            onclick="closeModal('modalDetailAbsensi')"
+          >
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="detailAbsensiContent"></div>
+        </div>
+        <div class="modal-footer">
+          <button
+            class="btn btn-outline"
+            onclick="closeModal('modalDetailAbsensi')"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script src="js/data.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/utils.js"></script>
@@ -1986,5 +2138,6 @@
     <script src="js/admin.js"></script>
     <script src="js/import.js"></script>
     <script src="js/export.js"></script>
+    <script src="js/absensi.js"></script>
   </body>
 </html>

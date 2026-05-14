@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Template Download</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #4F46E5;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #6B7280;
+            margin-bottom: 30px;
+        }
+        .btn {
+            background: #4F46E5;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            background: #4338CA;
+        }
+        .info {
+            background: #EEF2FF;
+            border-left: 4px solid #4F46E5;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #D1FAE5;
+            border-left: 4px solid #10B981;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        .code {
+            background: #1F2937;
+            color: #10B981;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+        .warning {
+            background: #FEF3C7;
+            border-left: 4px solid #F59E0B;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="card">
+        <h1>🧪 Test Template Download</h1>
+        <p class="subtitle">Halaman ini untuk test apakah template sudah menggunakan format baru</p>
+
+        <div class="info">
+            <strong>ℹ️ Informasi:</strong><br>
+            Halaman ini akan langsung load file import.js terbaru tanpa cache.<br>
+            Gunakan ini untuk memastikan template sudah benar.
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Penting:</strong><br>
+            Jika template masih format lama di aplikasi utama, lakukan:<br>
+            <strong>Ctrl + Shift + R</strong> (Windows) atau <strong>Cmd + Shift + R</strong> (Mac)
+        </div>
+
+        <button class="btn" onclick="downloadTemplateKelas()">
+            📥 Download Template Kelas
+        </button>
+
+        <button class="btn" onclick="downloadTemplateUsers()">
+            📥 Download Template Users
+        </button>
+
+        <div class="success" id="successMsg">
+            <strong>✅ Berhasil!</strong><br>
+            Template berhasil di-download. Cek file Excel yang baru di-download.
+        </div>
+
+        <div class="code" id="preview">
+            Klik tombol di atas untuk download template...
+        </div>
+
+        <div class="info">
+            <strong>✅ Template BENAR jika muncul:</strong><br>
+            • X-1, X-2, X-12 (untuk kelas 10)<br>
+            • XI-A, XI-B, XI-G (untuk kelas 11)<br>
+            • XII-A, XII-B, XII-G (untuk kelas 12)<br><br>
+            
+            <strong>❌ Template SALAH jika masih muncul:</strong><br>
+            • X IPA 1, X IPS 1 (format lama)<br>
+            • XI IPA 1, XI IPS 1 (format lama)
+        </div>
+    </div>
+
+    <script>
+        // Tambahkan timestamp untuk bypass cache
+        const timestamp = new Date().getTime();
+        const script = document.createElement('script');
+        script.src = 'js/data.js?' + timestamp;
+        document.head.appendChild(script);
+
+        function downloadTemplateKelas() {
+            const wb = XLSX.utils.book_new();
+
+            // Template Kelas dengan format BARU
+            const headers = ["nama", "tingkat", "jurusan", "jumlahSiswa"];
+            const contoh = [
+                ["X-1", "X", "1", 35],
+                ["X-2", "X", "2", 32],
+                ["X-12", "X", "12", 30],
+                ["XI-A", "XI", "A", 36],
+                ["XI-B", "XI", "B", 34],
+                ["XII-A", "XII", "A", 33],
+                ["XII-G", "XII", "G", 31],
+            ];
+
+            const info = [
+                ["PETUNJUK PENGISIAN:"],
+                [""],
+                ["FORMAT KELAS:"],
+                ["• Kelas 10 (X): X-1, X-2, X-3, ... X-12"],
+                ["• Kelas 11 (XI): XI-A, XI-B, XI-C, ... XI-G"],
+                ["• Kelas 12 (XII): XII-A, XII-B, XII-C, ... XII-G"],
+                [""],
+                ["KOLOM:"],
+                ["• nama: Nama kelas (format: {Tingkat}-{Jurusan/Nomor})"],
+                ["• tingkat: X / XI / XII"],
+                ["• jurusan: Untuk kelas X isi nomor 1-12, untuk XI & XII isi huruf A-G"],
+                ["• jumlahSiswa: Total siswa di kelas (angka, boleh 0)"],
+                [""],
+                ["CONTOH:"],
+                ["• Kelas 10 nomor 5: nama=X-5, tingkat=X, jurusan=5"],
+                ["• Kelas 11 jurusan C: nama=XI-C, tingkat=XI, jurusan=C"],
+                ["• Kelas 12 jurusan F: nama=XII-F, tingkat=XII, jurusan=F"],
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet([headers, ...contoh]);
+            ws["!cols"] = headers.map(() => ({ wch: 22 }));
+            XLSX.utils.book_append_sheet(wb, ws, "Kelas");
+
+            const wsInfo = XLSX.utils.aoa_to_sheet(info);
+            XLSX.utils.book_append_sheet(wb, wsInfo, "Petunjuk");
+
+            XLSX.writeFile(wb, `template_kelas_${timestamp}.xlsx`);
+
+            // Show success message
+            document.getElementById('successMsg').style.display = 'block';
+            document.getElementById('preview').innerHTML = 
+                'Template Kelas berhasil di-download!<br><br>' +
+                'Format: X-1, X-2, X-12, XI-A, XI-B, XII-A, XII-G<br><br>' +
+                'Cek file Excel yang baru di-download untuk verifikasi.';
+        }
+
+        function downloadTemplateUsers() {
+            const wb = XLSX.utils.book_new();
+
+            const headers = ["nama", "username", "password", "role", "kelas_nama", "jabatan"];
+            const contoh = [
+                ["Budi Santoso S.Pd", "budi2", "guru123", "guru", "", ""],
+                ["Ani Wulandari", "ani", "siswa123", "siswa", "X-1", "ketua"],
+                ["Dodi Pratama", "dodi", "siswa123", "siswa", "X-1", "sekretaris"],
+                ["Siti Rahmawati", "siti2", "siswa123", "siswa", "XI-A", ""],
+                ["Ahmad Fauzi", "ahmad2", "siswa123", "siswa", "XII-B", "ketua"],
+            ];
+
+            const info = [
+                ["PETUNJUK:"],
+                ["role: admin / guru / siswa"],
+                ["kelas_nama: isi jika role=siswa (harus sama persis dengan nama kelas)"],
+                ["jabatan: isi jika role=siswa (ketua / sekretaris)"],
+                ["Catatan: Guru tidak perlu mengisi kelas/mapel di sini"],
+                ["Jadwal guru diatur oleh admin lewat menu Jadwal Pelajaran"],
+                [""],
+                ["FORMAT KELAS BARU:"],
+                ["• Kelas 10: X-1, X-2, ... X-12"],
+                ["• Kelas 11: XI-A, XI-B, ... XI-G"],
+                ["• Kelas 12: XII-A, XII-B, ... XII-G"],
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet([headers, ...contoh]);
+            ws["!cols"] = headers.map(() => ({ wch: 22 }));
+            XLSX.utils.book_append_sheet(wb, ws, "Pengguna");
+
+            const wsInfo = XLSX.utils.aoa_to_sheet(info);
+            XLSX.utils.book_append_sheet(wb, wsInfo, "Petunjuk");
+
+            XLSX.writeFile(wb, `template_users_${timestamp}.xlsx`);
+
+            document.getElementById('successMsg').style.display = 'block';
+            document.getElementById('preview').innerHTML = 
+                'Template Users berhasil di-download!<br><br>' +
+                'Contoh kelas: X-1, XI-A, XII-B<br><br>' +
+                'Cek file Excel yang baru di-download untuk verifikasi.';
+        }
+    </script>
+</body>
+</html>

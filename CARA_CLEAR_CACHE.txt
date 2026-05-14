@@ -1,0 +1,116 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    CARA CLEAR CACHE & REFRESH BROWSER                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+MASALAH:
+Template download masih menampilkan format lama (X IPA 1, X IPS 1, dll)
+padahal file import.js sudah diubah.
+
+PENYEBAB:
+Browser masih menggunakan cache JavaScript lama.
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ SOLUSI 1: HARD REFRESH (COBA INI DULU)                                      │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  Windows/Linux:                                                             │
+│  • Tekan: Ctrl + Shift + R                                                 │
+│  • Atau: Ctrl + F5                                                         │
+│                                                                              │
+│  Mac:                                                                       │
+│  • Tekan: Cmd + Shift + R                                                  │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ SOLUSI 2: CLEAR CACHE BROWSER                                               │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  Chrome/Edge:                                                               │
+│  1. Tekan: Ctrl + Shift + Delete                                           │
+│  2. Pilih: "Cached images and files"                                       │
+│  3. Time range: "All time"                                                 │
+│  4. Klik: "Clear data"                                                     │
+│  5. Refresh halaman (F5)                                                   │
+│                                                                              │
+│  Firefox:                                                                   │
+│  1. Tekan: Ctrl + Shift + Delete                                           │
+│  2. Pilih: "Cache"                                                         │
+│  3. Time range: "Everything"                                               │
+│  4. Klik: "Clear Now"                                                      │
+│  5. Refresh halaman (F5)                                                   │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ SOLUSI 3: DISABLE CACHE (UNTUK DEVELOPMENT)                                 │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  1. Buka Developer Tools (F12)                                             │
+│  2. Buka tab "Network"                                                     │
+│  3. Centang: "Disable cache"                                               │
+│  4. Biarkan DevTools tetap terbuka                                         │
+│  5. Refresh halaman (F5)                                                   │
+│                                                                              │
+│  Catatan: Cache akan disabled selama DevTools terbuka                      │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ SOLUSI 4: INCOGNITO/PRIVATE MODE                                            │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  Chrome/Edge:                                                               │
+│  • Tekan: Ctrl + Shift + N                                                 │
+│                                                                              │
+│  Firefox:                                                                   │
+│  • Tekan: Ctrl + Shift + P                                                 │
+│                                                                              │
+│  Buka file index.html di mode incognito/private                            │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ VERIFIKASI PERUBAHAN BERHASIL                                               │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  Setelah clear cache, test dengan:                                         │
+│                                                                              │
+│  1. Login sebagai Admin (admin / admin123)                                 │
+│  2. Menu: Kelola Kelas → Import Data                                       │
+│  3. Klik: Download Template Kelas                                          │
+│  4. Buka file Excel yang di-download                                       │
+│  5. Cek sheet "Kelas":                                                     │
+│                                                                              │
+│     ✅ BENAR jika muncul:                                                   │
+│        X-1, X-2, X-12, XI-A, XI-B, XII-A, XII-G                            │
+│                                                                              │
+│     ❌ SALAH jika masih muncul:                                             │
+│        X IPA 1, X IPS 1, XI IPA 1                                          │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ JIKA MASIH BELUM BERHASIL                                                   │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  1. Tutup semua tab browser                                                │
+│  2. Tutup browser sepenuhnya                                               │
+│  3. Buka browser lagi                                                      │
+│  4. Buka file index.html                                                   │
+│  5. Test download template lagi                                            │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                              TIPS DEVELOPMENT                                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Untuk menghindari masalah cache saat development:
+
+1. Selalu buka DevTools (F12)
+2. Aktifkan "Disable cache" di tab Network
+3. Biarkan DevTools tetap terbuka saat testing
+4. Atau gunakan Incognito/Private mode untuk testing
+
+Dengan cara ini, browser akan selalu load file JavaScript terbaru tanpa cache.

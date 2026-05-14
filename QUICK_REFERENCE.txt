@@ -1,0 +1,201 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    JURNAL KELAS DIGITAL - QUICK REFERENCE                    ║
+║                         Format Kelas SMAN 15 Surabaya                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ FORMAT KELAS BARU                                                            │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  KELAS 10 (X)  : X-1, X-2, X-3, X-4, X-5, X-6, X-7, X-8, X-9, X-10, X-11,  │
+│                  X-12 (Total: 12 kelas, tanpa penjurusan)                   │
+│                                                                              │
+│  KELAS 11 (XI) : XI-A, XI-B, XI-C, XI-D, XI-E, XI-F, XI-G                  │
+│                  (Total: 7 kelas, penjurusan A-G)                           │
+│                                                                              │
+│  KELAS 12 (XII): XII-A, XII-B, XII-C, XII-D, XII-E, XII-F, XII-G           │
+│                  (Total: 7 kelas, penjurusan A-G)                           │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ LOGIN CREDENTIALS                                                            │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  Admin  : username = admin  | password = admin123                           │
+│  Guru   : username = budi   | password = guru123                            │
+│  Siswa  : username = rina   | password = siswa123                           │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ RESET DATABASE (Jika ada data lama)                                         │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  1. Buka browser console (tekan F12)                                        │
+│  2. Ketik: resetDB()                                                        │
+│  3. Tekan Enter                                                             │
+│  4. Refresh halaman (F5)                                                    │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ TAMBAH KELAS MANUAL                                                          │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  1. Login sebagai Admin                                                     │
+│  2. Menu: Kelola Kelas → Tambah Kelas                                      │
+│  3. Pilih Tingkat: X / XI / XII                                            │
+│  4. Pilih Jurusan/Nomor:                                                   │
+│     - Kelas X  : pilih 1-12                                                │
+│     - Kelas XI : pilih A-G                                                 │
+│     - Kelas XII: pilih A-G                                                 │
+│  5. Isi Jumlah Siswa                                                       │
+│  6. Pilih Status: Aktif                                                    │
+│  7. Klik Simpan                                                            │
+│                                                                              │
+│  Nama kelas otomatis: {Tingkat}-{Jurusan}                                  │
+│  Contoh: X-5, XI-C, XII-F                                                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ IMPORT DATA DARI EXCEL                                                       │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  1. Login sebagai Admin                                                     │
+│  2. Menu: Kelola Kelas → Import Data                                       │
+│  3. Download Template Kelas                                                │
+│  4. Isi template Excel:                                                    │
+│     ┌──────┬─────────┬─────────┬─────────────┐                            │
+│     │ nama │ tingkat │ jurusan │ jumlahSiswa │                            │
+│     ├──────┼─────────┼─────────┼─────────────┤                            │
+│     │ X-1  │ X       │ 1       │ 35          │                            │
+│     │ X-2  │ X       │ 2       │ 32          │                            │
+│     │ XI-A │ XI      │ A       │ 36          │                            │
+│     │ XII-B│ XII     │ B       │ 34          │                            │
+│     └──────┴─────────┴─────────┴─────────────┘                            │
+│  5. Upload file Excel                                                      │
+│  6. Klik Proses File                                                       │
+│  7. Review preview data                                                    │
+│  8. Klik Import Data                                                       │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ FILE YANG DIUBAH                                                             │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  ✓ js/data.js           - Data awal kelas                                  │
+│  ✓ js/admin.js          - Form & fungsi kelas                              │
+│  ✓ js/import.js         - Template import                                  │
+│  ✓ dashboard-admin.html - Form modal kelas                                 │
+│  ✓ js/export.js         - (tidak perlu ubah, auto-adapt)                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ DOKUMENTASI LENGKAP                                                          │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  📄 README_FORMAT_KELAS_BARU.md  - Panduan utama                           │
+│  📄 RINGKASAN_PERUBAHAN.md       - Ringkasan eksekutif                     │
+│  📄 PERUBAHAN_FORMAT_KELAS.md    - Detail teknis                           │
+│  📄 CONTOH_TEMPLATE_IMPORT.md    - Panduan import                          │
+│  📄 QUICK_REFERENCE.txt          - File ini                                │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ TROUBLESHOOTING                                                              │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ❌ Dropdown jurusan tidak muncul                                           │
+│     → Clear cache browser (Ctrl+Shift+Delete)                              │
+│     → Refresh halaman (F5)                                                 │
+│                                                                              │
+│  ❌ Data lama masih muncul                                                  │
+│     → Console: resetDB()                                                   │
+│     → Refresh halaman                                                      │
+│                                                                              │
+│  ❌ Import gagal                                                            │
+│     → Cek nama sheet: "Kelas", "Pengguna", "Mapel"                        │
+│     → Jangan ubah nama kolom header                                        │
+│     → File maksimal 5MB                                                    │
+│                                                                              │
+│  ❌ Nama kelas tidak sesuai                                                 │
+│     → Sistem auto-generate: {Tingkat}-{Jurusan}                           │
+│     → Tidak perlu input nama manual                                        │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ CONTOH KASUS                                                                 │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  KASUS 1: Tambah Kelas X-5                                                 │
+│  ────────────────────────────────────────────────────────────────────────  │
+│  Input:                                                                     │
+│    Tingkat      : X                                                        │
+│    Jurusan      : 5                                                        │
+│    Jumlah Siswa : 35                                                       │
+│    Status       : Aktif                                                    │
+│  Output:                                                                    │
+│    Nama Kelas   : X-5 (auto-generate)                                     │
+│                                                                              │
+│  KASUS 2: Tambah Kelas XI-C                                                │
+│  ────────────────────────────────────────────────────────────────────────  │
+│  Input:                                                                     │
+│    Tingkat      : XI                                                       │
+│    Jurusan      : C                                                        │
+│    Jumlah Siswa : 34                                                       │
+│    Status       : Aktif                                                    │
+│  Output:                                                                    │
+│    Nama Kelas   : XI-C (auto-generate)                                    │
+│                                                                              │
+│  KASUS 3: Import 12 Kelas X Sekaligus                                     │
+│  ────────────────────────────────────────────────────────────────────────  │
+│  File Excel:                                                               │
+│    X-1,  X,  1,  35                                                        │
+│    X-2,  X,  2,  32                                                        │
+│    X-3,  X,  3,  30                                                        │
+│    ...                                                                     │
+│    X-12, X,  12, 34                                                        │
+│  Hasil: 12 kelas X langsung masuk sistem                                  │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ STRUKTUR DATABASE                                                            │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  {                                                                          │
+│    id: "kls001",                                                           │
+│    nama: "X-1",          // Auto-generate dari tingkat + jurusan          │
+│    tingkat: "X",         // X, XI, atau XII                               │
+│    jurusan: "1",         // X: 1-12, XI/XII: A-G                          │
+│    jumlahSiswa: 35,      // Total siswa di kelas                          │
+│    aktif: true           // Status kelas                                  │
+│  }                                                                          │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ CHECKLIST TESTING                                                            │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  □ Reset database (jika perlu)                                             │
+│  □ Login sebagai admin                                                     │
+│  □ Test form manual:                                                       │
+│    □ Tambah kelas X (dropdown 1-12)                                       │
+│    □ Tambah kelas XI (dropdown A-G)                                       │
+│    □ Tambah kelas XII (dropdown A-G)                                      │
+│    □ Verifikasi nama auto-generate                                        │
+│  □ Test import:                                                            │
+│    □ Download template                                                    │
+│    □ Isi data contoh                                                      │
+│    □ Upload dan proses                                                    │
+│    □ Verifikasi data masuk                                                │
+│  □ Test export:                                                            │
+│    □ Export PDF                                                           │
+│    □ Export XLSX                                                          │
+│    □ Verifikasi format kelas baru                                         │
+│  □ Test integrasi:                                                         │
+│    □ Jadwal pelajaran                                                     │
+│    □ Jurnal kelas                                                         │
+│    □ Dashboard                                                            │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                              STATUS: ✅ SELESAI                              ║
+║                                                                              ║
+║  Semua perubahan telah diterapkan dan siap digunakan!                       ║
+║  Sistem menggunakan format kelas SMAN 15 Surabaya.                          ║
+║                                                                              ║
+║  Dibuat dengan ❤️ untuk SMAN 15 Surabaya                                    ║
+╚══════════════════════════════════════════════════════════════════════════════╝

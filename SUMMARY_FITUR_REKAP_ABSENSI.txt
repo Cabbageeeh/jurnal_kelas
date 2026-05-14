@@ -1,0 +1,349 @@
+================================================================================
+RINGKASAN FITUR REKAP ABSENSI SISWA
+================================================================================
+
+📅 Tanggal: Mei 2026
+🎯 Tujuan: Menambahkan fitur rekap absensi siswa yang tidak hadir berdasarkan
+          data jurnal kelas, dengan kemampuan import data siswa per kelas.
+
+================================================================================
+FITUR YANG DITAMBAHKAN
+================================================================================
+
+1. IMPORT DATA SISWA
+   ✅ Template Excel untuk data siswa (NIS, Nama, Kelas)
+   ✅ Validasi NIS duplikat
+   ✅ Validasi kelas terdaftar
+   ✅ Preview data sebelum import
+   ✅ Tab preview siswa di modal import
+
+2. REKAP ABSENSI BULANAN
+   ✅ Filter berdasarkan bulan
+   ✅ Filter berdasarkan kelas
+   ✅ Filter berdasarkan status (Sakit/Izin/Alpha)
+   ✅ Tabel rekap dengan jumlah ketidakhadiran per siswa
+   ✅ Sorting otomatis (terbanyak dulu)
+
+3. STATISTIK DASHBOARD
+   ✅ Total siswa
+   ✅ Siswa hadir penuh
+   ✅ Siswa tidak hadir
+   ✅ Total ketidakhadiran dengan breakdown
+
+4. DETAIL ABSENSI SISWA
+   ✅ Modal detail per siswa
+   ✅ Riwayat ketidakhadiran lengkap
+   ✅ Statistik per siswa
+
+5. EXPORT DATA
+   ✅ Export ke Excel (.xlsx)
+   ✅ Export ke PDF
+   ✅ Header profil sekolah
+
+================================================================================
+FILE YANG DIBUAT/DIMODIFIKASI
+================================================================================
+
+FILE BARU:
+----------
+1. js/absensi.js (571 baris)
+   - Logika rekap absensi
+   - Render tabel dan statistik
+   - Detail absensi siswa
+   - Export XLSX/PDF
+
+2. FITUR_REKAP_ABSENSI.md
+   - Dokumentasi lengkap fitur
+
+3. CONTOH_TEMPLATE_SISWA.md
+   - Panduan template import siswa
+
+4. SUMMARY_FITUR_REKAP_ABSENSI.txt
+   - Ringkasan perubahan (file ini)
+
+FILE DIMODIFIKASI:
+-----------------
+1. dashboard-admin.html
+   - Tambah menu "Rekap Absensi" di sidebar
+   - Tambah halaman rekap absensi (filter, statistik, tabel)
+   - Tambah modal detail absensi siswa
+   - Tambah tombol template siswa di modal import
+   - Tambah tab preview siswa
+   - Tambah script absensi.js
+
+2. js/data.js
+   - Tambah key siswa: "jk_siswa" di DB_KEYS
+   - Inisialisasi storage siswa
+
+3. js/import.js
+   - Tambah template siswa
+   - Tambah fungsi parseSiswa()
+   - Tambah fungsi renderPreviewSiswa()
+   - Update konfirmasiImport() untuk siswa
+   - Update counter dan tab
+
+4. js/admin.js
+   - Tambah "rekap-absensi" di PAGE_TITLES
+   - Tambah action untuk halaman rekap absensi
+
+================================================================================
+STRUKTUR DATA
+================================================================================
+
+DATA SISWA (localStorage: jk_siswa):
+{
+  id: "siswa_xxx",
+  nis: "12345",
+  nama: "Ahmad Fauzi",
+  kelasId: "kls001",
+  aktif: true,
+  createdAt: "2026-05-14T..."
+}
+
+DATA ABSENSI (dari jurnal):
+{
+  ...
+  absensi: {
+    sakit: [
+      { nis: "12345", nama: "Ahmad Fauzi" }
+    ],
+    izin: [
+      { nis: "12346", nama: "Siti Nurhaliza" }
+    ],
+    alpha: [
+      { nis: "12347", nama: "Budi Santoso" }
+    ]
+  }
+}
+
+================================================================================
+CARA PENGGUNAAN
+================================================================================
+
+LANGKAH 1: IMPORT DATA SISWA
+1. Buka Dashboard Admin → Rekap Absensi
+2. Klik "Import Data Siswa"
+3. Download "Template Siswa"
+4. Isi data: NIS, Nama, Kelas
+5. Upload file Excel
+6. Preview dan validasi
+7. Klik "Import"
+
+LANGKAH 2: LIHAT REKAP ABSENSI
+1. Pilih bulan (contoh: Januari 2026)
+2. Pilih kelas (opsional)
+3. Pilih status (opsional)
+4. Lihat statistik dan tabel rekap
+5. Klik tombol detail untuk riwayat lengkap
+
+LANGKAH 3: EXPORT DATA
+1. Pilih filter yang diinginkan
+2. Klik "Export XLSX" atau "Export PDF"
+3. File akan terdownload
+
+================================================================================
+LOGIKA PERHITUNGAN
+================================================================================
+
+Untuk setiap siswa dalam bulan yang dipilih:
+1. Ambil semua jurnal kelas siswa
+2. Loop setiap jurnal:
+   - Cek apakah siswa ada di absensi.sakit → sakit++
+   - Cek apakah siswa ada di absensi.izin → izin++
+   - Cek apakah siswa ada di absensi.alpha → alpha++
+3. Total = sakit + izin + alpha
+4. Sort berdasarkan total (terbanyak dulu)
+
+Matching siswa: berdasarkan NIS atau Nama
+
+================================================================================
+VALIDASI IMPORT SISWA
+================================================================================
+
+✅ VALID:
+- NIS unik (belum ada di database)
+- Nama terisi
+- Kelas sudah terdaftar di sistem
+
+❌ ERROR:
+- NIS duplikat → Baris dilewati
+- Kelas tidak ditemukan → Tidak diimport
+- Data kosong → Tidak diimport
+
+================================================================================
+TAMPILAN UI
+================================================================================
+
+MENU SIDEBAR:
+📊 Rekap Absensi (icon: clipboard-user)
+
+HALAMAN REKAP ABSENSI:
+- Filter: Bulan, Kelas, Status
+- Statistik: 4 cards (Total Siswa, Hadir Penuh, Tidak Hadir, Total Ketidakhadiran)
+- Tabel: No, Nama, Kelas, Sakit, Izin, Alpha, Total, Aksi
+- Tombol: Import Data Siswa, Export XLSX, Export PDF
+
+MODAL DETAIL:
+- Info siswa (Nama, NIS, Kelas, Periode)
+- Statistik (Sakit, Izin, Alpha, Total)
+- Tabel riwayat (Tanggal, Mapel, Jam, Status)
+
+WARNA:
+- Sakit: Kuning (badge-warning)
+- Izin: Biru (badge-info)
+- Alpha: Merah (badge-danger)
+- Total > 5: Merah
+- Total > 3: Kuning
+
+================================================================================
+TEMPLATE EXCEL SISWA
+================================================================================
+
+Sheet: Siswa
+
+Kolom:
+- nis (wajib, unik)
+- nama (wajib)
+- kelas_nama (wajib, harus sesuai data kelas)
+
+Contoh:
+12345 | Ahmad Fauzi      | X-1
+12346 | Siti Nurhaliza   | X-1
+12347 | Budi Santoso     | X-2
+12348 | Dewi Lestari     | XI-A
+12349 | Eko Prasetyo     | XII-B
+
+Format Kelas:
+- Kelas 10: X-1, X-2, ... X-12
+- Kelas 11: XI-A, XI-B, ... XI-G
+- Kelas 12: XII-A, XII-B, ... XII-G
+
+================================================================================
+FUNGSI JAVASCRIPT UTAMA
+================================================================================
+
+js/absensi.js:
+- renderRekapAbsensi()        → Render tabel rekap
+- renderStatsAbsensi()         → Render statistik
+- lihatDetailAbsensi()         → Modal detail siswa
+- exportRekapAbsensi()         → Export XLSX/PDF
+- exportRekapAbsensiXLSX()     → Export ke Excel
+- exportRekapAbsensiPDF()      → Export ke PDF
+- initFilterAbsensi()          → Inisialisasi filter
+- clearFilterAbsensi()         → Reset filter
+
+js/import.js:
+- parseSiswa()                 → Parse data siswa dari Excel
+- renderPreviewSiswa()         → Preview data siswa
+- downloadTemplate('siswa')    → Download template siswa
+
+js/admin.js:
+- showPage('rekap-absensi')    → Tampilkan halaman rekap
+
+================================================================================
+DEPENDENCIES
+================================================================================
+
+Library yang digunakan:
+- XLSX.js (sudah ada) → Import/Export Excel
+- jsPDF (sudah ada) → Export PDF
+- jsPDF AutoTable (sudah ada) → Tabel PDF
+
+================================================================================
+TESTING CHECKLIST
+================================================================================
+
+✅ Import Data Siswa:
+   □ Download template siswa
+   □ Upload file dengan data valid
+   □ Upload file dengan NIS duplikat
+   □ Upload file dengan kelas tidak ditemukan
+   □ Preview menampilkan status yang benar
+   □ Import berhasil menyimpan data valid
+
+✅ Rekap Absensi:
+   □ Filter bulan berfungsi
+   □ Filter kelas berfungsi
+   □ Filter status berfungsi
+   □ Statistik menghitung dengan benar
+   □ Tabel menampilkan data yang benar
+   □ Sorting berdasarkan total ketidakhadiran
+
+✅ Detail Absensi:
+   □ Modal detail terbuka
+   □ Info siswa ditampilkan
+   □ Statistik per siswa benar
+   □ Riwayat ketidakhadiran lengkap
+
+✅ Export:
+   □ Export XLSX berhasil
+   □ Export PDF berhasil
+   □ Header profil sekolah muncul
+   □ Data sesuai dengan filter
+
+✅ Validasi:
+   □ Tidak bisa lihat rekap tanpa pilih bulan
+   □ Matching siswa berdasarkan NIS/Nama
+   □ Data siswa tidak aktif tidak muncul
+
+================================================================================
+MANFAAT FITUR
+================================================================================
+
+UNTUK ADMIN:
+✓ Monitoring ketidakhadiran real-time
+✓ Identifikasi siswa bermasalah
+✓ Data untuk evaluasi
+
+UNTUK GURU BK:
+✓ Data untuk konseling
+✓ Identifikasi masalah kehadiran
+✓ Laporan untuk orang tua
+
+UNTUK KEPALA SEKOLAH:
+✓ Laporan kehadiran siswa
+✓ Data pengambilan keputusan
+✓ Evaluasi kedisiplinan
+
+================================================================================
+PENGEMBANGAN SELANJUTNYA
+================================================================================
+
+Fitur yang bisa ditambahkan:
+□ Rekap per semester
+□ Grafik tren ketidakhadiran
+□ Notifikasi otomatis
+□ Export per kelas
+□ Perbandingan antar bulan
+□ Cetak surat peringatan
+□ Integrasi SMS/WhatsApp
+
+================================================================================
+CATATAN PENTING
+================================================================================
+
+1. Data siswa harus diimport terlebih dahulu
+2. NIS harus unik untuk setiap siswa
+3. Format kelas harus sesuai (X-1, XI-A, XII-B)
+4. Matching siswa berdasarkan NIS atau Nama
+5. Rekap per bulan (tidak bisa lintas bulan)
+6. Default bulan: bulan berjalan
+
+================================================================================
+KONTAK & SUPPORT
+================================================================================
+
+Jika ada pertanyaan atau masalah:
+- Buka dokumentasi: FITUR_REKAP_ABSENSI.md
+- Lihat contoh template: CONTOH_TEMPLATE_SISWA.md
+- Hubungi tim pengembang
+
+================================================================================
+STATUS FITUR
+================================================================================
+
+✅ SELESAI - Siap digunakan
+Versi: 1.0
+Tanggal: Mei 2026
+
+================================================================================
