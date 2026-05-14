@@ -633,3 +633,76 @@ td .badge {
   background: rgba(239, 68, 68, 0.12) !important;
   color: #fca5a5 !important;
 }
+
+/* -------- SISWA LIST (Dropdown Absensi) -------- */
+.siswa-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.siswa-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  transition: var(--transition);
+}
+
+.siswa-item:hover {
+  background: var(--gray-100);
+  border-color: var(--gray-300);
+}
+
+.siswa-item span {
+  flex: 1;
+  color: var(--gray-800);
+  font-weight: 500;
+}
+
+.siswa-item .btn-remove {
+  background: var(--danger);
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.siswa-item .btn-remove:hover {
+  background: #b91c1c;
+  transform: scale(1.1);
+}
+
+.siswa-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.siswa-list::-webkit-scrollbar-track {
+  background: var(--gray-100);
+  border-radius: 3px;
+}
+
+.siswa-list::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 3px;
+}
+
+.siswa-list::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
+}

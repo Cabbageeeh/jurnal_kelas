@@ -1,0 +1,327 @@
+═══════════════════════════════════════════════════════════════
+  TESTING CHECKLIST - DROPDOWN ABSENSI SISWA
+═══════════════════════════════════════════════════════════════
+
+📋 PERSIAPAN
+───────────────────────────────────────────────────────────────
+☐ Data siswa sudah diimport ke sistem
+☐ Siswa sudah diassign ke kelas
+☐ Jumlah siswa di kelas sudah tersinkronisasi
+☐ Jadwal pelajaran sudah dibuat
+☐ Guru sudah konfirmasi kehadiran
+
+═══════════════════════════════════════════════════════════════
+
+✅ TEST CASE 1: DROPDOWN SISWA
+───────────────────────────────────────────────────────────────
+☐ Login sebagai siswa (ketua/sekretaris)
+☐ Buka menu "Jurnal Hari Ini"
+☐ Klik "Isi Jurnal Sekarang"
+☐ Cek dropdown "Siswa Sakit" muncul
+☐ Cek dropdown "Siswa Izin" muncul
+☐ Cek dropdown "Siswa Alpha" muncul
+☐ Cek semua siswa di kelas muncul di dropdown
+☐ Cek format: "Nama Siswa (NIS)"
+☐ Cek siswa sorted berdasarkan nama
+
+EXPECTED RESULT:
+✓ Dropdown muncul dengan semua siswa di kelas
+✓ Format nama dan NIS benar
+✓ Siswa sorted alphabetically
+
+═══════════════════════════════════════════════════════════════
+
+✅ TEST CASE 2: TAMBAH SISWA KE LIST
+───────────────────────────────────────────────────────────────
+☐ Pilih siswa dari dropdown "Siswa Sakit"
+☐ Klik tombol [+] merah
+☐ Cek siswa muncul di list di bawah dropdown
+☐ Cek format: "Nama (NIS)" dengan tombol [×]
+☐ Cek counter "Sakit" bertambah
+☐ Cek ringkasan kehadiran update
+☐ Ulangi untuk "Siswa Izin" dan "Siswa Alpha"
+
+EXPECTED RESULT:
+✓ Siswa muncul di list dengan format benar
+✓ Counter otomatis update
+✓ Ringkasan kehadiran update
+✓ Dropdown reset ke placeholder
+
+═══════════════════════════════════════════════════════════════
+
+✅ TEST CASE 3: HAPUS SISWA DARI LIST
+───────────────────────────────────────────────────────────────
+☐ Tambah siswa ke list sakit
+☐ Klik tombol [×] merah di sebelah nama
+☐ Cek siswa hilang dari list
+☐ Cek counter "Sakit" berkurang
+☐ Cek ringkasan kehadiran update
+☐ Cek siswa bisa dipilih lagi dari dropdown
+
+EXPECTED RESULT:
+✓ Siswa hilang dari list
+✓ Counter otomatis update
+✓ Ringkasan kehadiran update
+✓ Siswa bisa dipilih lagi
+
+═══════════════════════════════════════════════════════════════
+
+✅ TEST CASE 4: VALIDASI DUPLIKASI
+───────────────────────────────────────────────────────────────
+☐ Tambah siswa A ke list "Sakit"
+☐ Coba tambah siswa A ke list "Izin"
+☐ Cek muncul alert/toast warning
+☐ Cek siswa A tidak masuk ke list "Izin"
+☐ Cek siswa A tetap di list "Sakit"
+
+EXPECTED RESULT:
+✓ Alert muncul: "Siswa sudah ada di list Sakit!"
+✓ Siswa tidak bisa duplikasi
+✓ Data tetap konsisten
+
+═══════════════════════════════════════════════════════════════
+
+✅ TEST CASE 5: VALIDASI TOTAL SISWA
+───────────────────────────────────────────────────────────────
+☐ Tambah siswa tidak hadir sampai total = jumlah siswa
+☐ Cek ringkasan kehadiran: Hadir = 0
+☐ Coba tambah siswa lagi
+☐ Cek visual warning (background merah)
+☐ Coba simpan jurnal
+☐ Cek muncul error message
+
+EXPECTED RESULT:
+✓ Visual warning muncul jika total > jumlah siswa
+✓ Error message saat simpan
+✓ Jurnal tidak tersimpan
+
+═══════════════════════════════════════════════════════════════
+
+✅ TEST CASE 6: SIMPAN JURNAL
+───────────────────────────────────────────────────────────────
+☐ Isi materi pelajaran
+☐ Tambah 2 siswa sakit
+☐ Tambah 1 siswa izin
+☐ Tambah 1 siswa alpha
+☐ Cek ringkasan kehadiran benar
+☐ Klik "Simpan Jurnal"
+☐ Cek toast sukses muncul
+☐ Cek modal tertutup
+☐ Cek jurnal muncul di list dengan status "Terisi"
+
+EXPECTED RESULT:
+✓ Jurnal tersimpan
+✓ Toast sukses muncul
+✓ Data benar di list jurnal
+
+═══════════════════════════════════════════════════════════════
+
+✅ TEST CASE 7: EDIT JURNAL
+───────────────────────────────────────────────────────────────
+☐ Klik tombol "Edit" pada jurnal yang sudah diisi
+☐ Cek modal terbuka dengan data jurnal
+☐ Cek list siswa sakit muncul dengan benar
+☐ Cek list siswa izin muncul dengan benar
+☐ Cek list siswa alpha muncul dengan benar
+☐ Hapus 1 siswa dari list
+☐ Tambah 1 siswa baru
+☐ Klik "Simpan Jurnal"
+☐ Cek perubahan tersimpan
+
+EXPECTED RESULT:
+✓ Data jurnal ter-load dengan benar
+✓ List siswa muncul sesuai data
+✓ Perubahan tersimpan
+✓ Data update di list jurnal
+
+═══════════════════════════════════════════════════════════════
+
+✅ TEST CASE 8: REKAP ABSENSI
+───────────────────────────────────────────────────────────────
+☐ Login sebagai admin
+☐ Buka menu "Rekap Absensi"
+☐ Pilih bulan yang ada data jurnal
+☐ Cek tabel menampilkan siswa yang tidak hadir
+☐ Cek kolom Sakit, Izin, Alpha benar
+☐ Cek Total tidak hadir benar
+☐ Klik tombol [👁] pada siswa
+☐ Cek modal detail muncul
+☐ Cek riwayat ketidakhadiran benar
+☐ Cek tanggal, mapel, jam, status benar
+
+EXPECTED RESULT:
+✓ Rekap absensi menampilkan data benar
+✓ Detail siswa menampilkan riwayat lengkap
+✓ Data sinkron dengan jurnal
+
+═══════════════════════════════════════════════════════════════
+
+✅ TEST CASE 9: EXPORT DATA
+───────────────────────────────────────────────────────────────
+☐ Di halaman Rekap Absensi
+☐ Klik "Export Excel"
+☐ Cek file .xlsx terdownload
+☐ Buka file Excel
+☐ Cek data siswa lengkap
+☐ Cek kolom Sakit, Izin, Alpha, Total benar
+☐ Klik "Export PDF"
+☐ Cek file .pdf terdownload
+☐ Buka file PDF
+☐ Cek data siswa lengkap dan format rapi
+
+EXPECTED RESULT:
+✓ File Excel terdownload dengan data lengkap
+✓ File PDF terdownload dengan format rapi
+✓ Data sesuai dengan tampilan di web
+
+═══════════════════════════════════════════════════════════════
+
+✅ TEST CASE 10: FILTER REKAP
+───────────────────────────────────────────────────────────────
+☐ Di halaman Rekap Absensi
+☐ Pilih bulan berbeda
+☐ Cek data update sesuai bulan
+☐ Pilih kelas tertentu
+☐ Cek hanya siswa kelas tersebut yang muncul
+☐ Pilih status "Sakit"
+☐ Cek hanya siswa yang pernah sakit yang muncul
+☐ Klik "Reset"
+☐ Cek filter kembali ke default
+
+EXPECTED RESULT:
+✓ Filter bulan berfungsi
+✓ Filter kelas berfungsi
+✓ Filter status berfungsi
+✓ Reset berfungsi
+
+═══════════════════════════════════════════════════════════════
+
+✅ TEST CASE 11: BACKWARD COMPATIBILITY
+───────────────────────────────────────────────────────────────
+☐ Buat jurnal lama (tanpa field absensi)
+☐ Buka Rekap Absensi
+☐ Cek jurnal lama tetap bisa dibaca
+☐ Cek tidak ada error di console
+☐ Cek data lama tetap muncul di rekap
+☐ Edit jurnal lama
+☐ Cek bisa tambah data absensi detail
+☐ Simpan jurnal
+☐ Cek data update dengan field absensi baru
+
+EXPECTED RESULT:
+✓ Jurnal lama tetap bisa dibaca
+✓ Tidak ada breaking changes
+✓ Data lama bisa di-update ke format baru
+
+═══════════════════════════════════════════════════════════════
+
+✅ TEST CASE 12: EDGE CASES
+───────────────────────────────────────────────────────────────
+☐ Kelas dengan 0 siswa
+   → Cek dropdown kosong dengan pesan
+☐ Kelas dengan 1 siswa
+   → Cek bisa pilih siswa tersebut
+☐ Kelas dengan 100+ siswa
+   → Cek dropdown scrollable
+   → Cek list siswa scrollable
+☐ Nama siswa sangat panjang
+   → Cek tidak overflow
+☐ NIS dengan format berbeda
+   → Cek tetap muncul dengan benar
+☐ Siswa non-aktif
+   → Cek tidak muncul di dropdown
+
+EXPECTED RESULT:
+✓ Semua edge case ter-handle dengan baik
+✓ Tidak ada error atau crash
+✓ UI tetap rapi
+
+═══════════════════════════════════════════════════════════════
+
+✅ TEST CASE 13: RESPONSIVE DESIGN
+───────────────────────────────────────────────────────────────
+☐ Buka di desktop (1920x1080)
+   → Cek layout rapi
+☐ Buka di laptop (1366x768)
+   → Cek layout rapi
+☐ Buka di tablet (768x1024)
+   → Cek layout rapi
+☐ Buka di mobile (375x667)
+   → Cek layout rapi
+   → Cek dropdown tidak overflow
+   → Cek list siswa scrollable
+
+EXPECTED RESULT:
+✓ Responsive di semua ukuran layar
+✓ Tidak ada overflow
+✓ Tetap user-friendly
+
+═══════════════════════════════════════════════════════════════
+
+✅ TEST CASE 14: PERFORMANCE
+───────────────────────────────────────────────────────────────
+☐ Kelas dengan 50 siswa
+   → Cek dropdown load cepat (<1 detik)
+☐ Tambah 20 siswa ke list
+   → Cek tidak lag
+☐ Simpan jurnal dengan 20 siswa
+   → Cek simpan cepat (<2 detik)
+☐ Buka rekap absensi dengan 100+ jurnal
+   → Cek load cepat (<3 detik)
+☐ Export Excel dengan 500+ data
+   → Cek export cepat (<5 detik)
+
+EXPECTED RESULT:
+✓ Performa baik di semua operasi
+✓ Tidak ada lag atau freeze
+✓ User experience smooth
+
+═══════════════════════════════════════════════════════════════
+
+✅ TEST CASE 15: BROWSER COMPATIBILITY
+───────────────────────────────────────────────────────────────
+☐ Chrome (latest)
+   → Cek semua fitur berfungsi
+☐ Firefox (latest)
+   → Cek semua fitur berfungsi
+☐ Edge (latest)
+   → Cek semua fitur berfungsi
+☐ Safari (latest)
+   → Cek semua fitur berfungsi
+☐ Mobile Chrome
+   → Cek semua fitur berfungsi
+☐ Mobile Safari
+   → Cek semua fitur berfungsi
+
+EXPECTED RESULT:
+✓ Compatible dengan semua browser modern
+✓ Tidak ada error spesifik browser
+✓ UI konsisten di semua browser
+
+═══════════════════════════════════════════════════════════════
+
+📊 SUMMARY TESTING
+───────────────────────────────────────────────────────────────
+Total Test Cases: 15
+☐ Passed: ___
+☐ Failed: ___
+☐ Skipped: ___
+
+CRITICAL BUGS:
+-
+
+MINOR BUGS:
+-
+
+NOTES:
+-
+
+═══════════════════════════════════════════════════════════════
+
+✅ SIGN OFF
+───────────────────────────────────────────────────────────────
+Tested by: _______________
+Date: _______________
+Status: ☐ PASS  ☐ FAIL  ☐ NEED REVISION
+
+═══════════════════════════════════════════════════════════════

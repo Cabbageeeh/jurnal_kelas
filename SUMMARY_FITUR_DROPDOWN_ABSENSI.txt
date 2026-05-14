@@ -1,0 +1,209 @@
+═══════════════════════════════════════════════════════════════
+  SUMMARY FITUR DROPDOWN ABSENSI SISWA
+═══════════════════════════════════════════════════════════════
+
+📅 Tanggal: 14 Mei 2026
+🎯 Tujuan: Menambahkan dropdown untuk memilih siswa yang tidak hadir
+          dan sinkronisasi otomatis dengan rekap absensi
+
+═══════════════════════════════════════════════════════════════
+
+📝 FILE YANG DIMODIFIKASI:
+
+1. js/siswa.js
+   ✓ Modifikasi fungsi isiJurnal() - tambah resetDropdownSiswa()
+   ✓ Modifikasi fungsi editJurnal() - tambah loadAbsensiData()
+   ✓ Modifikasi fungsi simpanJurnal() - simpan data absensi detail
+   ✓ Tambah fungsi resetDropdownSiswa()
+   ✓ Tambah fungsi tambahSiswaTidakHadir()
+   ✓ Tambah fungsi hapusSiswaTidakHadir()
+   ✓ Tambah fungsi updateCounterAbsensi()
+   ✓ Tambah fungsi getAbsensiData()
+   ✓ Tambah fungsi loadAbsensiData()
+
+2. dashboard-siswa.html
+   ✓ Ganti input number dengan dropdown + list
+   ✓ Tambah dropdown untuk sakit, izin, alpha
+   ✓ Tambah tombol [+] untuk menambah siswa
+   ✓ Tambah container list siswa terpilih
+   ✓ Tambah tombol [×] untuk hapus siswa dari list
+
+3. css/dashboard.css
+   ✓ Tambah styling .siswa-list
+   ✓ Tambah styling .siswa-item
+   ✓ Tambah styling .btn-remove
+   ✓ Tambah scrollbar custom untuk list
+
+4. js/absensi.js
+   ✓ Sudah support membaca data absensi detail dari jurnal
+   ✓ Tidak perlu modifikasi (sudah kompatibel)
+
+═══════════════════════════════════════════════════════════════
+
+📄 FILE DOKUMENTASI BARU:
+
+1. FITUR_DROPDOWN_ABSENSI_SISWA.md
+   - Dokumentasi lengkap fitur
+   - Cara penggunaan
+   - Struktur data
+   - Troubleshooting
+
+2. CARA_ISI_ABSENSI_SISWA.txt
+   - Panduan singkat untuk pengguna
+   - Step-by-step cara isi absensi
+   - Tips dan troubleshooting
+
+3. SUMMARY_FITUR_DROPDOWN_ABSENSI.txt
+   - File ini (summary perubahan)
+
+═══════════════════════════════════════════════════════════════
+
+✨ FITUR BARU:
+
+1. DROPDOWN PEMILIHAN SISWA
+   • Dropdown menampilkan semua siswa di kelas
+   • Format: "Nama Siswa (NIS)"
+   • Sorted berdasarkan nama
+   • Hanya siswa aktif yang ditampilkan
+
+2. LIST SISWA TERPILIH
+   • Menampilkan siswa yang dipilih per kategori
+   • Tombol hapus untuk setiap item
+   • Auto-update counter jumlah
+   • Validasi duplikasi antar kategori
+
+3. SINKRONISASI DATA
+   • Data siswa tersimpan dengan detail (ID, NIS, Nama)
+   • Rekap absensi otomatis membaca dari jurnal
+   • Riwayat ketidakhadiran per siswa
+   • Export Excel dan PDF dengan data lengkap
+
+═══════════════════════════════════════════════════════════════
+
+🔧 PERUBAHAN TEKNIS:
+
+STRUKTUR DATA JURNAL (SEBELUM):
+{
+  jumlahSakit: 2,
+  jumlahIzin: 1,
+  jumlahAlpha: 0
+}
+
+STRUKTUR DATA JURNAL (SESUDAH):
+{
+  jumlahSakit: 2,
+  jumlahIzin: 1,
+  jumlahAlpha: 0,
+  absensi: {
+    sakit: [
+      { id: "siswa001", nis: "12345", nama: "Ahmad" },
+      { id: "siswa002", nis: "12346", nama: "Budi" }
+    ],
+    izin: [
+      { id: "siswa003", nis: "12347", nama: "Citra" }
+    ],
+    alpha: []
+  }
+}
+
+═══════════════════════════════════════════════════════════════
+
+✅ VALIDASI:
+
+1. Duplikasi Siswa
+   • Siswa tidak bisa dipilih di lebih dari satu kategori
+   • Alert muncul jika mencoba duplikasi
+
+2. Total Siswa
+   • Total tidak hadir tidak boleh > jumlah siswa kelas
+   • Visual warning jika melebihi
+
+3. Materi Wajib
+   • Materi pelajaran harus diisi
+   • Error message jika kosong
+
+4. Konfirmasi Guru
+   • Jurnal hanya bisa diisi setelah guru konfirmasi
+   • Validasi saat buka form dan simpan
+
+═══════════════════════════════════════════════════════════════
+
+🎨 UI/UX IMPROVEMENTS:
+
+• Dropdown dengan placeholder jelas
+• Tombol [+] berwarna sesuai kategori:
+  - Merah untuk Sakit
+  - Kuning untuk Izin
+  - Abu-abu untuk Alpha
+• List siswa dengan background abu-abu terang
+• Tombol [×] merah untuk hapus
+• Hover effect pada item
+• Scrollbar custom jika list panjang
+• Auto-update ringkasan kehadiran
+
+═══════════════════════════════════════════════════════════════
+
+🔄 BACKWARD COMPATIBILITY:
+
+✓ Jurnal lama (tanpa field absensi) tetap bisa dibaca
+✓ Rekap absensi support kedua format data
+✓ Tidak ada breaking changes
+✓ Data lama tidak perlu migrasi
+
+═══════════════════════════════════════════════════════════════
+
+📊 INTEGRASI DENGAN FITUR LAIN:
+
+✓ Import Siswa - Data siswa dari import otomatis muncul di dropdown
+✓ Rekap Absensi - Otomatis membaca data detail dari jurnal
+✓ Export Excel/PDF - Include data siswa yang tidak hadir
+✓ Sinkronisasi Jumlah Siswa - Counter otomatis update
+
+═══════════════════════════════════════════════════════════════
+
+🚀 CARA TESTING:
+
+1. Import data siswa ke kelas
+2. Guru konfirmasi kehadiran
+3. Siswa buka form isi jurnal
+4. Pilih siswa dari dropdown
+5. Cek list siswa terpilih
+6. Simpan jurnal
+7. Buka rekap absensi
+8. Cek detail siswa
+9. Export ke Excel/PDF
+
+═══════════════════════════════════════════════════════════════
+
+⚠️ CATATAN PENTING:
+
+• Data siswa HARUS sudah diimport terlebih dahulu
+• Jumlah siswa di kelas harus sudah tersinkronisasi
+• Dropdown hanya menampilkan siswa aktif
+• Data absensi tersimpan permanen
+
+═══════════════════════════════════════════════════════════════
+
+📈 MANFAAT:
+
+✓ Data absensi lebih akurat dan detail
+✓ Tracking ketidakhadiran per siswa
+✓ Laporan lebih informatif
+✓ User experience lebih baik
+✓ Administrasi lebih mudah
+
+═══════════════════════════════════════════════════════════════
+
+🎯 NEXT STEPS (OPSIONAL):
+
+• Tambah notifikasi ke orang tua jika siswa tidak hadir
+• Tambah grafik ketidakhadiran per siswa
+• Tambah filter tanggal range di rekap absensi
+• Tambah export per siswa
+• Tambah statistik ketidakhadiran per bulan
+
+═══════════════════════════════════════════════════════════════
+
+✅ STATUS: SELESAI & SIAP DIGUNAKAN
+
+═══════════════════════════════════════════════════════════════

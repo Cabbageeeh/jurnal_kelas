@@ -727,6 +727,10 @@ function isiJurnal(jadwalId) {
   document.getElementById("formJurnalIzin").value = 0;
   document.getElementById("formJurnalAlpha").value = 0;
   document.getElementById("formJurnalKeterangan").value = "";
+  
+  // Reset dropdown siswa
+  resetDropdownSiswa();
+  
   hitungKehadiran();
 
   openModal("modalJurnal");
@@ -773,6 +777,13 @@ function editJurnal(jurnalId, jadwalId) {
   document.getElementById("formJurnalAlpha").value = jurnal?.jumlahAlpha || 0;
   document.getElementById("formJurnalKeterangan").value =
     jurnal?.keterangan || "";
+  
+  // Load data siswa yang tidak hadir dari jurnal
+  resetDropdownSiswa();
+  if (jurnal?.absensi) {
+    loadAbsensiData(jurnal.absensi);
+  }
+  
   hitungKehadiran();
 
   openModal("modalJurnal");
@@ -782,12 +793,15 @@ function simpanJurnal() {
   const id = document.getElementById("jurnalId").value;
   const jadwalId = document.getElementById("jurnalJadwalId").value;
   const materi = document.getElementById("formJurnalMateri").value.trim();
-  const sakit = parseInt(document.getElementById("formJurnalSakit").value) || 0;
-  const izin = parseInt(document.getElementById("formJurnalIzin").value) || 0;
-  const alpha = parseInt(document.getElementById("formJurnalAlpha").value) || 0;
   const keterangan = document
     .getElementById("formJurnalKeterangan")
     .value.trim();
+
+  // Ambil data absensi dari dropdown
+  const absensiData = getAbsensiData();
+  const sakit = absensiData.sakit.length;
+  const izin = absensiData.izin.length;
+  const alpha = absensiData.alpha.length;
 
   // Hitung total siswa dan hadir dari data kelas
   const kelas = dbGetById(DB_KEYS.kelas, currentSession.kelasId);
@@ -797,11 +811,6 @@ function simpanJurnal() {
 
   // Validasi
   if (!materi) return showFormError("jurnalFormError", "Materi wajib diisi.");
-  if (sakit < 0 || izin < 0 || alpha < 0)
-    return showFormError(
-      "jurnalFormError",
-      "Jumlah kehadiran tidak boleh negatif.",
-    );
 
   if (hadir < 0)
     return showFormError(
@@ -833,6 +842,7 @@ function simpanJurnal() {
     jumlahIzin: izin,
     jumlahAlpha: alpha,
     keterangan,
+    absensi: absensiData, // Simpan data detail siswa yang tidak hadir
     updatedAt: new Date().toISOString(),
   };
 
@@ -1020,4 +1030,257 @@ function clearRiwayatFilter() {
   document.getElementById("riwayatDari").value = "";
   document.getElementById("riwayatSampai").value = "";
   renderRiwayat();
+}
+
+// ── Dropdown Siswa untuk Absensi ──────────────────────────
+
+/**
+ * Reset dan populate dropdown siswa berdasarkan kelas
+ */
+function resetDropdownSiswa() {
+  // Ambil semua siswa di kelas ini
+  const siswaList = dbGetAll(DB_KEYS.siswa).filter(
+    (s) => s.kelasId === currentSession.kelasId && s.aktif
+  );
+
+  // Sort berdasarkan nama
+  siswaList.sort((a, b) => a.nama.localeCompare(b.nama));
+
+  // Populate dropdown sakit
+  const selectSakit = document.getElementById("formJurnalSiswaSakit");
+  selectSakit.innerHTML = '<option value="">-- Pilih Siswa Sakit --</option>';
+  siswaList.forEach((s) => {
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = `${s.nama} (${s.nis})`;
+    selectSakit.appendChild(opt);
+  });
+
+  // Populate dropdown izin
+  const selectIzin = document.getElementById("formJurnalSiswaIzin");
+  selectIzin.innerHTML = '<option value="">-- Pilih Siswa Izin --</option>';
+  siswaList.forEach((s) => {
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = `${s.nama} (${s.nis})`;
+    selectIzin.appendChild(opt);
+  });
+
+  // Populate dropdown alpha
+  const selectAlpha = document.getElementById("formJurnalSiswaAlpha");
+  selectAlpha.innerHTML = '<option value="">-- Pilih Siswa Alpha --</option>';
+  siswaList.forEach((s) => {
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = `${s.nama} (${s.nis})`;
+    selectAlpha.appendChild(opt);
+  });
+
+  // Clear list siswa yang dipilih
+  document.getElementById("listSiswaSakit").innerHTML = "";
+  document.getElementById("listSiswaIzin").innerHTML = "";
+  document.getElementById("listSiswaAlpha").innerHTML = "";
+
+  // Reset counter
+  document.getElementById("formJurnalSakit").value = 0;
+  document.getElementById("formJurnalIzin").value = 0;
+  document.getElementById("formJurnalAlpha").value = 0;
+}
+
+/**
+ * Tambah siswa ke list tidak hadir
+ */
+function tambahSiswaTidakHadir(tipe) {
+  const selectId = `formJurnalSiswa${tipe.charAt(0).toUpperCase() + tipe.slice(1)}`;
+  const select = document.getElementById(selectId);
+  const siswaId = select.value;
+
+  if (!siswaId) return;
+
+  const siswa = dbGetById(DB_KEYS.siswa, siswaId);
+  if (!siswa) return;
+
+  // Cek apakah siswa sudah ada di list lain
+  const allLists = ["Sakit", "Izin", "Alpha"];
+  for (const t of allLists) {
+    const listEl = document.getElementById(`listSiswa${t}`);
+    const items = listEl.querySelectorAll(".siswa-item");
+    for (const item of items) {
+      if (item.dataset.siswaId === siswaId) {
+        showToast(`${siswa.nama} sudah ada di list ${t}!`, "warning");
+        select.value = "";
+        return;
+      }
+    }
+  }
+
+  // Tambahkan ke list
+  const listContainer = document.getElementById(`listSiswa${tipe.charAt(0).toUpperCase() + tipe.slice(1)}`);
+  const item = document.createElement("div");
+  item.className = "siswa-item";
+  item.dataset.siswaId = siswaId;
+  item.innerHTML = `
+    <span>${siswa.nama} <small style="color:var(--gray-400)">(${siswa.nis})</small></span>
+    <button type="button" class="btn-remove" onclick="hapusSiswaTidakHadir('${tipe}', '${siswaId}')" title="Hapus">
+      <i class="fas fa-xmark"></i>
+    </button>
+  `;
+  listContainer.appendChild(item);
+
+  // Reset dropdown
+  select.value = "";
+
+  // Update counter
+  updateCounterAbsensi();
+  hitungKehadiran();
+}
+
+/**
+ * Hapus siswa dari list tidak hadir
+ */
+function hapusSiswaTidakHadir(tipe, siswaId) {
+  const listContainer = document.getElementById(`listSiswa${tipe.charAt(0).toUpperCase() + tipe.slice(1)}`);
+  const item = listContainer.querySelector(`[data-siswa-id="${siswaId}"]`);
+  if (item) {
+    item.remove();
+    updateCounterAbsensi();
+    hitungKehadiran();
+  }
+}
+
+/**
+ * Update counter jumlah siswa tidak hadir
+ */
+function updateCounterAbsensi() {
+  const sakit = document.getElementById("listSiswaSakit").children.length;
+  const izin = document.getElementById("listSiswaIzin").children.length;
+  const alpha = document.getElementById("listSiswaAlpha").children.length;
+
+  document.getElementById("formJurnalSakit").value = sakit;
+  document.getElementById("formJurnalIzin").value = izin;
+  document.getElementById("formJurnalAlpha").value = alpha;
+}
+
+/**
+ * Ambil data absensi dari list siswa yang dipilih
+ */
+function getAbsensiData() {
+  const result = {
+    sakit: [],
+    izin: [],
+    alpha: [],
+  };
+
+  // Sakit
+  const listSakit = document.getElementById("listSiswaSakit");
+  listSakit.querySelectorAll(".siswa-item").forEach((item) => {
+    const siswaId = item.dataset.siswaId;
+    const siswa = dbGetById(DB_KEYS.siswa, siswaId);
+    if (siswa) {
+      result.sakit.push({
+        id: siswa.id,
+        nis: siswa.nis,
+        nama: siswa.nama,
+      });
+    }
+  });
+
+  // Izin
+  const listIzin = document.getElementById("listSiswaIzin");
+  listIzin.querySelectorAll(".siswa-item").forEach((item) => {
+    const siswaId = item.dataset.siswaId;
+    const siswa = dbGetById(DB_KEYS.siswa, siswaId);
+    if (siswa) {
+      result.izin.push({
+        id: siswa.id,
+        nis: siswa.nis,
+        nama: siswa.nama,
+      });
+    }
+  });
+
+  // Alpha
+  const listAlpha = document.getElementById("listSiswaAlpha");
+  listAlpha.querySelectorAll(".siswa-item").forEach((item) => {
+    const siswaId = item.dataset.siswaId;
+    const siswa = dbGetById(DB_KEYS.siswa, siswaId);
+    if (siswa) {
+      result.alpha.push({
+        id: siswa.id,
+        nis: siswa.nis,
+        nama: siswa.nama,
+      });
+    }
+  });
+
+  return result;
+}
+
+/**
+ * Load data absensi ke form (untuk edit)
+ */
+function loadAbsensiData(absensi) {
+  if (!absensi) return;
+
+  // Load sakit
+  if (absensi.sakit && Array.isArray(absensi.sakit)) {
+    absensi.sakit.forEach((s) => {
+      const siswa = dbGetById(DB_KEYS.siswa, s.id);
+      if (siswa) {
+        const listContainer = document.getElementById("listSiswaSakit");
+        const item = document.createElement("div");
+        item.className = "siswa-item";
+        item.dataset.siswaId = siswa.id;
+        item.innerHTML = `
+          <span>${siswa.nama} <small style="color:var(--gray-400)">(${siswa.nis})</small></span>
+          <button type="button" class="btn-remove" onclick="hapusSiswaTidakHadir('sakit', '${siswa.id}')" title="Hapus">
+            <i class="fas fa-xmark"></i>
+          </button>
+        `;
+        listContainer.appendChild(item);
+      }
+    });
+  }
+
+  // Load izin
+  if (absensi.izin && Array.isArray(absensi.izin)) {
+    absensi.izin.forEach((s) => {
+      const siswa = dbGetById(DB_KEYS.siswa, s.id);
+      if (siswa) {
+        const listContainer = document.getElementById("listSiswaIzin");
+        const item = document.createElement("div");
+        item.className = "siswa-item";
+        item.dataset.siswaId = siswa.id;
+        item.innerHTML = `
+          <span>${siswa.nama} <small style="color:var(--gray-400)">(${siswa.nis})</small></span>
+          <button type="button" class="btn-remove" onclick="hapusSiswaTidakHadir('izin', '${siswa.id}')" title="Hapus">
+            <i class="fas fa-xmark"></i>
+          </button>
+        `;
+        listContainer.appendChild(item);
+      }
+    });
+  }
+
+  // Load alpha
+  if (absensi.alpha && Array.isArray(absensi.alpha)) {
+    absensi.alpha.forEach((s) => {
+      const siswa = dbGetById(DB_KEYS.siswa, s.id);
+      if (siswa) {
+        const listContainer = document.getElementById("listSiswaAlpha");
+        const item = document.createElement("div");
+        item.className = "siswa-item";
+        item.dataset.siswaId = siswa.id;
+        item.innerHTML = `
+          <span>${siswa.nama} <small style="color:var(--gray-400)">(${siswa.nis})</small></span>
+          <button type="button" class="btn-remove" onclick="hapusSiswaTidakHadir('alpha', '${siswa.id}')" title="Hapus">
+            <i class="fas fa-xmark"></i>
+          </button>
+        `;
+        listContainer.appendChild(item);
+      }
+    });
+  }
+
+  updateCounterAbsensi();
 }

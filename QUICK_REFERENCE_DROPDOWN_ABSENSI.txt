@@ -1,0 +1,192 @@
+═══════════════════════════════════════════════════════════════
+  QUICK REFERENCE - DROPDOWN ABSENSI SISWA
+═══════════════════════════════════════════════════════════════
+
+🎯 FUNGSI UTAMA
+───────────────────────────────────────────────────────────────
+resetDropdownSiswa()          → Reset dan populate dropdown siswa
+tambahSiswaTidakHadir(tipe)   → Tambah siswa ke list tidak hadir
+hapusSiswaTidakHadir(tipe,id) → Hapus siswa dari list
+updateCounterAbsensi()        → Update counter jumlah siswa
+getAbsensiData()              → Ambil data absensi dari form
+loadAbsensiData(absensi)      → Load data absensi ke form (edit)
+
+═══════════════════════════════════════════════════════════════
+
+📋 STRUKTUR DATA
+───────────────────────────────────────────────────────────────
+JURNAL:
+{
+  id: "jrn_xxx",
+  kelasId: "kls001",
+  tanggal: "2026-05-14",
+  materi: "Materi pelajaran",
+  jumlahHadir: 23,
+  jumlahSakit: 1,
+  jumlahIzin: 1,
+  jumlahAlpha: 0,
+  absensi: {
+    sakit: [{ id, nis, nama }],
+    izin: [{ id, nis, nama }],
+    alpha: [{ id, nis, nama }]
+  }
+}
+
+SISWA:
+{
+  id: "siswa001",
+  nis: "12345",
+  nama: "Ahmad Fauzi",
+  kelasId: "kls001",
+  aktif: true
+}
+
+═══════════════════════════════════════════════════════════════
+
+🎨 ELEMENT ID
+───────────────────────────────────────────────────────────────
+DROPDOWN:
+- formJurnalSiswaSakit   → Dropdown siswa sakit
+- formJurnalSiswaIzin    → Dropdown siswa izin
+- formJurnalSiswaAlpha   → Dropdown siswa alpha
+
+LIST CONTAINER:
+- listSiswaSakit         → Container list siswa sakit
+- listSiswaIzin          → Container list siswa izin
+- listSiswaAlpha         → Container list siswa alpha
+
+COUNTER (HIDDEN):
+- formJurnalSakit        → Counter jumlah sakit
+- formJurnalIzin         → Counter jumlah izin
+- formJurnalAlpha        → Counter jumlah alpha
+
+═══════════════════════════════════════════════════════════════
+
+🔄 ALUR KERJA
+───────────────────────────────────────────────────────────────
+1. isiJurnal(jadwalId)
+   ↓
+2. resetDropdownSiswa()
+   ↓
+3. User pilih siswa dari dropdown
+   ↓
+4. tambahSiswaTidakHadir(tipe)
+   ↓
+5. updateCounterAbsensi()
+   ↓
+6. hitungKehadiran()
+   ↓
+7. simpanJurnal()
+   ↓
+8. getAbsensiData()
+   ↓
+9. Data tersimpan dengan field absensi
+
+═══════════════════════════════════════════════════════════════
+
+✅ VALIDASI
+───────────────────────────────────────────────────────────────
+• Duplikasi: Siswa tidak bisa dipilih di > 1 kategori
+• Total: Total tidak hadir ≤ jumlah siswa kelas
+• Materi: Wajib diisi
+• Konfirmasi: Guru harus sudah konfirmasi
+
+═══════════════════════════════════════════════════════════════
+
+🎨 CSS CLASSES
+───────────────────────────────────────────────────────────────
+.siswa-list      → Container list siswa
+.siswa-item      → Item siswa individual
+.btn-remove      → Tombol hapus siswa
+
+═══════════════════════════════════════════════════════════════
+
+🔧 DEBUGGING
+───────────────────────────────────────────────────────────────
+// Cek data absensi
+console.log(getAbsensiData());
+
+// Cek siswa di kelas
+const siswa = dbGetAll(DB_KEYS.siswa).filter(
+  s => s.kelasId === currentSession.kelasId && s.aktif
+);
+console.log(siswa);
+
+// Cek jurnal dengan absensi
+const jurnal = dbGetAll(DB_KEYS.jurnal);
+console.log(jurnal.filter(j => j.absensi));
+
+═══════════════════════════════════════════════════════════════
+
+📊 INTEGRASI
+───────────────────────────────────────────────────────────────
+• Import Siswa → Dropdown otomatis update
+• Rekap Absensi → Baca field absensi dari jurnal
+• Export Excel/PDF → Include data siswa detail
+• Sinkronisasi → Counter otomatis update
+
+═══════════════════════════════════════════════════════════════
+
+⚡ TIPS PERFORMANCE
+───────────────────────────────────────────────────────────────
+• Dropdown di-populate sekali saat buka form
+• List siswa menggunakan DOM manipulation
+• Counter update tanpa re-render form
+• Data tersimpan dalam format compact
+
+═══════════════════════════════════════════════════════════════
+
+🆘 TROUBLESHOOTING
+───────────────────────────────────────────────────────────────
+DROPDOWN KOSONG:
+→ Cek data siswa: dbGetAll(DB_KEYS.siswa)
+→ Cek kelasId: currentSession.kelasId
+→ Cek status aktif siswa
+
+SISWA TIDAK BISA DIPILIH:
+→ Cek apakah sudah ada di list lain
+→ Cek validasi duplikasi
+
+DATA TIDAK TERSIMPAN:
+→ Cek getAbsensiData() return value
+→ Cek struktur data jurnal
+→ Cek console untuk error
+
+═══════════════════════════════════════════════════════════════
+
+📝 CONTOH PENGGUNAAN
+───────────────────────────────────────────────────────────────
+// Tambah siswa sakit
+tambahSiswaTidakHadir('sakit');
+
+// Hapus siswa dari list
+hapusSiswaTidakHadir('sakit', 'siswa001');
+
+// Ambil data absensi
+const absensi = getAbsensiData();
+console.log(absensi);
+// Output: { sakit: [...], izin: [...], alpha: [...] }
+
+// Load data absensi (edit)
+const jurnal = dbGetById(DB_KEYS.jurnal, 'jrn_xxx');
+loadAbsensiData(jurnal.absensi);
+
+═══════════════════════════════════════════════════════════════
+
+🔗 FILE TERKAIT
+───────────────────────────────────────────────────────────────
+• js/siswa.js - Logic utama
+• dashboard-siswa.html - UI form
+• css/dashboard.css - Styling
+• js/absensi.js - Rekap absensi
+• js/data.js - Database
+
+═══════════════════════════════════════════════════════════════
+
+📚 DOKUMENTASI LENGKAP
+───────────────────────────────────────────────────────────────
+→ FITUR_DROPDOWN_ABSENSI_SISWA.md
+→ CARA_ISI_ABSENSI_SISWA.txt
+→ SUMMARY_FITUR_DROPDOWN_ABSENSI.txt
+
+═══════════════════════════════════════════════════════════════

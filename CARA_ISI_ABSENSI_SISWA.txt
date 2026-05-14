@@ -1,0 +1,113 @@
+═══════════════════════════════════════════════════════════════
+  CARA ISI ABSENSI SISWA DENGAN DROPDOWN
+═══════════════════════════════════════════════════════════════
+
+📌 UNTUK SISWA (KETUA/SEKRETARIS KELAS)
+
+1. BUKA FORM ISI JURNAL
+   ✓ Masuk ke menu "Jurnal Hari Ini"
+   ✓ Klik "Isi Jurnal Sekarang" (setelah guru konfirmasi)
+
+2. ISI MATERI PELAJARAN
+   ✓ Ketik materi yang diajarkan guru hari ini
+
+3. PILIH SISWA YANG TIDAK HADIR
+
+   A. SISWA SAKIT
+      • Pilih nama siswa dari dropdown "Siswa Sakit"
+      • Klik tombol [+] merah
+      • Siswa akan muncul di list di bawahnya
+      • Ulangi untuk siswa lain yang sakit
+
+   B. SISWA IZIN
+      • Pilih nama siswa dari dropdown "Siswa Izin"
+      • Klik tombol [+] kuning
+      • Siswa akan muncul di list di bawahnya
+      • Ulangi untuk siswa lain yang izin
+
+   C. SISWA ALPHA
+      • Pilih nama siswa dari dropdown "Siswa Alpha"
+      • Klik tombol [+] abu-abu
+      • Siswa akan muncul di list di bawahnya
+      • Ulangi untuk siswa lain yang alpha
+
+4. HAPUS SISWA DARI LIST (JIKA SALAH)
+   ✓ Klik tombol [×] merah di sebelah nama siswa
+   ✓ Siswa akan dihapus dari list
+
+5. CEK RINGKASAN KEHADIRAN
+   ✓ Lihat kotak ringkasan di bawah form
+   ✓ Pastikan jumlah hadir + tidak hadir = total siswa
+
+6. SIMPAN JURNAL
+   ✓ Klik tombol "Simpan Jurnal"
+   ✓ Data akan otomatis tersimpan dan tersinkronisasi
+
+═══════════════════════════════════════════════════════════════
+
+📊 UNTUK ADMIN - LIHAT REKAP ABSENSI
+
+1. BUKA MENU REKAP ABSENSI
+   ✓ Klik menu "Rekap Absensi" di sidebar
+
+2. PILIH FILTER
+   ✓ Pilih bulan yang ingin dilihat
+   ✓ Pilih kelas (opsional)
+   ✓ Pilih status: Sakit/Izin/Alpha (opsional)
+
+3. LIHAT DETAIL SISWA
+   ✓ Klik tombol [👁] di kolom Aksi
+   ✓ Melihat riwayat ketidakhadiran siswa
+   ✓ Menampilkan tanggal, mapel, jam, dan status
+
+4. EXPORT DATA
+   ✓ Klik tombol "Export Excel" atau "Export PDF"
+   ✓ File akan otomatis terdownload
+
+═══════════════════════════════════════════════════════════════
+
+⚠️ PENTING!
+
+• Siswa TIDAK BISA dipilih di lebih dari satu kategori
+  (Contoh: Jika sudah dipilih di "Sakit", tidak bisa dipilih di "Izin")
+
+• Total tidak hadir TIDAK BOLEH melebihi jumlah siswa di kelas
+
+• Data siswa harus sudah DIIMPORT terlebih dahulu
+
+• Jurnal hanya bisa diisi setelah GURU KONFIRMASI kehadiran
+
+═══════════════════════════════════════════════════════════════
+
+💡 TIPS
+
+✓ Pastikan data siswa sudah lengkap dan akurat
+✓ Cek kembali sebelum menyimpan jurnal
+✓ Gunakan fitur edit jika ada kesalahan
+✓ Lihat rekap absensi secara berkala
+
+═══════════════════════════════════════════════════════════════
+
+🆘 TROUBLESHOOTING
+
+Q: Dropdown kosong, tidak ada nama siswa?
+A: Pastikan data siswa sudah diimport dan diassign ke kelas
+
+Q: Siswa tidak bisa dipilih?
+A: Cek apakah siswa sudah dipilih di kategori lain
+
+Q: Data tidak muncul di rekap absensi?
+A: Pastikan jurnal sudah disimpan dan filter bulan sudah benar
+
+Q: Jumlah hadir negatif?
+A: Total tidak hadir melebihi jumlah siswa, kurangi siswa yang dipilih
+
+═══════════════════════════════════════════════════════════════
+
+📞 BANTUAN
+
+Jika mengalami kendala, hubungi admin sekolah atau
+lihat dokumentasi lengkap di file:
+FITUR_DROPDOWN_ABSENSI_SISWA.md
+
+═══════════════════════════════════════════════════════════════

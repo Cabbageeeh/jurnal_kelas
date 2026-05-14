@@ -296,65 +296,90 @@
           <label class="form-label">
             Jumlah Siswa yang Tidak Hadir
             <span class="text-muted" style="font-weight: 400">
-              (Sisanya otomatis dihitung hadir)
+              (Pilih siswa dari dropdown)
             </span>
           </label>
-          <div
-            style="
-              display: grid;
-              grid-template-columns: 1fr 1fr 1fr;
-              gap: 12px;
-              margin-bottom: 12px;
-            "
-          >
-            <div class="form-group" style="margin: 0">
-              <label class="form-label" style="font-size: 11px">
-                <i class="fas fa-circle-xmark" style="color: var(--danger)"></i>
-                Sakit
-              </label>
-              <input
-                type="number"
-                class="form-control"
-                id="formJurnalSakit"
-                min="0"
-                value="0"
-                oninput="hitungKehadiran()"
-              />
+          
+          <!-- Dropdown Sakit -->
+          <div class="form-group">
+            <label class="form-label" style="font-size: 13px">
+              <i class="fas fa-circle-xmark" style="color: var(--danger)"></i>
+              Siswa Sakit
+            </label>
+            <div style="display: flex; gap: 8px; margin-bottom: 8px">
+              <select 
+                class="form-control" 
+                id="formJurnalSiswaSakit"
+                style="flex: 1"
+              >
+                <option value="">-- Pilih Siswa Sakit --</option>
+              </select>
+              <button 
+                type="button" 
+                class="btn btn-sm btn-danger"
+                onclick="tambahSiswaTidakHadir('sakit')"
+                title="Tambah siswa sakit"
+              >
+                <i class="fas fa-plus"></i>
+              </button>
             </div>
-            <div class="form-group" style="margin: 0">
-              <label class="form-label" style="font-size: 11px">
-                <i
-                  class="fas fa-circle-minus"
-                  style="color: var(--warning)"
-                ></i>
-                Izin
-              </label>
-              <input
-                type="number"
-                class="form-control"
-                id="formJurnalIzin"
-                min="0"
-                value="0"
-                oninput="hitungKehadiran()"
-              />
+            <div id="listSiswaSakit" class="siswa-list"></div>
+            <input type="hidden" id="formJurnalSakit" value="0" />
+          </div>
+
+          <!-- Dropdown Izin -->
+          <div class="form-group">
+            <label class="form-label" style="font-size: 13px">
+              <i class="fas fa-circle-minus" style="color: var(--warning)"></i>
+              Siswa Izin
+            </label>
+            <div style="display: flex; gap: 8px; margin-bottom: 8px">
+              <select 
+                class="form-control" 
+                id="formJurnalSiswaIzin"
+                style="flex: 1"
+              >
+                <option value="">-- Pilih Siswa Izin --</option>
+              </select>
+              <button 
+                type="button" 
+                class="btn btn-sm btn-warning"
+                onclick="tambahSiswaTidakHadir('izin')"
+                title="Tambah siswa izin"
+              >
+                <i class="fas fa-plus"></i>
+              </button>
             </div>
-            <div class="form-group" style="margin: 0">
-              <label class="form-label" style="font-size: 11px">
-                <i
-                  class="fas fa-circle-question"
-                  style="color: var(--gray-400)"
-                ></i>
-                Alpha
-              </label>
-              <input
-                type="number"
-                class="form-control"
-                id="formJurnalAlpha"
-                min="0"
-                value="0"
-                oninput="hitungKehadiran()"
-              />
+            <div id="listSiswaIzin" class="siswa-list"></div>
+            <input type="hidden" id="formJurnalIzin" value="0" />
+          </div>
+
+          <!-- Dropdown Alpha -->
+          <div class="form-group">
+            <label class="form-label" style="font-size: 13px">
+              <i class="fas fa-circle-question" style="color: var(--gray-400)"></i>
+              Siswa Alpha
+            </label>
+            <div style="display: flex; gap: 8px; margin-bottom: 8px">
+              <select 
+                class="form-control" 
+                id="formJurnalSiswaAlpha"
+                style="flex: 1"
+              >
+                <option value="">-- Pilih Siswa Alpha --</option>
+              </select>
+              <button 
+                type="button" 
+                class="btn btn-sm"
+                style="background: var(--gray-400); color: white"
+                onclick="tambahSiswaTidakHadir('alpha')"
+                title="Tambah siswa alpha"
+              >
+                <i class="fas fa-plus"></i>
+              </button>
             </div>
+            <div id="listSiswaAlpha" class="siswa-list"></div>
+            <input type="hidden" id="formJurnalAlpha" value="0" />
           </div>
 
           <!-- Ringkasan kehadiran -->
