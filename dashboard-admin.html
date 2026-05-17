@@ -1080,6 +1080,13 @@
             </div>
             <div style="display: flex; gap: 10px">
               <button
+                class="btn btn-danger"
+                onclick="openHapusMassalModal()"
+                title="Hapus data siswa secara massal"
+              >
+                <i class="fas fa-trash-can"></i> Hapus Massal
+              </button>
+              <button
                 class="btn btn-outline"
                 onclick="openImportModal('siswa')"
               >
@@ -2145,6 +2152,171 @@
             onclick="closeModal('modalDetailAbsensi')"
           >
             Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: KONFIRMASI HAPUS SISWA -->
+    <div class="modal-overlay" id="modalKonfirmasiHapusSiswa">
+      <div class="modal" style="max-width: 520px">
+        <div class="modal-header" style="background: var(--danger); color: white">
+          <h3 class="modal-title">
+            <i class="fas fa-triangle-exclamation"></i> Konfirmasi Hapus Data Siswa
+          </h3>
+          <button class="modal-close" onclick="closeModal('modalKonfirmasiHapusSiswa')" style="color: white">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i>
+            <strong>PERINGATAN!</strong> Proses ini tidak dapat dibatalkan.
+          </div>
+
+          <div style="background: var(--gray-50); padding: 16px; border-radius: var(--radius-md); margin-bottom: 16px">
+            <div style="font-weight: 600; color: var(--gray-800); margin-bottom: 8px">
+              Data Siswa yang akan dihapus:
+            </div>
+            <div style="display: grid; gap: 6px; font-size: var(--text-sm)">
+              <div><strong>Nama:</strong> <span id="hapusSiswaNama">—</span></div>
+              <div><strong>NIS:</strong> <span id="hapusSiswaNis">—</span></div>
+              <div><strong>Kelas:</strong> <span id="hapusSiswaKelas">—</span></div>
+            </div>
+          </div>
+
+          <div style="background: var(--warning-light); border-left: 4px solid var(--warning); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 16px">
+            <div style="font-weight: 600; color: var(--gray-800); margin-bottom: 8px">
+              Data yang akan dihapus:
+            </div>
+            <ul style="margin: 0; padding-left: 20px; color: var(--gray-700)">
+              <li>Data siswa dari master data</li>
+              <li>Data absensi siswa dari semua jurnal</li>
+              <li>Akun user siswa (jika ada)</li>
+              <li>Update jumlah siswa di kelas</li>
+            </ul>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" style="color: var(--danger); font-weight: 600">
+              Ketik "HAPUS" untuk konfirmasi:
+            </label>
+            <input
+              type="text"
+              class="form-control"
+              id="konfirmasiHapusInput"
+              placeholder="Ketik HAPUS (huruf besar)"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('modalKonfirmasiHapusSiswa')">
+            <i class="fas fa-times"></i> Batal
+          </button>
+          <button class="btn btn-danger" onclick="eksekusiHapusSiswa()" id="btnKonfirmasiHapus" disabled>
+            <i class="fas fa-trash"></i> Hapus Data Siswa
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: HAPUS MASSAL SISWA -->
+    <div class="modal-overlay" id="modalHapusMassal">
+      <div class="modal" style="max-width: 600px">
+        <div class="modal-header" style="background: var(--danger); color: white">
+          <h3 class="modal-title">
+            <i class="fas fa-trash-can"></i> Hapus Data Siswa Massal
+          </h3>
+          <button class="modal-close" onclick="closeModal('modalHapusMassal')" style="color: white">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>PERINGATAN KERAS!</strong> Fitur ini akan menghapus banyak data sekaligus dan TIDAK DAPAT DIBATALKAN!
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Pilih Mode Hapus:</label>
+            <select class="form-control" id="modeHapusMassal" onchange="updateInfoHapusMassal()">
+              <option value="">-- Pilih Mode --</option>
+              <option value="kelas">Hapus Semua Siswa di Kelas Tertentu</option>
+              <option value="semua">Hapus SEMUA Siswa di Seluruh Kelas</option>
+            </select>
+          </div>
+
+          <div class="form-group hidden" id="groupPilihKelas">
+            <label class="form-label">Pilih Kelas:</label>
+            <select class="form-control" id="kelasHapusMassal" onchange="updateInfoHapusMassal()">
+              <option value="">-- Pilih Kelas --</option>
+            </select>
+          </div>
+
+          <div id="infoHapusMassal" style="display: none; background: var(--gray-50); padding: 16px; border-radius: var(--radius-md); margin-bottom: 16px">
+            <div style="font-weight: 600; color: var(--danger); margin-bottom: 8px">
+              <i class="fas fa-info-circle"></i> Informasi Penghapusan:
+            </div>
+            <div style="display: grid; gap: 6px; font-size: var(--text-sm); color: var(--gray-700)">
+              <div><strong>Jumlah siswa:</strong> <span id="infoJumlahSiswa">0</span> siswa</div>
+              <div><strong>Kelas:</strong> <span id="infoKelas">—</span></div>
+            </div>
+          </div>
+
+          <div style="background: var(--warning-light); border-left: 4px solid var(--warning); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 16px">
+            <div style="font-weight: 600; color: var(--gray-800); margin-bottom: 8px">
+              Data yang akan dihapus:
+            </div>
+            <ul style="margin: 0; padding-left: 20px; color: var(--gray-700)">
+              <li>Semua data siswa yang dipilih</li>
+              <li>Semua data absensi siswa dari jurnal</li>
+              <li>Semua akun user siswa</li>
+              <li>Update jumlah siswa di kelas terkait</li>
+            </ul>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" style="color: var(--danger); font-weight: 600">
+              Ketik "HAPUS MASSAL" untuk konfirmasi:
+            </label>
+            <input
+              type="text"
+              class="form-control"
+              id="konfirmasiHapusMassalInput"
+              placeholder="Ketik HAPUS MASSAL (huruf besar)"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('modalHapusMassal')">
+            <i class="fas fa-times"></i> Batal
+          </button>
+          <button class="btn btn-danger" onclick="eksekusiHapusMassal()" id="btnKonfirmasiHapusMassal" disabled>
+            <i class="fas fa-trash-can"></i> Hapus Data Massal
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: HASIL HAPUS -->
+    <div class="modal-overlay" id="modalHasilHapus">
+      <div class="modal" style="max-width: 520px">
+        <div class="modal-header" style="background: var(--success); color: white">
+          <h3 class="modal-title">
+            <i class="fas fa-circle-check"></i> Proses Selesai
+          </h3>
+          <button class="modal-close" onclick="closeModal('modalHasilHapus')" style="color: white">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="hasilHapusContent"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-success" onclick="closeModal('modalHasilHapus')">
+            <i class="fas fa-check"></i> OK
           </button>
         </div>
       </div>

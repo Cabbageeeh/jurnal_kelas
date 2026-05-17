@@ -159,6 +159,12 @@ function renderRekapAbsensi() {
             title="Lihat detail">
             <i class="fas fa-eye"></i>
           </button>
+          <button 
+            class="btn btn-sm btn-danger" 
+            onclick="hapusDataSiswa('${r.siswa.id}')"
+            title="Hapus siswa">
+            <i class="fas fa-trash"></i>
+          </button>
         </td>
       </tr>
     `
@@ -570,4 +576,401 @@ function initFilterAbsensi() {
     opt.textContent = k.nama;
     filterKelas.appendChild(opt);
   });
+}
+
+// ── Hapus Data Siswa ──────────────────────────────────────
+
+let siswaYangAkanDihapus = null;
+
+function hapusDataSiswa(siswaId) {
+  const siswa = dbGetById(DB_KEYS.siswa, siswaId);
+  
+  if (!siswa) {
+    showToast("Data siswa tidak ditemukan", "error");
+    return;
+  }
+
+  // Simpan data siswa untuk proses hapus
+  siswaYangAkanDihapus = siswa;
+
+  // Isi data ke modal
+  document.getElementById("hapusSiswaNama").textContent = siswa.nama;
+  document.getElementById("hapusSiswaNis").textContent = siswa.nis;
+  document.getElementById("hapusSiswaKelas").textContent = 
+    dbGetById(DB_KEYS.kelas, siswa.kelasId)?.nama || "—";
+
+  // Reset input konfirmasi
+  document.getElementById("konfirmasiHapusInput").value = "";
+  document.getElementById("btnKonfirmasiHapus").disabled = true;
+
+  // Setup event listener untuk input konfirmasi
+  const input = document.getElementById("konfirmasiHapusInput");
+  input.oninput = function() {
+    document.getElementById("btnKonfirmasiHapus").disabled = 
+      this.value !== "HAPUS";
+  };
+
+  // Buka modal
+  openModal("modalKonfirmasiHapusSiswa");
+}
+
+function eksekusiHapusSiswa() {
+  if (!siswaYangAkanDihapus) {
+    showToast("Data siswa tidak ditemukan", "error");
+    return;
+  }
+
+  const siswa = siswaYangAkanDihapus;
+
+  try {
+    // 1. Hapus data absensi siswa dari semua jurnal
+    const allJurnal = dbGetAll(DB_KEYS.jurnal);
+    let jurnalDiubah = 0;
+    
+    allJurnal.forEach(jurnal => {
+      let updated = false;
+      
+      if (jurnal.absensi) {
+        // Hapus dari sakit
+        if (jurnal.absensi.sakit && Array.isArray(jurnal.absensi.sakit)) {
+          const before = jurnal.absensi.sakit.length;
+          jurnal.absensi.sakit = jurnal.absensi.sakit.filter(
+            s => s.nis !== siswa.nis && s.nama !== siswa.nama
+          );
+          if (jurnal.absensi.sakit.length !== before) {
+            updated = true;
+            jurnal.jumlahSakit = jurnal.absensi.sakit.length;
+          }
+        }
+        
+        // Hapus dari izin
+        if (jurnal.absensi.izin && Array.isArray(jurnal.absensi.izin)) {
+          const before = jurnal.absensi.izin.length;
+          jurnal.absensi.izin = jurnal.absensi.izin.filter(
+            s => s.nis !== siswa.nis && s.nama !== siswa.nama
+          );
+          if (jurnal.absensi.izin.length !== before) {
+            updated = true;
+            jurnal.jumlahIzin = jurnal.absensi.izin.length;
+          }
+        }
+        
+        // Hapus dari alpha
+        if (jurnal.absensi.alpha && Array.isArray(jurnal.absensi.alpha)) {
+          const before = jurnal.absensi.alpha.length;
+          jurnal.absensi.alpha = jurnal.absensi.alpha.filter(
+            s => s.nis !== siswa.nis && s.nama !== siswa.nama
+          );
+          if (jurnal.absensi.alpha.length !== before) {
+            updated = true;
+            jurnal.jumlahAlpha = jurnal.absensi.alpha.length;
+          }
+        }
+        
+        // Recalculate jumlahHadir
+        if (updated) {
+          const kelas = dbGetById(DB_KEYS.kelas, jurnal.kelasId);
+          if (kelas) {
+            jurnal.jumlahHadir = kelas.jumlahSiswa - 
+              (jurnal.jumlahSakit + jurnal.jumlahIzin + jurnal.jumlahAlpha);
+          }
+          
+          dbUpdate(DB_KEYS.jurnal, jurnal.id, jurnal);
+          jurnalDiubah++;
+        }
+      }
+    });
+
+    // 2. Hapus akun user siswa (jika ada)
+    const userSiswa = dbGetAll(DB_KEYS.users).find(
+      u => u.role === 'siswa' && u.username === siswa.nis
+    );
+    
+    if (userSiswa) {
+      dbDelete(DB_KEYS.users, userSiswa.id);
+    }
+
+    // 3. Hapus data siswa dari master
+    dbDelete(DB_KEYS.siswa, siswa.id);
+
+    // 4. Update jumlah siswa di kelas
+    const kelas = dbGetById(DB_KEYS.kelas, siswa.kelasId);
+    if (kelas) {
+      const siswaAktif = dbGetAll(DB_KEYS.siswa).filter(
+        s => s.kelasId === kelas.id && s.aktif
+      );
+      kelas.jumlahSiswa = siswaAktif.length;
+      dbUpdate(DB_KEYS.kelas, kelas.id, kelas);
+    }
+
+    // Tutup modal konfirmasi
+    closeModal("modalKonfirmasiHapusSiswa");
+
+    // Tampilkan hasil
+    document.getElementById("hasilHapusContent").innerHTML = `
+      <div style="text-align: center; padding: 20px">
+        <div style="font-size: 64px; color: var(--success); margin-bottom: 16px">
+          <i class="fas fa-circle-check"></i>
+        </div>
+        <h3 style="color: var(--gray-800); margin-bottom: 8px">Data Berhasil Dihapus!</h3>
+        <p style="color: var(--gray-600); margin-bottom: 20px">Berikut ringkasan penghapusan:</p>
+      </div>
+      <div style="background: var(--gray-50); padding: 16px; border-radius: var(--radius-md)">
+        <div style="display: grid; gap: 10px; font-size: var(--text-sm)">
+          <div style="display: flex; justify-content: space-between">
+            <span><i class="fas fa-user" style="color: var(--primary)"></i> Nama Siswa:</span>
+            <strong>${siswa.nama}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between">
+            <span><i class="fas fa-id-card" style="color: var(--primary)"></i> NIS:</span>
+            <strong>${siswa.nis}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between">
+            <span><i class="fas fa-chalkboard" style="color: var(--primary)"></i> Kelas:</span>
+            <strong>${kelas?.nama || "—"}</strong>
+          </div>
+          <hr style="margin: 8px 0; border-color: var(--gray-200)">
+          <div style="display: flex; justify-content: space-between">
+            <span><i class="fas fa-file-lines" style="color: var(--success)"></i> Jurnal Diupdate:</span>
+            <strong style="color: var(--success)">${jurnalDiubah} jurnal</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between">
+            <span><i class="fas fa-user-xmark" style="color: var(--success)"></i> Akun User:</span>
+            <strong style="color: var(--success)">${userSiswa ? 'Dihapus' : 'Tidak ada'}</strong>
+          </div>
+        </div>
+      </div>
+    `;
+
+    openModal("modalHasilHapus");
+
+    // Refresh tampilan
+    renderRekapAbsensi();
+    siswaYangAkanDihapus = null;
+    
+  } catch (error) {
+    console.error("Error hapus data siswa:", error);
+    closeModal("modalKonfirmasiHapusSiswa");
+    showToast("Gagal menghapus data siswa: " + error.message, "error");
+  }
+}
+
+// ── Hapus Massal ──────────────────────────────────────────
+
+function openHapusMassalModal() {
+  // Reset form
+  document.getElementById("modeHapusMassal").value = "";
+  document.getElementById("kelasHapusMassal").value = "";
+  document.getElementById("konfirmasiHapusMassalInput").value = "";
+  document.getElementById("btnKonfirmasiHapusMassal").disabled = true;
+  document.getElementById("groupPilihKelas").classList.add("hidden");
+  document.getElementById("infoHapusMassal").style.display = "none";
+
+  // Isi dropdown kelas
+  const kelasList = dbGetAll(DB_KEYS.kelas);
+  const kelasSelect = document.getElementById("kelasHapusMassal");
+  kelasSelect.innerHTML = '<option value="">-- Pilih Kelas --</option>' +
+    kelasList.map(k => `<option value="${k.id}">${k.nama}</option>`).join("");
+
+  // Setup event listener untuk input konfirmasi
+  const input = document.getElementById("konfirmasiHapusMassalInput");
+  input.oninput = function() {
+    const mode = document.getElementById("modeHapusMassal").value;
+    const kelasId = document.getElementById("kelasHapusMassal").value;
+    
+    const isValid = this.value === "HAPUS MASSAL" && 
+                    mode && 
+                    (mode === "semua" || (mode === "kelas" && kelasId));
+    
+    document.getElementById("btnKonfirmasiHapusMassal").disabled = !isValid;
+  };
+
+  openModal("modalHapusMassal");
+}
+
+function updateInfoHapusMassal() {
+  const mode = document.getElementById("modeHapusMassal").value;
+  const kelasId = document.getElementById("kelasHapusMassal").value;
+
+  // Show/hide kelas selector
+  if (mode === "kelas") {
+    document.getElementById("groupPilihKelas").classList.remove("hidden");
+  } else {
+    document.getElementById("groupPilihKelas").classList.add("hidden");
+  }
+
+  // Update info
+  if (mode) {
+    let siswaList = dbGetAll(DB_KEYS.siswa).filter(s => s.aktif);
+    let infoKelas = "";
+
+    if (mode === "kelas" && kelasId) {
+      siswaList = siswaList.filter(s => s.kelasId === kelasId);
+      const kelas = dbGetById(DB_KEYS.kelas, kelasId);
+      infoKelas = kelas?.nama || "—";
+    } else if (mode === "semua") {
+      infoKelas = "SEMUA KELAS";
+    }
+
+    if ((mode === "semua") || (mode === "kelas" && kelasId)) {
+      document.getElementById("infoJumlahSiswa").textContent = siswaList.length;
+      document.getElementById("infoKelas").textContent = infoKelas;
+      document.getElementById("infoHapusMassal").style.display = "block";
+    } else {
+      document.getElementById("infoHapusMassal").style.display = "none";
+    }
+  } else {
+    document.getElementById("infoHapusMassal").style.display = "none";
+  }
+
+  // Reset konfirmasi
+  document.getElementById("konfirmasiHapusMassalInput").value = "";
+  document.getElementById("btnKonfirmasiHapusMassal").disabled = true;
+}
+
+function eksekusiHapusMassal() {
+  const mode = document.getElementById("modeHapusMassal").value;
+  const kelasId = document.getElementById("kelasHapusMassal").value;
+
+  if (!mode) {
+    showToast("Pilih mode hapus terlebih dahulu", "error");
+    return;
+  }
+
+  if (mode === "kelas" && !kelasId) {
+    showToast("Pilih kelas terlebih dahulu", "error");
+    return;
+  }
+
+  try {
+    // Ambil daftar siswa yang akan dihapus
+    let siswaList = dbGetAll(DB_KEYS.siswa).filter(s => s.aktif);
+    
+    if (mode === "kelas") {
+      siswaList = siswaList.filter(s => s.kelasId === kelasId);
+    }
+
+    if (siswaList.length === 0) {
+      showToast("Tidak ada siswa yang akan dihapus", "warning");
+      return;
+    }
+
+    let totalJurnalDiubah = 0;
+    let totalUserDihapus = 0;
+    const kelasYangTerpengaruh = new Set();
+
+    // Proses hapus setiap siswa
+    siswaList.forEach(siswa => {
+      // 1. Hapus dari jurnal
+      const allJurnal = dbGetAll(DB_KEYS.jurnal);
+      
+      allJurnal.forEach(jurnal => {
+        let updated = false;
+        
+        if (jurnal.absensi) {
+          // Hapus dari sakit, izin, alpha
+          ['sakit', 'izin', 'alpha'].forEach(status => {
+            if (jurnal.absensi[status] && Array.isArray(jurnal.absensi[status])) {
+              const before = jurnal.absensi[status].length;
+              jurnal.absensi[status] = jurnal.absensi[status].filter(
+                s => s.nis !== siswa.nis && s.nama !== siswa.nama
+              );
+              if (jurnal.absensi[status].length !== before) {
+                updated = true;
+                jurnal[`jumlah${status.charAt(0).toUpperCase() + status.slice(1)}`] = 
+                  jurnal.absensi[status].length;
+              }
+            }
+          });
+          
+          if (updated) {
+            const kelas = dbGetById(DB_KEYS.kelas, jurnal.kelasId);
+            if (kelas) {
+              jurnal.jumlahHadir = kelas.jumlahSiswa - 
+                (jurnal.jumlahSakit + jurnal.jumlahIzin + jurnal.jumlahAlpha);
+            }
+            dbUpdate(DB_KEYS.jurnal, jurnal.id, jurnal);
+            totalJurnalDiubah++;
+          }
+        }
+      });
+
+      // 2. Hapus user
+      const userSiswa = dbGetAll(DB_KEYS.users).find(
+        u => u.role === 'siswa' && u.username === siswa.nis
+      );
+      if (userSiswa) {
+        dbDelete(DB_KEYS.users, userSiswa.id);
+        totalUserDihapus++;
+      }
+
+      // 3. Hapus siswa
+      dbDelete(DB_KEYS.siswa, siswa.id);
+      kelasYangTerpengaruh.add(siswa.kelasId);
+    });
+
+    // 4. Update jumlah siswa di kelas
+    kelasYangTerpengaruh.forEach(kelasId => {
+      const kelas = dbGetById(DB_KEYS.kelas, kelasId);
+      if (kelas) {
+        const siswaAktif = dbGetAll(DB_KEYS.siswa).filter(
+          s => s.kelasId === kelas.id && s.aktif
+        );
+        kelas.jumlahSiswa = siswaAktif.length;
+        dbUpdate(DB_KEYS.kelas, kelas.id, kelas);
+      }
+    });
+
+    // Tutup modal
+    closeModal("modalHapusMassal");
+
+    // Tampilkan hasil
+    const infoKelas = mode === "semua" ? "SEMUA KELAS" : 
+      dbGetById(DB_KEYS.kelas, kelasId)?.nama || "—";
+
+    document.getElementById("hasilHapusContent").innerHTML = `
+      <div style="text-align: center; padding: 20px">
+        <div style="font-size: 64px; color: var(--success); margin-bottom: 16px">
+          <i class="fas fa-circle-check"></i>
+        </div>
+        <h3 style="color: var(--gray-800); margin-bottom: 8px">Penghapusan Massal Selesai!</h3>
+        <p style="color: var(--gray-600); margin-bottom: 20px">Berikut ringkasan penghapusan:</p>
+      </div>
+      <div style="background: var(--gray-50); padding: 16px; border-radius: var(--radius-md)">
+        <div style="display: grid; gap: 10px; font-size: var(--text-sm)">
+          <div style="display: flex; justify-content: space-between">
+            <span><i class="fas fa-users" style="color: var(--danger)"></i> Total Siswa Dihapus:</span>
+            <strong style="color: var(--danger)">${siswaList.length} siswa</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between">
+            <span><i class="fas fa-chalkboard" style="color: var(--primary)"></i> Kelas:</span>
+            <strong>${infoKelas}</strong>
+          </div>
+          <hr style="margin: 8px 0; border-color: var(--gray-200)">
+          <div style="display: flex; justify-content: space-between">
+            <span><i class="fas fa-file-lines" style="color: var(--success)"></i> Jurnal Diupdate:</span>
+            <strong style="color: var(--success)">${totalJurnalDiubah} jurnal</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between">
+            <span><i class="fas fa-user-xmark" style="color: var(--success)"></i> Akun User Dihapus:</span>
+            <strong style="color: var(--success)">${totalUserDihapus} akun</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between">
+            <span><i class="fas fa-chalkboard-user" style="color: var(--success)"></i> Kelas Terpengaruh:</span>
+            <strong style="color: var(--success)">${kelasYangTerpengaruh.size} kelas</strong>
+          </div>
+        </div>
+      </div>
+    `;
+
+    openModal("modalHasilHapus");
+
+    // Refresh tampilan
+    renderRekapAbsensi();
+    
+  } catch (error) {
+    console.error("Error hapus massal:", error);
+    closeModal("modalHapusMassal");
+    showToast("Gagal menghapus data: " + error.message, "error");
+  }
 }
