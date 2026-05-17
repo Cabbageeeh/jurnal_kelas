@@ -811,6 +811,13 @@
             </div>
             <div style="display: flex; gap: 10px">
               <button
+                class="btn btn-danger"
+                onclick="openHapusMassalSiswaModal()"
+                title="Hapus data siswa secara massal"
+              >
+                <i class="fas fa-trash-can"></i> Hapus Massal
+              </button>
+              <button
                 class="btn btn-outline"
                 onclick="openImportModal('siswa')"
               >
@@ -1178,13 +1185,6 @@
               </p>
             </div>
             <div style="display: flex; gap: 10px">
-              <button
-                class="btn btn-danger"
-                onclick="openHapusMassalModal()"
-                title="Hapus data siswa secara massal"
-              >
-                <i class="fas fa-trash-can"></i> Hapus Massal
-              </button>
               <button
                 class="btn btn-outline"
                 onclick="exportRekapAbsensi('xlsx')"
