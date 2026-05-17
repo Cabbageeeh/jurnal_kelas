@@ -73,6 +73,10 @@ function showPage(page) {
     },
     jam: renderJamTable,
     users: renderUsersTable,
+    siswa: () => {
+      initFilterSiswa();
+      renderSiswaTable();
+    },
     kelas: renderKelasTable,
     mapel: renderMapelTable,
     "rekap-jurnal": () => {

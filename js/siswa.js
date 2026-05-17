@@ -1,1286 +1,336 @@
 // ============================================
-// js/siswa.js — Dashboard Siswa v2.0
-// Jurnal terhubung dengan konfirmasi guru
+// js/siswa.js — Data Master Siswa
 // ============================================
 
-let currentSession = null;
-let dataKelas = null;
+// ── Render Halaman Data Siswa ─────────────────────────────
 
-// ── Init ──────────────────────────────────────────────────
+function renderSiswaTable() {
+  const search = document.getElementById("filterSiswaSearch").value.toLowerCase();
+  const kelasId = document.getElementById("filterSiswaKelas").value;
+  const gender = document.getElementById("filterSiswaGender").value;
 
-document.addEventListener("DOMContentLoaded", () => {
-  currentSession = requireAuth("siswa");
-  if (!currentSession) return;
+  let siswaList = dbGetAll(DB_KEYS.siswa);
 
-  dataKelas = dbGetById(DB_KEYS.kelas, currentSession.kelasId);
-
-  // Sidebar info
-  document.getElementById("sidebarName").textContent = currentSession.nama;
-  document.getElementById("sidebarAvatar").textContent = currentSession.nama
-    .charAt(0)
-    .toUpperCase();
-  document.getElementById("sidebarJabatan").textContent =
-    currentSession.jabatan === "ketua" ? "👑 Ketua" : "📝 Sekretaris";
-  document.getElementById("sidebarKelas").textContent = dataKelas?.nama || "—";
-
-  // Greeting
-  document.getElementById("siswaGreeting").textContent =
-    `Halo, ${currentSession.nama} 👋`;
-  document.getElementById("siswaSubtitle").textContent =
-    `${dataKelas?.nama || "—"} — ${
-      currentSession.jabatan === "ketua" ? "Ketua Kelas" : "Sekretaris"
-    }`;
-
-  // Badge jabatan topbar
-  document.getElementById("topbarJabatan").innerHTML =
-    `<i class="fas fa-graduation-cap"></i>&nbsp; ${
-      currentSession.jabatan === "ketua" ? "👑 Ketua" : "📝 Sekretaris"
-    }`;
-
-  // Tanggal
-  document.getElementById("topbarDate").textContent =
-    new Date().toLocaleDateString("id-ID", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-
-  showPage("beranda");
-});
-
-// ── Navigasi ──────────────────────────────────────────────
-
-const PAGE_TITLES_SISWA = {
-  beranda: "Beranda",
-  "jurnal-hari-ini": "Jurnal Hari Ini",
-  riwayat: "Riwayat Jurnal",
-};
-
-function showPage(page) {
-  document
-    .querySelectorAll('[id^="page-"]')
-    .forEach((el) => el.classList.add("hidden"));
-  document.getElementById(`page-${page}`).classList.remove("hidden");
-
-  document.querySelectorAll(".nav-item").forEach((el) => {
-    el.classList.toggle(
-      "active",
-      el.getAttribute("onclick")?.includes(`'${page}'`),
+  // Filter
+  if (search) {
+    siswaList = siswaList.filter(
+      (s) =>
+        s.nama.toLowerCase().includes(search) ||
+        s.nis.toLowerCase().includes(search)
     );
-  });
-
-  document.getElementById("topbarTitle").textContent =
-    PAGE_TITLES_SISWA[page] || "";
-
-  const actions = {
-    beranda: renderBeranda,
-    "jurnal-hari-ini": renderJurnalHariIni,
-    riwayat: renderRiwayat,
-  };
-  if (actions[page]) actions[page]();
-  updateBadgeSidebar();
-  closeSidebarMobile();
-}
-
-// ── Sidebar ───────────────────────────────────────────────
-
-function toggleSidebar() {
-  document.getElementById("sidebar").classList.toggle("open");
-  document.getElementById("sidebarOverlay").classList.toggle("show");
-}
-
-function closeSidebarMobile() {
-  document.getElementById("sidebar").classList.remove("open");
-  document.getElementById("sidebarOverlay").classList.remove("show");
-}
-
-// ── Modal ─────────────────────────────────────────────────
-
-function openModal(id) {
-  document.getElementById(id).classList.add("active");
-}
-
-function closeModal(id) {
-  document.getElementById(id).classList.remove("active");
-}
-
-document.addEventListener("click", (e) => {
-  if (e.target.classList.contains("modal-overlay")) {
-    e.target.classList.remove("active");
   }
-});
+  if (kelasId) {
+    siswaList = siswaList.filter((s) => s.kelasId === kelasId);
+  }
+  if (gender) {
+    siswaList = siswaList.filter((s) => s.gender === gender);
+  }
 
-function showFormError(elId, msg) {
-  const el = document.getElementById(elId);
-  el.innerHTML = `<i class="fas fa-circle-exclamation"></i> ${msg}`;
-  el.classList.remove("hidden");
-}
+  // Sort by nama
+  siswaList.sort((a, b) => a.nama.localeCompare(b.nama));
 
-function hideFormError(elId) {
-  document.getElementById(elId)?.classList.add("hidden");
-}
+  // Render statistik
+  renderStatsSiswa(siswaList);
 
-// ── Helper Data ───────────────────────────────────────────
+  // Render tabel
+  const tbody = document.getElementById("siswaTableBody");
 
-/** Ambil jadwal kelas hari ini */
-function getJadwalKelasSaya() {
-  return getJadwalHariIniKelas(currentSession.kelasId);
-}
-
-/** Ambil jurnal kelas saya */
-function getJurnalKelasSaya() {
-  return dbGetAll(DB_KEYS.jurnal).filter(
-    (j) => j.kelasId === currentSession.kelasId,
-  );
-}
-
-/**
- * Cek apakah guru sudah konfirmasi untuk jadwal ini hari ini
- */
-function guruSudahKonfirmasi(jadwalId) {
-  return getKonfirmasiHariIni(jadwalId) !== null;
-}
-
-/**
- * Ambil jurnal untuk jadwal tertentu hari ini
- */
-function getJurnalUntukJadwal(jadwalId) {
-  const today = getTodayStr();
-  return (
-    dbGetAll(DB_KEYS.jurnal).find(
-      (j) =>
-        j.kelasId === currentSession.kelasId &&
-        j.jadwalId === jadwalId &&
-        j.tanggal === today,
-    ) || null
-  );
-}
-
-// ── PAGE: BERANDA ─────────────────────────────────────────
-
-// ── Notifikasi ────────────────────────────────────────────
-
-function getNotifikasi() {
-  const jadwal = getJadwalKelasSaya();
-
-  // Filter: guru sudah konfirmasi TAPI jurnal belum diisi
-  const belumDiisi = jadwal.filter(
-    (j) => guruSudahKonfirmasi(j.id) && !getJurnalUntukJadwal(j.id),
-  );
-
-  return belumDiisi;
-}
-
-function renderNotifikasi() {
-  const belumDiisi = getNotifikasi();
-  const container = document.getElementById("notifikasiContainer");
-  if (!container) return;
-
-  if (belumDiisi.length === 0) {
-    container.innerHTML = "";
+  if (siswaList.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center;padding:32px;color:var(--gray-400)">
+          <i class="fas fa-user-graduate" style="font-size:48px;margin-bottom:12px;opacity:0.5"></i>
+          <p>Tidak ada data siswa</p>
+        </td>
+      </tr>
+    `;
     return;
   }
 
-  const items = belumDiisi
-    .map((j) => {
-      const mapel = dbGetById(DB_KEYS.mapel, j.mapelId);
-      const guru = dbGetById(DB_KEYS.users, j.guruId);
-      const rentang = formatRentangJam(j.jamKe);
-      return `
-      <div style="display:flex;justify-content:space-between;
-        align-items:center;padding:8px 0;
-        border-bottom:1px solid rgba(255,255,255,0.15);
-        flex-wrap:wrap;gap:8px">
-        <div>
-          <span style="font-weight:600">
-            ${mapel?.nama || "—"}
-          </span>
-          <span style="font-size:var(--text-xs);opacity:0.85;
-            margin-left:8px">
-            Jam ${j.jamKe.join(",")} • ${rentang}
-          </span>
-          <div style="font-size:var(--text-xs);opacity:0.75;
-            margin-top:2px">
-            ${guru?.nama || "—"} sudah konfirmasi kehadiran
-          </div>
-        </div>
-        <button class="btn btn-sm"
-          style="background:white;color:#92400E;font-weight:600;
-          flex-shrink:0"
-          onclick="showPage('jurnal-hari-ini')">
-          <i class="fas fa-file-pen"></i> Isi Sekarang
-        </button>
-      </div>
-    `;
-    })
-    .join("");
-
-  container.innerHTML = `
-    <div style="background:linear-gradient(135deg,#F59E0B,#D97706);
-      border-radius:var(--radius-lg);padding:16px 20px;
-      margin-bottom:24px;color:white;
-      box-shadow:0 4px 12px rgba(245,158,11,0.3)">
-
-      <!-- Header notif -->
-      <div style="display:flex;align-items:center;gap:10px;
-        margin-bottom:${belumDiisi.length > 0 ? "12px" : "0"}">
-        <div style="width:36px;height:36px;border-radius:50%;
-          background:rgba(255,255,255,0.25);display:flex;
-          align-items:center;justify-content:center;
-          font-size:18px;flex-shrink:0">
-          🔔
-        </div>
-        <div>
-          <div style="font-weight:700;font-size:var(--text-base)">
-            ${belumDiisi.length} Jurnal Belum Diisi!
-          </div>
-          <div style="font-size:var(--text-xs);opacity:0.85">
-            Guru sudah konfirmasi kehadiran — segera isi jurnal
-          </div>
-        </div>
-        <button onclick="tutupNotifikasi()"
-          style="margin-left:auto;background:rgba(255,255,255,0.2);
-          border:none;color:white;width:28px;height:28px;
-          border-radius:50%;cursor:pointer;font-size:14px;
-          display:flex;align-items:center;justify-content:center;
-          flex-shrink:0">
-          <i class="fas fa-xmark"></i>
-        </button>
-      </div>
-
-      <!-- List sesi belum diisi -->
-      ${items}
-
-    </div>
-  `;
-}
-
-function updateBadgeSidebar() {
-  const jumlah = getNotifikasi().length;
-
-  // Cari tombol menu Jurnal Hari Ini di sidebar
-  const navItems = document.querySelectorAll(".nav-item");
-  navItems.forEach((btn) => {
-    // Hapus badge lama dulu
-    const oldBadge = btn.querySelector(".notif-badge");
-    if (oldBadge) oldBadge.remove();
-
-    // Tambah badge baru jika ada notifikasi
-    if (
-      jumlah > 0 &&
-      btn.getAttribute("onclick")?.includes("jurnal-hari-ini")
-    ) {
-      const badge = document.createElement("span");
-      badge.className = "notif-badge";
-      badge.textContent = jumlah;
-      badge.style.cssText = `
-        background: #EF4444;
-        color: white;
-        font-size: 10px;
-        font-weight: 700;
-        padding: 2px 6px;
-        border-radius: 999px;
-        margin-left: auto;
-        min-width: 18px;
-        text-align: center;
-        animation: pulse-badge 1.5s infinite;
-      `;
-      btn.style.justifyContent = "flex-start";
-      btn.appendChild(badge);
-    }
-  });
-}
-
-function tutupNotifikasi() {
-  const container = document.getElementById("notifikasiContainer");
-  if (container) container.innerHTML = "";
-}
-
-function renderBeranda() {
-  const today = getTodayStr();
-  const libur = cekHariIniLibur();
-  const semuaJurnal = getJurnalKelasSaya();
-  const jadwalHariIni = libur ? [] : getJadwalKelasSaya();
-  const konfirmasi = dbGetAll(DB_KEYS.konfirmasi).filter(
-    (k) => k.tanggal === today,
-  );
-
-  renderNotifikasi();
-  updateBadgeSidebar();
-
-  // Stats
-  const jurnalHariIni = semuaJurnal.filter((j) => j.tanggal === today);
-  const guruKonfirmasi = jadwalHariIni.filter((j) =>
-    guruSudahKonfirmasi(j.id),
-  ).length;
-
-  const stats = [
-    {
-      icon: "fa-chalkboard",
-      color: "guru",
-      label: "Kelas",
-      value: dataKelas?.nama || "—",
-      small: true,
-    },
-    {
-      icon: "fa-calendar-day",
-      color: "siswa",
-      label: "Jadwal Hari Ini",
-      value: jadwalHariIni.length,
-    },
-    {
-      icon: "fa-user-check",
-      color: "info",
-      label: "Guru Konfirmasi",
-      value: guruKonfirmasi,
-    },
-    {
-      icon: "fa-file-pen",
-      color: "warning",
-      label: "Jurnal Terisi",
-      value: jurnalHariIni.length,
-    },
-  ];
-
-  document.getElementById("siswaStatsGrid").innerHTML = stats
+  tbody.innerHTML = siswaList
     .map(
-      (s) => `
-      <div class="stat-card">
-        <div class="stat-icon ${s.color}">
-          <i class="fas ${s.icon}"></i>
-        </div>
-        <div>
-          <div class="stat-number" style="font-size:${
-            s.small ? "var(--text-xl)" : "var(--text-3xl)"
-          }">${s.value}</div>
-          <div class="stat-label">${s.label}</div>
-        </div>
-      </div>
-    `,
+      (s, i) => {
+        const kelas = dbGetById(DB_KEYS.kelas, s.kelasId);
+        const genderBadge =
+          s.gender === "L"
+            ? '<span class="badge" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-mars"></i> Laki-laki</span>'
+            : s.gender === "P"
+              ? '<span class="badge" style="background:#FCE7F3;color:#BE185D"><i class="fas fa-venus"></i> Perempuan</span>'
+              : '<span class="badge badge-danger">—</span>';
+
+        return `
+        <tr>
+          <td>${i + 1}</td>
+          <td><code>${s.nis}</code></td>
+          <td>
+            <div style="font-weight:600;color:var(--gray-800)">${s.nama}</div>
+          </td>
+          <td>${genderBadge}</td>
+          <td><span class="badge badge-admin">${kelas?.nama || "—"}</span></td>
+          <td>
+            ${
+              s.aktif
+                ? '<span class="badge badge-success">Aktif</span>'
+                : '<span class="badge badge-danger">Nonaktif</span>'
+            }
+          </td>
+          <td>
+            <button 
+              class="btn btn-sm btn-outline" 
+              onclick="editSiswa('${s.id}')"
+              title="Edit">
+              <i class="fas fa-pen"></i>
+            </button>
+            <button 
+              class="btn btn-sm btn-danger" 
+              onclick="hapusSiswa('${s.id}')"
+              title="Hapus">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `;
+      }
     )
     .join("");
-
-  // Jadwal kelas hari ini
-  const elJadwal = document.getElementById("dashJadwalKelas");
-  if (jadwalHariIni.length === 0) {
-    elJadwal.innerHTML = `
-      <div class="empty-state">
-        <i class="fas fa-calendar-xmark"></i>
-        <p>Tidak ada jadwal pelajaran hari ini.</p>
-      </div>`;
-  } else {
-    elJadwal.innerHTML = jadwalHariIni
-      .map((j) => {
-        const guru = dbGetById(DB_KEYS.users, j.guruId);
-        const mapel = dbGetById(DB_KEYS.mapel, j.mapelId);
-        const konf = guruSudahKonfirmasi(j.id);
-        const jurnal = getJurnalUntukJadwal(j.id);
-        return `
-        <div style="padding:10px 0;border-bottom:1px solid var(--gray-100)">
-          <div style="display:flex;justify-content:space-between;
-            align-items:center;flex-wrap:wrap;gap:6px">
-            <div>
-              <span class="badge badge-siswa" style="margin-bottom:4px">
-                Jam ${j.jamKe.join(",")}
-              </span>
-              <div style="font-size:var(--text-sm);font-weight:600">
-                ${mapel?.nama || "—"}
-              </div>
-              <div style="font-size:var(--text-xs);color:var(--gray-400)">
-                ${guru?.nama || "—"} •
-                ${formatRentangJam(j.jamKe)}
-              </div>
-            </div>
-            <div style="display:flex;flex-direction:column;
-              align-items:flex-end;gap:4px">
-              ${(() => {
-                const terlewat = isJadwalTerlewat(j.jamKe);
-                if (konf) {
-                  return `<span class="badge badge-success">
-                    <i class="fas fa-circle-check"></i> Guru Hadir
-                  </span>`;
-                } else if (terlewat) {
-                  return `<span class="badge badge-danger">
-                    <i class="fas fa-circle-xmark"></i> Terlewat
-                  </span>`;
-                } else {
-                  return `<span class="badge badge-warning">
-                    <i class="fas fa-clock"></i> Menunggu Guru
-                  </span>`;
-                }
-              })()}
-              <span class="badge ${jurnal ? "badge-siswa" : "badge-gray"}">
-                ${
-                  jurnal
-                    ? '<i class="fas fa-file-pen"></i> Terisi'
-                    : '<i class="fas fa-file"></i> Belum Diisi'
-                }
-              </span>
-            </div>
-          </div>
-        </div>
-      `;
-      })
-      .join("");
-  }
-
-  // Jurnal hari ini
-  const elJurnal = document.getElementById("dashJurnalHariIni");
-  if (jurnalHariIni.length === 0) {
-    elJurnal.innerHTML = `
-      <div class="empty-state">
-        <i class="fas fa-file-circle-xmark"></i>
-        <p>Belum ada jurnal hari ini.</p>
-        <button class="btn btn-sm btn-siswa mt-3"
-          onclick="showPage('jurnal-hari-ini')">
-          <i class="fas fa-plus"></i> Isi Jurnal
-        </button>
-      </div>`;
-  } else {
-    elJurnal.innerHTML = jurnalHariIni
-      .sort((a, b) => a.jamKe - b.jamKe)
-      .map((j) => {
-        const mapel = dbGetById(DB_KEYS.mapel, j.mapelId);
-        const guru = dbGetById(DB_KEYS.users, j.guruId);
-        return `
-          <div style="padding:10px 0;
-            border-bottom:1px solid var(--gray-100)">
-            <div style="display:flex;justify-content:space-between;
-              align-items:center">
-              <div>
-                <span class="badge badge-siswa">Jam ${j.jamKe}</span>
-                <span style="font-size:var(--text-sm);font-weight:600;
-                  margin-left:8px">
-                  ${mapel?.nama || "—"}
-                </span>
-              </div>
-              <span class="badge badge-success">✅ Terisi</span>
-            </div>
-            <div style="font-size:var(--text-xs);color:var(--gray-400);
-              margin-top:4px">
-              ${guru?.nama || "—"} •
-              ${j.materi?.substring(0, 40) || "—"}
-            </div>
-          </div>
-        `;
-      })
-      .join("");
-  }
 }
 
-// ── PAGE: JURNAL HARI INI ─────────────────────────────────
+function renderStatsSiswa(siswaList) {
+  const totalSiswa = siswaList.length;
+  const siswaAktif = siswaList.filter((s) => s.aktif).length;
+  const siswaLaki = siswaList.filter((s) => s.gender === "L").length;
+  const siswaPerempuan = siswaList.filter((s) => s.gender === "P").length;
 
-function renderJurnalHariIni() {
-  // ── CEK HARI LIBUR ───────────────────────────────────
-  const libur = cekHariIniLibur();
-  if (libur) {
-    document.getElementById("jurnalHariIniSubtitle").textContent =
-      "Hari ini adalah hari libur";
-    document.getElementById("infoKelas").classList.add("hidden");
-    document.getElementById("jurnalSesiContainer").innerHTML =
-      renderBannerLiburSiswa(libur);
-    return;
-  }
-  document.getElementById("infoKelas").classList.remove("hidden");
-  const hariIni = getHariIni();
-  const jadwal = getJadwalKelasSaya();
-  const container = document.getElementById("jurnalSesiContainer");
+  document.getElementById("statsSiswa").innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#EEF2FF;color:#4F46E5">
+        <i class="fas fa-user-graduate"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Total Siswa</div>
+        <div class="stat-value">${totalSiswa}</div>
+        <div class="stat-desc">${siswaAktif} aktif</div>
+      </div>
+    </div>
 
-  document.getElementById("jurnalHariIniSubtitle").textContent =
-    `${hariIni}, ${new Date().toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    })} — ${jadwal.length} sesi pelajaran`;
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#DBEAFE;color:#1E40AF">
+        <i class="fas fa-mars"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Laki-laki</div>
+        <div class="stat-value">${siswaLaki}</div>
+        <div class="stat-desc">${((siswaLaki / totalSiswa) * 100 || 0).toFixed(1)}%</div>
+      </div>
+    </div>
 
-  // Info kelas
-  document.getElementById("infoKelasText").innerHTML =
-    `Jurnal untuk kelas <strong>${dataKelas?.nama || "—"}</strong>.
-     Jurnal hanya bisa diisi setelah guru mengkonfirmasi kehadiran.`;
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#FCE7F3;color:#BE185D">
+        <i class="fas fa-venus"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Perempuan</div>
+        <div class="stat-value">${siswaPerempuan}</div>
+        <div class="stat-desc">${((siswaPerempuan / totalSiswa) * 100 || 0).toFixed(1)}%</div>
+      </div>
+    </div>
 
-  if (jadwal.length === 0) {
-    container.innerHTML = `
-      <div class="card">
-        <div class="card-body">
-          <div class="empty-state">
-            <i class="fas fa-calendar-xmark"></i>
-            <p>Tidak ada jadwal pelajaran hari ${hariIni}.</p>
-          </div>
-        </div>
-      </div>`;
-    return;
-  }
-
-  // Render kartu per sesi
-  container.innerHTML = jadwal.map((j) => renderKartuSesi(j)).join("");
-}
-
-function renderKartuSesi(j) {
-  const guru = dbGetById(DB_KEYS.users, j.guruId);
-  const mapel = dbGetById(DB_KEYS.mapel, j.mapelId);
-  const konf = guruSudahKonfirmasi(j.id);
-  const konfData = getKonfirmasiHariIni(j.id);
-  const jurnal = getJurnalUntukJadwal(j.id);
-  const rentang = formatRentangJam(j.jamKe);
-
-  return `
-    <div class="card mb-4" style="border-left:4px solid ${
-      jurnal
-        ? "var(--success)"
-        : konf
-          ? "var(--color-siswa)"
-          : "var(--gray-300)"
-    }">
-      <div class="card-body" style="padding:24px">
-
-        <!-- Header sesi -->
-        <div style="display:flex;justify-content:space-between;
-          align-items:flex-start;flex-wrap:wrap;gap:12px;
-          margin-bottom:16px">
-          <div>
-            <div style="display:flex;align-items:center;
-              gap:8px;flex-wrap:wrap;margin-bottom:6px">
-              <span class="badge badge-siswa" style="font-size:13px">
-                Jam ${j.jamKe.join(" & ")}
-              </span>
-              <span style="font-size:var(--text-xl);font-weight:700;
-                color:var(--gray-800)">
-                ${mapel?.nama || "—"}
-              </span>
-            </div>
-            <div style="font-size:var(--text-sm);color:var(--gray-500)">
-              <i class="fas fa-chalkboard-user"></i>
-              ${guru?.nama || "—"} &nbsp;•&nbsp;
-              <i class="fas fa-clock"></i> ${rentang}
-            </div>
-          </div>
-
-          <!-- Status badges -->
-          <div style="display:flex;flex-direction:column;
-            align-items:flex-end;gap:6px">
-            ${(() => {
-              const terlewat = isJadwalTerlewat(j.jamKe);
-              if (konf) {
-                return `<span class="badge badge-success">
-                  <i class="fas fa-circle-check"></i>
-                  Guru Hadir — ${konfData?.waktuKonfirmasi || ""}
-                </span>`;
-              } else if (terlewat) {
-                return `<span class="badge badge-danger">
-                  <i class="fas fa-circle-xmark"></i> Terlewat
-                </span>`;
-              } else {
-                return `<span class="badge badge-warning">
-                  <i class="fas fa-clock"></i> Menunggu Guru
-                </span>`;
-              }
-            })()}
-            <span class="badge ${jurnal ? "badge-siswa" : "badge-gray"}">
-              ${
-                jurnal
-                  ? `<i class="fas fa-file-pen"></i> Jurnal Terisi`
-                  : `<i class="fas fa-file"></i> Jurnal Belum Diisi`
-              }
-            </span>
-          </div>
-        </div>
-
-        <!-- Konten berdasarkan status -->
-        ${
-          !konf
-            ? `<!-- Guru belum konfirmasi -->
-             <div style="background:#FEF3C7;border:1px solid #FCD34D;
-               border-radius:var(--radius-md);padding:16px;
-               text-align:center">
-               <i class="fas fa-lock" style="font-size:24px;
-                 color:#92400E;margin-bottom:8px;display:block"></i>
-               <p style="font-size:var(--text-sm);color:#92400E;
-                 font-weight:500;margin-bottom:4px">
-                 Jurnal Terkunci
-               </p>
-               <p style="font-size:var(--text-xs);color:#B45309">
-                 Menunggu ${guru?.nama || "guru"} mengkonfirmasi
-                 kehadiran terlebih dahulu.
-               </p>
-             </div>`
-            : jurnal
-              ? `<!-- Jurnal sudah diisi -->
-               <div style="background:#ECFDF5;border-radius:var(--radius-md);
-                 padding:16px;margin-bottom:12px">
-                 <div style="display:flex;justify-content:space-between;
-                   align-items:flex-start;flex-wrap:wrap;gap:8px">
-                   <div style="flex:1">
-                     <div style="font-size:var(--text-xs);
-                       color:var(--gray-400);margin-bottom:4px">
-                       MATERI
-                     </div>
-                     <div style="font-size:var(--text-sm);
-                       font-weight:500;color:var(--gray-800)">
-                       ${jurnal.materi || "—"}
-                     </div>
-                     ${
-                       jurnal.keterangan
-                         ? `<div style="font-size:var(--text-xs);
-                           color:var(--gray-500);margin-top:6px">
-                           📝 ${jurnal.keterangan}
-                          </div>`
-                         : ""
-                     }
-                   </div>
-                   <div style="text-align:right;flex-shrink:0">
-                     <div style="font-size:var(--text-xs);
-                       color:var(--gray-400);margin-bottom:4px">
-                       KEHADIRAN
-                     </div>
-                     <div style="font-size:var(--text-xs);
-                       display:flex;gap:8px;flex-wrap:wrap;
-                       justify-content:flex-end">
-                       <span style="color:var(--success)">
-                         ✓ ${jurnal.jumlahHadir} hadir
-                       </span>
-                       <span style="color:var(--danger)">
-                         ✗ ${jurnal.jumlahSakit || 0} sakit
-                       </span>
-                       <span style="color:var(--warning)">
-                         ~ ${jurnal.jumlahIzin || 0} izin
-                       </span>
-                       <span style="color:var(--gray-400)">
-                         ? ${jurnal.jumlahAlpha || 0} alpha
-                       </span>
-                     </div>
-                   </div>
-                 </div>
-               </div>
-               <div style="display:flex;gap:8px">
-                 <button class="btn btn-sm btn-outline"
-                   onclick="editJurnal('${jurnal.id}','${j.id}')">
-                   <i class="fas fa-pen"></i> Edit
-                 </button>
-               </div>`
-              : `<!-- Jurnal belum diisi, guru sudah konfirmasi -->
-               <div style="text-align:center;padding:8px 0">
-                 <p style="font-size:var(--text-sm);color:var(--gray-500);
-                   margin-bottom:16px">
-                   Guru sudah hadir! Silakan isi jurnal untuk sesi ini.
-                 </p>
-                 <button class="btn btn-siswa"
-                   onclick="isiJurnal('${j.id}')">
-                   <i class="fas fa-file-pen"></i>
-                   Isi Jurnal Sekarang
-                 </button>
-               </div>`
-        }
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#FEF3C7;color:#D97706">
+        <i class="fas fa-chalkboard"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Kelas</div>
+        <div class="stat-value">${new Set(siswaList.map((s) => s.kelasId)).size}</div>
+        <div class="stat-desc">Kelas berbeda</div>
       </div>
     </div>
   `;
 }
 
-// ── MODAL: ISI / EDIT JURNAL ──────────────────────────────
+// ── Init Filter ───────────────────────────────────────────
 
-function isiJurnal(jadwalId) {
-  const jadwal = dbGetById(DB_KEYS.jadwal, jadwalId);
-  const guru = dbGetById(DB_KEYS.users, jadwal?.guruId);
-  const mapel = dbGetById(DB_KEYS.mapel, jadwal?.mapelId);
+function initFilterSiswa() {
+  // Isi dropdown kelas
+  const kelasList = dbGetAll(DB_KEYS.kelas);
+  const kelasSelect = document.getElementById("filterSiswaKelas");
+  kelasSelect.innerHTML =
+    '<option value="">Semua Kelas</option>' +
+    kelasList.map((k) => `<option value="${k.id}">${k.nama}</option>`).join("");
+}
 
-  // Cek guru sudah konfirmasi
-  if (!guruSudahKonfirmasi(jadwalId)) {
-    showToast(
-      "Guru belum mengkonfirmasi kehadiran. Jurnal belum bisa diisi.",
-      "warning",
-      4000,
-    );
+function clearFilterSiswa() {
+  document.getElementById("filterSiswaSearch").value = "";
+  document.getElementById("filterSiswaKelas").value = "";
+  document.getElementById("filterSiswaGender").value = "";
+  renderSiswaTable();
+}
+
+// ── Modal Tambah/Edit Siswa ───────────────────────────────
+
+function openSiswaModal() {
+  document.getElementById("siswaId").value = "";
+  document.getElementById("siswaNis").value = "";
+  document.getElementById("siswaNama").value = "";
+  document.getElementById("siswaGender").value = "";
+  document.getElementById("siswaKelasId").value = "";
+  document.getElementById("siswaAktif").value = "true";
+  document.getElementById("modalSiswaTitle").textContent = "Tambah Siswa";
+  document.getElementById("siswaFormError").classList.add("hidden");
+
+  // Isi dropdown kelas
+  const kelasList = dbGetAll(DB_KEYS.kelas);
+  document.getElementById("siswaKelasId").innerHTML =
+    '<option value="">— Pilih Kelas —</option>' +
+    kelasList.map((k) => `<option value="${k.id}">${k.nama}</option>`).join("");
+
+  openModal("modalSiswa");
+}
+
+function editSiswa(id) {
+  const siswa = dbGetById(DB_KEYS.siswa, id);
+  if (!siswa) {
+    showToast("Data siswa tidak ditemukan", "error");
     return;
   }
 
-  hideFormError("jurnalFormError");
+  document.getElementById("siswaId").value = siswa.id;
+  document.getElementById("siswaNis").value = siswa.nis;
+  document.getElementById("siswaNama").value = siswa.nama;
+  document.getElementById("siswaGender").value = siswa.gender || "";
+  document.getElementById("siswaKelasId").value = siswa.kelasId;
+  document.getElementById("siswaAktif").value = siswa.aktif ? "true" : "false";
+  document.getElementById("modalSiswaTitle").textContent = "Edit Siswa";
+  document.getElementById("siswaFormError").classList.add("hidden");
 
-  document.getElementById("modalJurnalTitle").textContent = "Isi Jurnal";
-  document.getElementById("jurnalId").value = "";
-  document.getElementById("jurnalJadwalId").value = jadwalId;
-  document.getElementById("jurnalJamKe").value = jadwal?.jamKe?.join(",") || "";
+  // Isi dropdown kelas
+  const kelasList = dbGetAll(DB_KEYS.kelas);
+  document.getElementById("siswaKelasId").innerHTML =
+    '<option value="">— Pilih Kelas —</option>' +
+    kelasList.map((k) => `<option value="${k.id}">${k.nama}</option>`).join("");
 
-  // Info sesi
-  document.getElementById("jurnalSesiInfo").innerHTML = `
-    <i class="fas fa-circle-info"></i>
-    <div>
-      <strong>${mapel?.nama || "—"}</strong> —
-      ${dataKelas?.nama || "—"}<br/>
-      <span style="font-size:var(--text-xs)">
-        Jam ${jadwal?.jamKe?.join(", ")} •
-        ${formatRentangJam(jadwal?.jamKe || [])} •
-        ${guru?.nama || "—"}
-      </span>
-    </div>
-  `;
-
-  // Hitung total siswa di kelas dari data kelas
-  const kelas = dbGetById(DB_KEYS.kelas, currentSession.kelasId);
-  const totalSiswa = kelas?.jumlahSiswa || 0;
-
-  document.getElementById("totalSiswaKelas").textContent = totalSiswa;
-  document.getElementById("totalSiswaRingkas").textContent = totalSiswa;
-
-  // Reset form
-  document.getElementById("formJurnalMateri").value = "";
-  document.getElementById("formJurnalSakit").value = 0;
-  document.getElementById("formJurnalIzin").value = 0;
-  document.getElementById("formJurnalAlpha").value = 0;
-  document.getElementById("formJurnalKeterangan").value = "";
-  
-  // Reset dropdown siswa
-  resetDropdownSiswa();
-  
-  hitungKehadiran();
-
-  openModal("modalJurnal");
+  openModal("modalSiswa");
 }
 
-function editJurnal(jurnalId, jadwalId) {
-  const jurnal = dbGetById(DB_KEYS.jurnal, jurnalId);
-  const jadwal = dbGetById(DB_KEYS.jadwal, jadwalId);
-  const guru = dbGetById(DB_KEYS.users, jadwal?.guruId);
-  const mapel = dbGetById(DB_KEYS.mapel, jadwal?.mapelId);
-
-  hideFormError("jurnalFormError");
-
-  document.getElementById("modalJurnalTitle").textContent = "Edit Jurnal";
-  document.getElementById("jurnalId").value = jurnalId;
-  document.getElementById("jurnalJadwalId").value = jadwalId;
-  document.getElementById("jurnalJamKe").value = jadwal?.jamKe?.join(",") || "";
-
-  // Info sesi
-  document.getElementById("jurnalSesiInfo").innerHTML = `
-    <i class="fas fa-circle-info"></i>
-    <div>
-      <strong>${mapel?.nama || "—"}</strong> —
-      ${dataKelas?.nama || "—"}<br/>
-      <span style="font-size:var(--text-xs)">
-        Jam ${jadwal?.jamKe?.join(", ")} •
-        ${formatRentangJam(jadwal?.jamKe || [])} •
-        ${guru?.nama || "—"}
-      </span>
-    </div>
-  `;
-
-  // Hitung total siswa di kelas dari data kelas
-  const kelas = dbGetById(DB_KEYS.kelas, currentSession.kelasId);
-  const totalSiswa = kelas?.jumlahSiswa || 0;
-
-  document.getElementById("totalSiswaKelas").textContent = totalSiswa;
-  document.getElementById("totalSiswaRingkas").textContent = totalSiswa;
-
-  // Isi form dengan data jurnal
-  document.getElementById("formJurnalMateri").value = jurnal?.materi || "";
-  document.getElementById("formJurnalSakit").value = jurnal?.jumlahSakit || 0;
-  document.getElementById("formJurnalIzin").value = jurnal?.jumlahIzin || 0;
-  document.getElementById("formJurnalAlpha").value = jurnal?.jumlahAlpha || 0;
-  document.getElementById("formJurnalKeterangan").value =
-    jurnal?.keterangan || "";
-  
-  // Load data siswa yang tidak hadir dari jurnal
-  resetDropdownSiswa();
-  if (jurnal?.absensi) {
-    loadAbsensiData(jurnal.absensi);
-  }
-  
-  hitungKehadiran();
-
-  openModal("modalJurnal");
-}
-
-function simpanJurnal() {
-  const id = document.getElementById("jurnalId").value;
-  const jadwalId = document.getElementById("jurnalJadwalId").value;
-  const materi = document.getElementById("formJurnalMateri").value.trim();
-  const keterangan = document
-    .getElementById("formJurnalKeterangan")
-    .value.trim();
-
-  // Ambil data absensi dari dropdown
-  const absensiData = getAbsensiData();
-  const sakit = absensiData.sakit.length;
-  const izin = absensiData.izin.length;
-  const alpha = absensiData.alpha.length;
-
-  // Hitung total siswa dan hadir dari data kelas
-  const kelas = dbGetById(DB_KEYS.kelas, currentSession.kelasId);
-  const totalSiswa = kelas?.jumlahSiswa || 0;
-
-  const hadir = totalSiswa - sakit - izin - alpha;
+function saveSiswa() {
+  const id = document.getElementById("siswaId").value;
+  const nis = document.getElementById("siswaNis").value.trim();
+  const nama = document.getElementById("siswaNama").value.trim();
+  const gender = document.getElementById("siswaGender").value;
+  const kelasId = document.getElementById("siswaKelasId").value;
+  const aktif = document.getElementById("siswaAktif").value === "true";
 
   // Validasi
-  if (!materi) return showFormError("jurnalFormError", "Materi wajib diisi.");
-
-  if (hadir < 0)
-    return showFormError(
-      "jurnalFormError",
-      "Total tidak hadir melebihi jumlah siswa di kelas!",
-    );
-
-  // Cek konfirmasi guru masih valid
-  if (!guruSudahKonfirmasi(jadwalId)) {
-    return showFormError(
-      "jurnalFormError",
-      "Konfirmasi guru tidak ditemukan. Jurnal tidak bisa disimpan.",
-    );
+  if (!nis || !nama || !gender || !kelasId) {
+    document.getElementById("siswaFormError").textContent =
+      "Semua field wajib diisi!";
+    document.getElementById("siswaFormError").classList.remove("hidden");
+    return;
   }
 
-  const jadwal = dbGetById(DB_KEYS.jadwal, jadwalId);
+  // Cek duplikat NIS
+  const existingSiswa = dbGetAll(DB_KEYS.siswa).find(
+    (s) => s.nis === nis && s.id !== id
+  );
+  if (existingSiswa) {
+    document.getElementById("siswaFormError").textContent =
+      "NIS sudah terdaftar!";
+    document.getElementById("siswaFormError").classList.remove("hidden");
+    return;
+  }
 
   const data = {
-    kelasId: currentSession.kelasId,
-    jadwalId,
-    userId: currentSession.id,
-    guruId: jadwal?.guruId || "",
-    mapelId: jadwal?.mapelId || "",
-    tanggal: getTodayStr(),
-    jamKe: Math.min(...(jadwal?.jamKe || [0])),
-    materi,
-    jumlahHadir: hadir,
-    jumlahSakit: sakit,
-    jumlahIzin: izin,
-    jumlahAlpha: alpha,
-    keterangan,
-    absensi: absensiData, // Simpan data detail siswa yang tidak hadir
-    updatedAt: new Date().toISOString(),
+    nis,
+    nama,
+    gender,
+    kelasId,
+    aktif,
   };
 
   if (id) {
-    dbUpdate(DB_KEYS.jurnal, id, data);
-    showToast("Jurnal berhasil diperbarui!", "success");
+    // Update
+    dbUpdate(DB_KEYS.siswa, id, data);
+    showToast("Data siswa berhasil diupdate!", "success");
   } else {
-    dbInsert(DB_KEYS.jurnal, {
-      id: generateId("jrn"),
-      ...data,
-      createdAt: new Date().toISOString(),
-    });
-    showToast("Jurnal berhasil disimpan! ✅", "success", 4000);
+    // Insert
+    data.id = generateId("siswa");
+    data.createdAt = new Date().toISOString();
+    dbInsert(DB_KEYS.siswa, data);
+    showToast("Data siswa berhasil ditambahkan!", "success");
   }
 
-  closeModal("modalJurnal");
-  renderJurnalHariIni();
-  renderBeranda();
+  // Update jumlah siswa di kelas
+  updateJumlahSiswaKelas(kelasId);
+
+  closeModal("modalSiswa");
+  renderSiswaTable();
 }
 
-// ── Hapus Jurnal ──────────────────────────────────────────
-
-function hapusJurnal(jurnalId) {
-  const j = dbGetById(DB_KEYS.jurnal, jurnalId);
-  const mapel = dbGetById(DB_KEYS.mapel, j?.mapelId);
-
-  document.getElementById("hapusMessage").textContent =
-    `Hapus jurnal "${mapel?.nama || "—"}" Jam ke-${j?.jamKe}?
-     Tindakan ini tidak bisa dibatalkan.`;
-
-  document.getElementById("hapusBtn").onclick = () => {
-    dbDelete(DB_KEYS.jurnal, jurnalId);
-    closeModal("modalHapus");
-    renderJurnalHariIni();
-    renderBeranda();
-    showToast("Jurnal berhasil dihapus.", "info");
-  };
-
-  openModal("modalHapus");
-}
-
-// ── Hitung Kehadiran ──────────────────────────────────────
-
-function hitungKehadiran() {
-  const sakit = parseInt(document.getElementById("formJurnalSakit").value) || 0;
-  const izin = parseInt(document.getElementById("formJurnalIzin").value) || 0;
-  const alpha = parseInt(document.getElementById("formJurnalAlpha").value) || 0;
-
-  // Ambil jumlah siswa dari data kelas
-  const kelas = dbGetById(DB_KEYS.kelas, currentSession?.kelasId);
-  const totalSiswa = kelas?.jumlahSiswa || 0;
-
-  const hadir = Math.max(0, totalSiswa - sakit - izin - alpha);
-
-  // Update ringkasan
-  document.getElementById("ringkasHadir").textContent = hadir;
-  document.getElementById("ringkasSakit").textContent = sakit;
-  document.getElementById("ringkasIzin").textContent = izin;
-  document.getElementById("ringkasAlpha").textContent = alpha;
-
-  // Validasi visual jika total melebihi
-  const totalTidakHadir = sakit + izin + alpha;
-  const ringkasContainer = document
-    .getElementById("ringkasHadir")
-    .closest("div");
-
-  if (totalTidakHadir > totalSiswa) {
-    ringkasContainer.style.background = "#FEE2E2";
-    ringkasContainer.style.borderColor = "#EF4444";
-  } else {
-    ringkasContainer.style.background = "var(--gray-50)";
-    ringkasContainer.style.borderColor = "var(--gray-200)";
+function hapusSiswa(id) {
+  const siswa = dbGetById(DB_KEYS.siswa, id);
+  if (!siswa) {
+    showToast("Data siswa tidak ditemukan", "error");
+    return;
   }
-}
 
-// ── Banner Hari Libur ─────────────────────────────────────
+  const kelas = dbGetById(DB_KEYS.kelas, siswa.kelasId);
 
-function renderBannerLiburSiswa(libur) {
-  const tipeIcon = {
-    nasional: "🇮🇩",
-    sekolah: "🏫",
-    mingguan: "📅",
-  };
+  if (
+    !confirm(
+      `Hapus data siswa?\n\n` +
+        `Nama: ${siswa.nama}\n` +
+        `NIS: ${siswa.nis}\n` +
+        `Kelas: ${kelas?.nama || "—"}\n\n` +
+        `Data absensi siswa di jurnal juga akan dihapus!`
+    )
+  ) {
+    return;
+  }
 
-  return `
-    <div class="card">
-      <div class="card-body"
-        style="text-align:center;padding:48px 24px">
-        <div style="font-size:64px;margin-bottom:16px">
-          ${tipeIcon[libur.tipe] || "📅"}
-        </div>
-        <h2 style="font-size:var(--text-2xl);font-weight:700;
-          color:var(--gray-800);margin-bottom:8px">
-          Hari Libur
-        </h2>
-        <p style="font-size:var(--text-lg);font-weight:600;
-          color:var(--color-siswa);margin-bottom:8px">
-          ${libur.nama}
-        </p>
-        <p style="font-size:var(--text-sm);color:var(--gray-500)">
-          ${formatTanggal(getTodayStr())}
-        </p>
-        <div style="margin-top:24px;padding:16px;
-          background:var(--gray-50);border-radius:var(--radius-md);
-          font-size:var(--text-sm);color:var(--gray-500)">
-          <i class="fas fa-info-circle"></i>
-          Tidak ada kegiatan belajar mengajar hari ini.
-          Pengisian jurnal tidak tersedia.
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-// ── PAGE: RIWAYAT ─────────────────────────────────────────
-
-function renderRiwayat() {
-  const dari = document.getElementById("riwayatDari").value;
-  const sampai = document.getElementById("riwayatSampai").value;
-  const jams = dbGetAll(DB_KEYS.jamPelajaran);
-
-  let data = getJurnalKelasSaya();
-  if (dari) data = data.filter((j) => j.tanggal >= dari);
-  if (sampai) data = data.filter((j) => j.tanggal <= sampai);
-
-  data.sort(
-    (a, b) => new Date(b.tanggal) - new Date(a.tanggal) || a.jamKe - b.jamKe,
-  );
-
-  document.getElementById("riwayatTableBody").innerHTML = data.length
-    ? data
-        .map((j) => {
-          const mapel = dbGetById(DB_KEYS.mapel, j.mapelId);
-          const guru = dbGetById(DB_KEYS.users, j.guruId);
-          const diisi = dbGetById(DB_KEYS.users, j.userId);
-          const jam = jams.find(
-            (jp) => jp.ke === j.jamKe && jp.tipe === "pelajaran",
+  // Hapus dari jurnal
+  const allJurnal = dbGetAll(DB_KEYS.jurnal);
+  allJurnal.forEach((jurnal) => {
+    if (jurnal.absensi) {
+      ["sakit", "izin", "alpha"].forEach((status) => {
+        if (jurnal.absensi[status] && Array.isArray(jurnal.absensi[status])) {
+          jurnal.absensi[status] = jurnal.absensi[status].filter(
+            (s) => s.nis !== siswa.nis && s.nama !== siswa.nama
           );
-          return `
-          <tr>
-            <td style="white-space:nowrap;font-size:var(--text-sm)">
-              ${formatTanggal(j.tanggal)}
-            </td>
-            <td>
-              <span class="badge badge-siswa">Jam ${j.jamKe}</span>
-            </td>
-            <td style="font-size:var(--text-xs);white-space:nowrap">
-              ${jam ? `${jam.mulai}–${jam.selesai}` : "—"}
-            </td>
-            <td><strong>${mapel?.nama || "—"}</strong></td>
-            <td style="font-size:var(--text-sm)">${guru?.nama || "—"}</td>
-            <td style="max-width:160px">
-              <div style="white-space:nowrap;overflow:hidden;
-                text-overflow:ellipsis;font-size:var(--text-sm)">
-                ${j.materi || "—"}
-              </div>
-            </td>
-            <td>
-              <div style="font-size:var(--text-xs);white-space:nowrap">
-                <span style="color:var(--success)">
-                  ✓ ${j.jumlahHadir}
-                </span> &nbsp;
-                <span style="color:var(--danger)">
-                  ✗ ${j.jumlahSakit || 0}
-                </span> &nbsp;
-                <span style="color:var(--warning)">
-                  ~ ${j.jumlahIzin || 0}
-                </span>
-              </div>
-            </td>
-            <td style="font-size:var(--text-xs);color:var(--gray-500)">
-              ${diisi?.nama || "—"}
-            </td>
-          </tr>
-        `;
-        })
-        .join("")
-    : `<tr><td colspan="8" style="text-align:center;
-        color:var(--gray-400);padding:32px">
-        Belum ada riwayat jurnal.
-      </td></tr>`;
-}
+          jurnal[`jumlah${status.charAt(0).toUpperCase() + status.slice(1)}`] =
+            jurnal.absensi[status].length;
+        }
+      });
+      dbUpdate(DB_KEYS.jurnal, jurnal.id, jurnal);
+    }
+  });
 
-function clearRiwayatFilter() {
-  document.getElementById("riwayatDari").value = "";
-  document.getElementById("riwayatSampai").value = "";
-  renderRiwayat();
-}
-
-// ── Dropdown Siswa untuk Absensi ──────────────────────────
-
-/**
- * Reset dan populate dropdown siswa berdasarkan kelas
- */
-function resetDropdownSiswa() {
-  // Ambil semua siswa di kelas ini
-  const siswaList = dbGetAll(DB_KEYS.siswa).filter(
-    (s) => s.kelasId === currentSession.kelasId && s.aktif
+  // Hapus user siswa jika ada
+  const userSiswa = dbGetAll(DB_KEYS.users).find(
+    (u) => u.role === "siswa" && u.username === siswa.nis
   );
-
-  // Sort berdasarkan nama
-  siswaList.sort((a, b) => a.nama.localeCompare(b.nama));
-
-  // Populate dropdown sakit
-  const selectSakit = document.getElementById("formJurnalSiswaSakit");
-  selectSakit.innerHTML = '<option value="">-- Pilih Siswa Sakit --</option>';
-  siswaList.forEach((s) => {
-    const opt = document.createElement("option");
-    opt.value = s.id;
-    opt.textContent = `${s.nama} (${s.nis})`;
-    selectSakit.appendChild(opt);
-  });
-
-  // Populate dropdown izin
-  const selectIzin = document.getElementById("formJurnalSiswaIzin");
-  selectIzin.innerHTML = '<option value="">-- Pilih Siswa Izin --</option>';
-  siswaList.forEach((s) => {
-    const opt = document.createElement("option");
-    opt.value = s.id;
-    opt.textContent = `${s.nama} (${s.nis})`;
-    selectIzin.appendChild(opt);
-  });
-
-  // Populate dropdown alpha
-  const selectAlpha = document.getElementById("formJurnalSiswaAlpha");
-  selectAlpha.innerHTML = '<option value="">-- Pilih Siswa Alpha --</option>';
-  siswaList.forEach((s) => {
-    const opt = document.createElement("option");
-    opt.value = s.id;
-    opt.textContent = `${s.nama} (${s.nis})`;
-    selectAlpha.appendChild(opt);
-  });
-
-  // Clear list siswa yang dipilih
-  document.getElementById("listSiswaSakit").innerHTML = "";
-  document.getElementById("listSiswaIzin").innerHTML = "";
-  document.getElementById("listSiswaAlpha").innerHTML = "";
-
-  // Reset counter
-  document.getElementById("formJurnalSakit").value = 0;
-  document.getElementById("formJurnalIzin").value = 0;
-  document.getElementById("formJurnalAlpha").value = 0;
-}
-
-/**
- * Tambah siswa ke list tidak hadir
- */
-function tambahSiswaTidakHadir(tipe) {
-  const selectId = `formJurnalSiswa${tipe.charAt(0).toUpperCase() + tipe.slice(1)}`;
-  const select = document.getElementById(selectId);
-  const siswaId = select.value;
-
-  if (!siswaId) return;
-
-  const siswa = dbGetById(DB_KEYS.siswa, siswaId);
-  if (!siswa) return;
-
-  // Cek apakah siswa sudah ada di list lain
-  const allLists = ["Sakit", "Izin", "Alpha"];
-  for (const t of allLists) {
-    const listEl = document.getElementById(`listSiswa${t}`);
-    const items = listEl.querySelectorAll(".siswa-item");
-    for (const item of items) {
-      if (item.dataset.siswaId === siswaId) {
-        showToast(`${siswa.nama} sudah ada di list ${t}!`, "warning");
-        select.value = "";
-        return;
-      }
-    }
+  if (userSiswa) {
+    dbDelete(DB_KEYS.users, userSiswa.id);
   }
 
-  // Tambahkan ke list
-  const listContainer = document.getElementById(`listSiswa${tipe.charAt(0).toUpperCase() + tipe.slice(1)}`);
-  const item = document.createElement("div");
-  item.className = "siswa-item";
-  item.dataset.siswaId = siswaId;
-  item.innerHTML = `
-    <span>${siswa.nama} <small style="color:var(--gray-400)">(${siswa.nis})</small></span>
-    <button type="button" class="btn-remove" onclick="hapusSiswaTidakHadir('${tipe}', '${siswaId}')" title="Hapus">
-      <i class="fas fa-xmark"></i>
-    </button>
-  `;
-  listContainer.appendChild(item);
+  // Hapus siswa
+  dbDelete(DB_KEYS.siswa, id);
 
-  // Reset dropdown
-  select.value = "";
+  // Update jumlah siswa di kelas
+  updateJumlahSiswaKelas(siswa.kelasId);
 
-  // Update counter
-  updateCounterAbsensi();
-  hitungKehadiran();
+  showToast("Data siswa berhasil dihapus!", "success");
+  renderSiswaTable();
 }
 
-/**
- * Hapus siswa dari list tidak hadir
- */
-function hapusSiswaTidakHadir(tipe, siswaId) {
-  const listContainer = document.getElementById(`listSiswa${tipe.charAt(0).toUpperCase() + tipe.slice(1)}`);
-  const item = listContainer.querySelector(`[data-siswa-id="${siswaId}"]`);
-  if (item) {
-    item.remove();
-    updateCounterAbsensi();
-    hitungKehadiran();
+// ── Helper ────────────────────────────────────────────────
+
+function updateJumlahSiswaKelas(kelasId) {
+  const kelas = dbGetById(DB_KEYS.kelas, kelasId);
+  if (kelas) {
+    const siswaAktif = dbGetAll(DB_KEYS.siswa).filter(
+      (s) => s.kelasId === kelasId && s.aktif
+    );
+    kelas.jumlahSiswa = siswaAktif.length;
+    dbUpdate(DB_KEYS.kelas, kelasId, kelas);
   }
-}
-
-/**
- * Update counter jumlah siswa tidak hadir
- */
-function updateCounterAbsensi() {
-  const sakit = document.getElementById("listSiswaSakit").children.length;
-  const izin = document.getElementById("listSiswaIzin").children.length;
-  const alpha = document.getElementById("listSiswaAlpha").children.length;
-
-  document.getElementById("formJurnalSakit").value = sakit;
-  document.getElementById("formJurnalIzin").value = izin;
-  document.getElementById("formJurnalAlpha").value = alpha;
-}
-
-/**
- * Ambil data absensi dari list siswa yang dipilih
- */
-function getAbsensiData() {
-  const result = {
-    sakit: [],
-    izin: [],
-    alpha: [],
-  };
-
-  // Sakit
-  const listSakit = document.getElementById("listSiswaSakit");
-  listSakit.querySelectorAll(".siswa-item").forEach((item) => {
-    const siswaId = item.dataset.siswaId;
-    const siswa = dbGetById(DB_KEYS.siswa, siswaId);
-    if (siswa) {
-      result.sakit.push({
-        id: siswa.id,
-        nis: siswa.nis,
-        nama: siswa.nama,
-      });
-    }
-  });
-
-  // Izin
-  const listIzin = document.getElementById("listSiswaIzin");
-  listIzin.querySelectorAll(".siswa-item").forEach((item) => {
-    const siswaId = item.dataset.siswaId;
-    const siswa = dbGetById(DB_KEYS.siswa, siswaId);
-    if (siswa) {
-      result.izin.push({
-        id: siswa.id,
-        nis: siswa.nis,
-        nama: siswa.nama,
-      });
-    }
-  });
-
-  // Alpha
-  const listAlpha = document.getElementById("listSiswaAlpha");
-  listAlpha.querySelectorAll(".siswa-item").forEach((item) => {
-    const siswaId = item.dataset.siswaId;
-    const siswa = dbGetById(DB_KEYS.siswa, siswaId);
-    if (siswa) {
-      result.alpha.push({
-        id: siswa.id,
-        nis: siswa.nis,
-        nama: siswa.nama,
-      });
-    }
-  });
-
-  return result;
-}
-
-/**
- * Load data absensi ke form (untuk edit)
- */
-function loadAbsensiData(absensi) {
-  if (!absensi) return;
-
-  // Load sakit
-  if (absensi.sakit && Array.isArray(absensi.sakit)) {
-    absensi.sakit.forEach((s) => {
-      const siswa = dbGetById(DB_KEYS.siswa, s.id);
-      if (siswa) {
-        const listContainer = document.getElementById("listSiswaSakit");
-        const item = document.createElement("div");
-        item.className = "siswa-item";
-        item.dataset.siswaId = siswa.id;
-        item.innerHTML = `
-          <span>${siswa.nama} <small style="color:var(--gray-400)">(${siswa.nis})</small></span>
-          <button type="button" class="btn-remove" onclick="hapusSiswaTidakHadir('sakit', '${siswa.id}')" title="Hapus">
-            <i class="fas fa-xmark"></i>
-          </button>
-        `;
-        listContainer.appendChild(item);
-      }
-    });
-  }
-
-  // Load izin
-  if (absensi.izin && Array.isArray(absensi.izin)) {
-    absensi.izin.forEach((s) => {
-      const siswa = dbGetById(DB_KEYS.siswa, s.id);
-      if (siswa) {
-        const listContainer = document.getElementById("listSiswaIzin");
-        const item = document.createElement("div");
-        item.className = "siswa-item";
-        item.dataset.siswaId = siswa.id;
-        item.innerHTML = `
-          <span>${siswa.nama} <small style="color:var(--gray-400)">(${siswa.nis})</small></span>
-          <button type="button" class="btn-remove" onclick="hapusSiswaTidakHadir('izin', '${siswa.id}')" title="Hapus">
-            <i class="fas fa-xmark"></i>
-          </button>
-        `;
-        listContainer.appendChild(item);
-      }
-    });
-  }
-
-  // Load alpha
-  if (absensi.alpha && Array.isArray(absensi.alpha)) {
-    absensi.alpha.forEach((s) => {
-      const siswa = dbGetById(DB_KEYS.siswa, s.id);
-      if (siswa) {
-        const listContainer = document.getElementById("listSiswaAlpha");
-        const item = document.createElement("div");
-        item.className = "siswa-item";
-        item.dataset.siswaId = siswa.id;
-        item.innerHTML = `
-          <span>${siswa.nama} <small style="color:var(--gray-400)">(${siswa.nis})</small></span>
-          <button type="button" class="btn-remove" onclick="hapusSiswaTidakHadir('alpha', '${siswa.id}')" title="Hapus">
-            <i class="fas fa-xmark"></i>
-          </button>
-        `;
-        listContainer.appendChild(item);
-      }
-    });
-  }
-
-  updateCounterAbsensi();
 }

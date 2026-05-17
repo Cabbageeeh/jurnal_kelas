@@ -88,6 +88,9 @@
           <button class="nav-item admin" onclick="showPage('users')">
             <i class="fas fa-users"></i> Pengguna
           </button>
+          <button class="nav-item admin" onclick="showPage('siswa')">
+            <i class="fas fa-user-graduate"></i> Data Siswa
+          </button>
           <button class="nav-item admin" onclick="showPage('kelas')">
             <i class="fas fa-chalkboard"></i> Kelas
           </button>
@@ -793,6 +796,102 @@
                     </tr>
                   </thead>
                   <tbody id="usersTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAGE: DATA SISWA -->
+        <div class="page-content hidden" id="page-siswa">
+          <div class="page-header d-flex justify-between align-center">
+            <div>
+              <h2 class="page-title">Data Master Siswa</h2>
+              <p class="page-subtitle">Kelola data siswa untuk rekap absensi</p>
+            </div>
+            <div style="display: flex; gap: 10px">
+              <button
+                class="btn btn-outline"
+                onclick="openImportModal('siswa')"
+              >
+                <i class="fas fa-file-excel"></i> Import Data Siswa
+              </button>
+              <button class="btn btn-admin" onclick="openSiswaModal()">
+                <i class="fas fa-plus"></i> Tambah Siswa
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter -->
+          <div class="card mb-4">
+            <div class="card-body" style="padding: 16px">
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr 1fr 1fr auto;
+                  gap: 12px;
+                  align-items: end;
+                "
+              >
+                <div>
+                  <label class="form-label">Cari Siswa</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="filterSiswaSearch"
+                    placeholder="🔍 Cari nama / NIS..."
+                    oninput="renderSiswaTable()"
+                  />
+                </div>
+                <div>
+                  <label class="form-label">Kelas</label>
+                  <select
+                    class="form-control"
+                    id="filterSiswaKelas"
+                    onchange="renderSiswaTable()"
+                  >
+                    <option value="">Semua Kelas</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label">Gender</label>
+                  <select
+                    class="form-control"
+                    id="filterSiswaGender"
+                    onchange="renderSiswaTable()"
+                  >
+                    <option value="">Semua Gender</option>
+                    <option value="L">Laki-laki</option>
+                    <option value="P">Perempuan</option>
+                  </select>
+                </div>
+                <button class="btn btn-outline" onclick="clearFilterSiswa()">
+                  <i class="fas fa-rotate-left"></i> Reset
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Statistik -->
+          <div class="stats-grid mb-4" id="statsSiswa"></div>
+
+          <!-- Tabel -->
+          <div class="card">
+            <div class="card-body" style="padding: 0">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>NIS</th>
+                      <th>Nama Siswa</th>
+                      <th>Gender</th>
+                      <th>Kelas</th>
+                      <th>Status</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="siswaTableBody"></tbody>
                 </table>
               </div>
             </div>
@@ -1548,6 +1647,69 @@
             Batal
           </button>
           <button class="btn btn-admin" onclick="saveKelas()">
+            <i class="fas fa-floppy-disk"></i> Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: SISWA -->
+    <div class="modal-overlay" id="modalSiswa">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalSiswaTitle">Tambah Siswa</h3>
+          <button class="modal-close" onclick="closeModal('modalSiswa')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="siswaId" />
+          <div class="form-group">
+            <label class="form-label">NIS (Nomor Induk Siswa)</label>
+            <input
+              type="text"
+              class="form-control"
+              id="siswaNis"
+              placeholder="cth: 12345"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nama Lengkap</label>
+            <input
+              type="text"
+              class="form-control"
+              id="siswaNama"
+              placeholder="cth: Ahmad Fauzi"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Jenis Kelamin</label>
+            <select class="form-control" id="siswaGender">
+              <option value="">— Pilih Gender —</option>
+              <option value="L">Laki-laki</option>
+              <option value="P">Perempuan</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kelas</label>
+            <select class="form-control" id="siswaKelasId">
+              <option value="">— Pilih Kelas —</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-control" id="siswaAktif">
+              <option value="true">Aktif</option>
+              <option value="false">Nonaktif</option>
+            </select>
+          </div>
+          <div class="alert alert-danger hidden" id="siswaFormError"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('modalSiswa')">
+            Batal
+          </button>
+          <button class="btn btn-admin" onclick="saveSiswa()">
             <i class="fas fa-floppy-disk"></i> Simpan
           </button>
         </div>
@@ -2327,6 +2489,7 @@
     <script src="js/utils.js"></script>
     <script src="js/darkmode.js"></script>
     <script src="js/admin.js"></script>
+    <script src="js/siswa.js"></script>
     <script src="js/import.js"></script>
     <script src="js/export.js"></script>
     <script src="js/absensi.js"></script>

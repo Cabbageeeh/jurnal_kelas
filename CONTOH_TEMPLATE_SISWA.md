@@ -48,47 +48,54 @@ Input yang tidak hadir → Sistem hitung otomatis yang hadir
 
 ## 📋 Format Template Excel
 
-Template untuk import data siswa memiliki 3 kolom wajib:
+Template untuk import data siswa memiliki 4 kolom wajib:
 
 | Kolom | Deskripsi | Contoh | Wajib |
 |-------|-----------|--------|-------|
 | **nis** | Nomor Induk Siswa (unik) | 12345 | ✅ Ya |
 | **nama** | Nama lengkap siswa | Ahmad Fauzi | ✅ Ya |
+| **gender** | Jenis kelamin (L/P) | L | ✅ Ya |
 | **kelas_nama** | Nama kelas (harus sama dengan data kelas) | X-1 | ✅ Ya |
+
+### 📝 Format Gender
+- **L** = Laki-laki
+- **P** = Perempuan
+- Bisa juga menggunakan: `Laki-laki`, `Perempuan`, `LAKI-LAKI`, `PEREMPUAN`
+- Sistem akan otomatis convert ke L/P
 
 ## 📝 Contoh Data
 
 ### Sheet: Siswa
 
 ```
-nis     | nama                  | kelas_nama
---------|----------------------|------------
-12345   | Ahmad Fauzi          | X-1
-12346   | Siti Nurhaliza       | X-1
-12347   | Budi Santoso         | X-1
-12348   | Dewi Lestari         | X-1
-12349   | Eko Prasetyo         | X-1
-12350   | Fitri Handayani      | X-2
-12351   | Gilang Ramadhan      | X-2
-12352   | Hana Pertiwi         | X-2
-12353   | Indra Gunawan        | X-2
-12354   | Joko Widodo          | X-2
-12355   | Kartika Sari         | XI-A
-12356   | Lukman Hakim         | XI-A
-12357   | Maya Angelina        | XI-A
-12358   | Nanda Pratama        | XI-A
-12359   | Olivia Putri         | XI-A
-12360   | Putra Mahendra       | XI-B
-12361   | Qori Amalia          | XI-B
-12362   | Rudi Hartono         | XI-B
-12363   | Sari Wulandari       | XI-B
-12364   | Tono Sugiarto        | XI-B
-12365   | Umar Bakri           | XII-A
-12366   | Vina Melinda         | XII-A
-12367   | Wawan Setiawan       | XII-A
-12368   | Xena Warrior         | XII-A
-12369   | Yudi Latif           | XII-A
-12370   | Zahra Amira          | XII-B
+nis     | nama                  | gender | kelas_nama
+--------|----------------------|--------|------------
+12345   | Ahmad Fauzi          | L      | X-1
+12346   | Siti Nurhaliza       | P      | X-1
+12347   | Budi Santoso         | L      | X-1
+12348   | Dewi Lestari         | P      | X-1
+12349   | Eko Prasetyo         | L      | X-1
+12350   | Fitri Handayani      | P      | X-2
+12351   | Gilang Ramadhan      | L      | X-2
+12352   | Hana Pertiwi         | P      | X-2
+12353   | Indra Gunawan        | L      | X-2
+12354   | Joko Widodo          | L      | X-2
+12355   | Kartika Sari         | P      | XI-A
+12356   | Lukman Hakim         | L      | XI-A
+12357   | Maya Angelina        | P      | XI-A
+12358   | Nanda Pratama        | L      | XI-A
+12359   | Olivia Putri         | P      | XI-A
+12360   | Putra Mahendra       | L      | XI-B
+12361   | Qori Amalia          | P      | XI-B
+12362   | Rudi Hartono         | L      | XI-B
+12363   | Sari Wulandari       | P      | XI-B
+12364   | Tono Sugiarto        | L      | XI-B
+12365   | Umar Bakri           | L      | XII-A
+12366   | Vina Melinda         | P      | XII-A
+12367   | Wawan Setiawan       | L      | XII-A
+12368   | Xena Warrior         | P      | XII-A
+12369   | Yudi Latif           | L      | XII-A
+12370   | Zahra Amira          | P      | XII-B
 ```
 
 ## ✅ Validasi Data
@@ -99,36 +106,50 @@ Sistem akan melakukan validasi otomatis:
 - ❌ **Error:** NIS sudah terdaftar
 - ✅ **Valid:** NIS belum ada di database
 
-### 2. Kelas Terdaftar
+### 2. Gender Valid
+- ❌ **Error:** Gender kosong atau tidak valid
+- ✅ **Valid:** L (Laki-laki) atau P (Perempuan)
+- ✅ **Valid:** Laki-laki, Perempuan (akan diconvert ke L/P)
+
+### 3. Kelas Terdaftar
 - ❌ **Error:** Kelas "X-13" tidak ditemukan
 - ✅ **Valid:** Kelas "X-1" sudah terdaftar
 
-### 3. Data Lengkap
-- ❌ **Error:** NIS, Nama, atau Kelas kosong
+### 4. Data Lengkap
+- ❌ **Error:** NIS, Nama, Gender, atau Kelas kosong
 - ✅ **Valid:** Semua kolom terisi
 
 ## 🎯 Contoh Kasus
 
 ### ✅ Data Valid
 ```
-12345 | Ahmad Fauzi | X-1
+12345 | Ahmad Fauzi | L | X-1
 ```
 - NIS unik
 - Nama terisi
+- Gender valid (L)
 - Kelas X-1 sudah terdaftar
 - **Status:** OK - Siap diimport
 
 ### ❌ Data Duplikat
 ```
-12345 | Ahmad Fauzi | X-1
-12345 | Budi Santoso | X-2
+12345 | Ahmad Fauzi | L | X-1
+12345 | Budi Santoso | L | X-2
 ```
 - NIS 12345 muncul 2 kali
 - **Status:** Duplikat - Baris kedua akan dilewati
 
+### ❌ Gender Tidak Valid
+```
+12346 | Siti Nurhaliza | X | X-1
+```
+- Gender "X" tidak valid (harus L atau P)
+- **Status:** Error - Tidak akan diimport
+- **Solusi:** Ubah gender menjadi L atau P
+
 ### ❌ Kelas Tidak Ditemukan
 ```
-12346 | Siti Nurhaliza | X-13
+12347 | Budi Santoso | L | X-13
 ```
 - Kelas X-13 tidak ada di sistem
 - **Status:** Error - Tidak akan diimport
@@ -191,29 +212,29 @@ XII-A, XII-B, XII-C, XII-D, XII-E, XII-F, XII-G
 
 ### Kelas X-1 (35 siswa)
 ```
-12001 | Siswa 1 X-1  | X-1
-12002 | Siswa 2 X-1  | X-1
-12003 | Siswa 3 X-1  | X-1
+12001 | Siswa 1 X-1  | L | X-1
+12002 | Siswa 2 X-1  | P | X-1
+12003 | Siswa 3 X-1  | L | X-1
 ...
-12035 | Siswa 35 X-1 | X-1
+12035 | Siswa 35 X-1 | P | X-1
 ```
 
 ### Kelas XI-A (36 siswa)
 ```
-11001 | Siswa 1 XI-A  | XI-A
-11002 | Siswa 2 XI-A  | XI-A
-11003 | Siswa 3 XI-A  | XI-A
+11001 | Siswa 1 XI-A  | L | XI-A
+11002 | Siswa 2 XI-A  | P | XI-A
+11003 | Siswa 3 XI-A  | L | XI-A
 ...
-11036 | Siswa 36 XI-A | XI-A
+11036 | Siswa 36 XI-A | P | XI-A
 ```
 
 ### Kelas XII-B (33 siswa)
 ```
-10001 | Siswa 1 XII-B  | XII-B
-10002 | Siswa 2 XII-B  | XII-B
-10003 | Siswa 3 XII-B  | XII-B
+10001 | Siswa 1 XII-B  | L | XII-B
+10002 | Siswa 2 XII-B  | P | XII-B
+10003 | Siswa 3 XII-B  | L | XII-B
 ...
-10033 | Siswa 33 XII-B | XII-B
+10033 | Siswa 33 XII-B | P | XII-B
 ```
 
 ## ⚠️ Kesalahan Umum
@@ -235,10 +256,23 @@ XII-A, XII-B, XII-C, XII-D, XII-E, XII-F, XII-G
 
 ### 3. Data Kosong
 ```
-❌ 12345 |           | X-1  (nama kosong)
-❌       | Ahmad     | X-1  (NIS kosong)
-❌ 12345 | Ahmad     |      (kelas kosong)
-✅ 12345 | Ahmad     | X-1  (semua terisi)
+❌ 12345 |           | L | X-1  (nama kosong)
+❌       | Ahmad     | L | X-1  (NIS kosong)
+❌ 12345 | Ahmad     |   | X-1  (gender kosong)
+❌ 12345 | Ahmad     | L |      (kelas kosong)
+✅ 12345 | Ahmad     | L | X-1  (semua terisi)
+```
+
+### 4. Format Gender Salah
+```
+❌ 12345 | Ahmad     | M      | X-1  (gunakan L bukan M)
+❌ 12345 | Ahmad     | Male   | X-1  (gunakan L atau Laki-laki)
+❌ 12345 | Siti      | F      | X-1  (gunakan P bukan F)
+❌ 12345 | Siti      | Female | X-1  (gunakan P atau Perempuan)
+✅ 12345 | Ahmad     | L      | X-1  (format benar)
+✅ 12345 | Ahmad     | Laki-laki | X-1  (format benar, akan diconvert ke L)
+✅ 12345 | Siti      | P      | X-1  (format benar)
+✅ 12345 | Siti      | Perempuan | X-1  (format benar, akan diconvert ke P)
 ```
 
 ## 📞 Bantuan

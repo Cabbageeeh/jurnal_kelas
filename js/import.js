@@ -41,15 +41,16 @@ function downloadTemplate(type) {
       headers: [
         "nis",
         "nama",
+        "gender",
         "kelas_nama",
       ],
       contoh: [
-        ["12345", "Ahmad Fauzi", "X-1"],
-        ["12346", "Siti Nurhaliza", "X-1"],
-        ["12347", "Budi Santoso", "X-2"],
-        ["12348", "Dewi Lestari", "XI-A"],
-        ["12349", "Eko Prasetyo", "XI-A"],
-        ["12350", "Fitri Handayani", "XII-B"],
+        ["12345", "Ahmad Fauzi", "L", "X-1"],
+        ["12346", "Siti Nurhaliza", "P", "X-1"],
+        ["12347", "Budi Santoso", "L", "X-2"],
+        ["12348", "Dewi Lestari", "P", "XI-A"],
+        ["12349", "Eko Prasetyo", "L", "XI-A"],
+        ["12350", "Fitri Handayani", "P", "XII-B"],
       ],
       info: [
         ["PETUNJUK IMPORT DATA SISWA:"],
@@ -60,7 +61,7 @@ function downloadTemplate(type) {
         ["   • Tujuan: Rekap absensi saja"],
         ["   • TIDAK BISA LOGIN ke sistem"],
         ["   • Untuk: Semua siswa di sekolah"],
-        ["   • Kolom: NIS, Nama, Kelas"],
+        ["   • Kolom: NIS, Nama, Gender, Kelas"],
         [""],
         ["2. PENGGUNA SISWA (Template Pengguna):"],
         ["   • Tujuan: Login ke sistem web"],
@@ -71,7 +72,14 @@ function downloadTemplate(type) {
         ["KOLOM TEMPLATE INI:"],
         ["• nis: Nomor Induk Siswa (unik, tidak boleh duplikat)"],
         ["• nama: Nama lengkap siswa"],
+        ["• gender: Jenis kelamin (L = Laki-laki, P = Perempuan)"],
         ["• kelas_nama: Nama kelas (harus sama persis dengan data kelas yang ada)"],
+        [""],
+        ["FORMAT GENDER:"],
+        ["• L = Laki-laki"],
+        ["• P = Perempuan"],
+        ["• Bisa juga: Laki-laki, Perempuan, LAKI-LAKI, PEREMPUAN"],
+        ["• Sistem akan otomatis convert ke L/P"],
         [""],
         ["CATATAN PENTING:"],
         ["• Data siswa ini HANYA untuk rekap absensi"],
@@ -79,6 +87,7 @@ function downloadTemplate(type) {
         ["• Untuk ketua/sekretaris yang perlu login, gunakan Template Pengguna"],
         ["• Pastikan kelas sudah ada di sistem sebelum import"],
         ["• NIS harus unik untuk setiap siswa"],
+        ["• Gender wajib diisi (L atau P)"],
         ["• Format kelas: X-1, XI-A, XII-B (sesuai format baru)"],
         [""],
         ["✨ FITUR OTOMATIS:"],
@@ -87,8 +96,8 @@ function downloadTemplate(type) {
         ["• Tidak perlu input manual jumlah siswa di data master kelas"],
         [""],
         ["CONTOH:"],
-        ["• Siswa kelas 10 nomor 1: nis=12345, nama=Ahmad Fauzi, kelas_nama=X-1"],
-        ["• Siswa kelas 11 jurusan A: nis=12346, nama=Siti Nurhaliza, kelas_nama=XI-A"],
+        ["• Siswa laki-laki kelas 10: nis=12345, nama=Ahmad Fauzi, gender=L, kelas_nama=X-1"],
+        ["• Siswa perempuan kelas 11: nis=12346, nama=Siti Nurhaliza, gender=P, kelas_nama=XI-A"],
       ],
     },
 
@@ -490,6 +499,17 @@ function parseSiswa(rows) {
       const nis = String(r.nis).trim();
       const nama = String(r.nama).trim();
       
+      // Parse gender (L/P atau Laki-laki/Perempuan)
+      let gender = "";
+      if (r.gender) {
+        const g = String(r.gender).trim().toUpperCase();
+        if (g === "L" || g.startsWith("LAKI")) {
+          gender = "L";
+        } else if (g === "P" || g.startsWith("PEREM")) {
+          gender = "P";
+        }
+      }
+      
       // Cari kelas berdasarkan nama
       const kelas = kelasList.find(
         (k) => k.nama.toLowerCase() === String(r.kelas_nama).trim().toLowerCase()
@@ -501,15 +521,17 @@ function parseSiswa(rows) {
       let errors = [];
       if (!kelas) errors.push(`Kelas "${r.kelas_nama}" tidak ditemukan`);
       if (exists) errors.push("NIS sudah terdaftar");
+      if (!gender) errors.push("Gender tidak valid (gunakan L/P)");
       
       return {
         nis,
         nama,
+        gender,
         kelasId: kelas?.id || "",
         kelasNama: kelas?.nama || `⚠️ ${r.kelas_nama}`,
         errors: errors.length > 0 ? errors.join(", ") : null,
         duplikat: !!exists,
-        valid: errors.length === 0 && !exists && kelas,
+        valid: errors.length === 0 && !exists && kelas && gender,
       };
     });
 }
@@ -762,6 +784,15 @@ function renderPreviewSiswa() {
         <td>${i + 1}</td>
         <td><code>${s.nis}</code></td>
         <td>${s.nama}</td>
+        <td>
+          ${
+            s.gender === "L"
+              ? '<span class="badge" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-mars"></i> Laki-laki</span>'
+              : s.gender === "P"
+                ? '<span class="badge" style="background:#FCE7F3;color:#BE185D"><i class="fas fa-venus"></i> Perempuan</span>'
+                : '<span class="badge badge-danger">—</span>'
+          }
+        </td>
         <td><span class="badge badge-admin">${s.kelasNama}</span></td>
         <td>
           ${
@@ -794,6 +825,7 @@ function renderPreviewSiswa() {
                 <th>No</th>
                 <th>NIS</th>
                 <th>Nama</th>
+                <th>Gender</th>
                 <th>Kelas</th>
                 <th>Status</th>
               </tr>
@@ -928,6 +960,7 @@ function konfirmasiImport() {
           id: generateId("siswa"),
           nis: s.nis,
           nama: s.nama,
+          gender: s.gender,
           kelasId: s.kelasId,
           aktif: true,
           createdAt: new Date().toISOString(),
