@@ -14,7 +14,10 @@ let currentPreviewTab = "users";
 
 // ── Buka Modal ────────────────────────────────────────────
 
+let currentImportType = "users";
+
 function openImportModal(type = "users") {
+  currentImportType = type;
   resetImportModal();
   openModal("modalImport");
 }
@@ -990,13 +993,37 @@ function konfirmasiImport() {
   }
 
   closeModal("modalImport");
+  
+  // Refresh tables
   renderUsersTable();
   renderKelasTable();
   renderMapelTable();
   if (typeof renderJadwalGrid === 'function') {
     renderJadwalGrid();
   }
+  if (typeof renderSiswaTable === 'function') {
+    renderSiswaTable();
+  }
   renderDashboard();
+
+  // Auto navigate ke halaman yang relevan setelah import
+  if (currentImportType === 'siswa' && typeof showPage === 'function') {
+    setTimeout(() => {
+      showPage('siswa');
+    }, 500);
+  } else if (currentImportType === 'users' && typeof showPage === 'function') {
+    setTimeout(() => {
+      showPage('users');
+    }, 500);
+  } else if (currentImportType === 'kelas' && typeof showPage === 'function') {
+    setTimeout(() => {
+      showPage('kelas');
+    }, 500);
+  } else if (currentImportType === 'jadwal' && typeof showPage === 'function') {
+    setTimeout(() => {
+      showPage('jadwal');
+    }, 500);
+  }
 
   showToast(`${total} data berhasil diimport!`, "success", 4000);
 }
