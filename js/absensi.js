@@ -12,7 +12,7 @@ function renderRekapAbsensi() {
   if (!bulan) {
     document.getElementById("rekapAbsensiBody").innerHTML = `
       <tr>
-        <td colspan="8" style="text-align:center;padding:32px;color:var(--gray-400)">
+        <td colspan="10" style="text-align:center;padding:32px;color:var(--gray-400)">
           <i class="fas fa-calendar-days" style="font-size:48px;margin-bottom:12px;opacity:0.5"></i>
           <p>Pilih bulan untuk melihat rekap absensi</p>
         </td>
@@ -107,7 +107,7 @@ function renderRekapAbsensi() {
   if (filteredData.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="8" style="text-align:center;padding:32px;color:var(--gray-400)">
+        <td colspan="10" style="text-align:center;padding:32px;color:var(--gray-400)">
           <i class="fas fa-circle-check" style="font-size:48px;margin-bottom:12px;opacity:0.5;color:var(--success)"></i>
           <p>Tidak ada data ketidakhadiran siswa</p>
         </td>
@@ -118,13 +118,22 @@ function renderRekapAbsensi() {
 
   tbody.innerHTML = filteredData
     .map(
-      (r, i) => `
+      (r, i) => {
+        const genderBadge =
+          r.siswa.gender === "L"
+            ? '<span class="badge" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-mars"></i> L</span>'
+            : r.siswa.gender === "P"
+              ? '<span class="badge" style="background:#FCE7F3;color:#BE185D"><i class="fas fa-venus"></i> P</span>'
+              : '<span class="badge badge-danger">—</span>';
+
+        return `
       <tr>
         <td>${i + 1}</td>
         <td>
           <div style="font-weight:600;color:var(--gray-800)">${r.siswa.nama}</div>
-          <div style="font-size:var(--text-xs);color:var(--gray-400)">NIS: ${r.siswa.nis}</div>
         </td>
+        <td><code style="font-size:var(--text-xs)">${r.siswa.nis}</code></td>
+        <td>${genderBadge}</td>
         <td><span class="badge badge-admin">${r.kelas?.nama || "—"}</span></td>
         <td>
           ${
@@ -167,7 +176,8 @@ function renderRekapAbsensi() {
           </button>
         </td>
       </tr>
-    `
+    `;
+      }
     )
     .join("");
 }
@@ -483,6 +493,7 @@ async function exportRekapAbsensi(format) {
     return {
       nis: siswa.nis,
       nama: siswa.nama,
+      gender: siswa.gender === "L" ? "Laki-laki" : siswa.gender === "P" ? "Perempuan" : "—",
       kelas: kelas?.nama || "—",
       sakit,
       izin,
@@ -510,6 +521,7 @@ async function exportRekapAbsensi(format) {
     "No",
     "NIS",
     "Nama Siswa",
+    "Gender",
     "Kelas",
     "Sakit",
     "Izin",
@@ -521,6 +533,7 @@ async function exportRekapAbsensi(format) {
     i + 1,
     r.nis,
     r.nama,
+    r.gender,
     r.kelas,
     r.sakit,
     r.izin,
