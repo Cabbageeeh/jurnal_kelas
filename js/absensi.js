@@ -19,6 +19,7 @@ function renderRekapAbsensi() {
       </tr>
     `;
     document.getElementById("statsAbsensi").innerHTML = "";
+    document.getElementById("waliKelasInfoAbsensi").innerHTML = "";
     return;
   }
 
@@ -39,6 +40,35 @@ function renderRekapAbsensi() {
   // Filter berdasarkan kelas jika dipilih
   if (kelasId) {
     siswaList = siswaList.filter((s) => s.kelasId === kelasId);
+  }
+
+  // Tampilkan info wali kelas jika ada filter kelas
+  const waliKelasInfoEl = document.getElementById("waliKelasInfoAbsensi");
+  if (kelasId) {
+    const kelas = dbGetById(DB_KEYS.kelas, kelasId);
+    const waliKelas = kelas?.waliKelasId ? dbGetById(DB_KEYS.users, kelas.waliKelasId) : null;
+    
+    if (waliKelas) {
+      waliKelasInfoEl.innerHTML = `
+        <div class="alert alert-info" style="margin-bottom: 16px">
+          <i class="fas fa-chalkboard-user"></i>
+          <span>
+            <strong>Wali Kelas ${kelas.nama}:</strong> ${waliKelas.nama}
+          </span>
+        </div>
+      `;
+    } else {
+      waliKelasInfoEl.innerHTML = `
+        <div class="alert alert-warning" style="margin-bottom: 16px">
+          <i class="fas fa-circle-exclamation"></i>
+          <span>
+            Kelas <strong>${kelas?.nama || '—'}</strong> belum memiliki wali kelas.
+          </span>
+        </div>
+      `;
+    }
+  } else {
+    waliKelasInfoEl.innerHTML = '';
   }
 
   // Hitung absensi per siswa
@@ -462,6 +492,7 @@ async function exportRekapAbsensi(format) {
 
   const rekapData = siswaList.map((siswa) => {
     const kelas = dbGetById(DB_KEYS.kelas, siswa.kelasId);
+    const waliKelas = kelas?.waliKelasId ? dbGetById(DB_KEYS.users, kelas.waliKelasId) : null;
     
     let sakit = 0;
     let izin = 0;
@@ -495,6 +526,7 @@ async function exportRekapAbsensi(format) {
       nama: siswa.nama,
       gender: siswa.gender === "L" ? "Laki-laki" : siswa.gender === "P" ? "Perempuan" : "—",
       kelas: kelas?.nama || "—",
+      waliKelas: waliKelas?.nama || "—",
       sakit,
       izin,
       alpha,
@@ -523,6 +555,7 @@ async function exportRekapAbsensi(format) {
     "Nama Siswa",
     "Gender",
     "Kelas",
+    "Wali Kelas",
     "Sakit",
     "Izin",
     "Alpha",
@@ -535,6 +568,7 @@ async function exportRekapAbsensi(format) {
     r.nama,
     r.gender,
     r.kelas,
+    r.waliKelas,
     r.sakit,
     r.izin,
     r.alpha,
@@ -558,7 +592,7 @@ async function exportRekapAbsensi(format) {
       await exportPDF({
         filename,
         title,
-        orientation: "portrait",
+        orientation: "landscape",
         filter,
         headers,
         rows,

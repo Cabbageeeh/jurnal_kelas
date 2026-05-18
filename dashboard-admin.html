@@ -882,6 +882,9 @@
           <!-- Statistik -->
           <div class="stats-grid mb-4" id="statsSiswa"></div>
 
+          <!-- Info Wali Kelas (muncul saat filter kelas dipilih) -->
+          <div id="waliKelasInfo"></div>
+
           <!-- Tabel -->
           <div class="card">
             <div class="card-body" style="padding: 0">
@@ -941,6 +944,7 @@
                       <th>Nama Kelas</th>
                       <th>Tingkat</th>
                       <th>Jurusan</th>
+                      <th>Wali Kelas</th>
                       <th>Jumlah Siswa</th>
                       <th>Status</th>
                       <th>Aksi</th>
@@ -1252,6 +1256,9 @@
 
           <!-- Statistik -->
           <div class="stats-grid mb-4" id="statsAbsensi"></div>
+
+          <!-- Info Wali Kelas (muncul saat filter kelas dipilih) -->
+          <div id="waliKelasInfoAbsensi"></div>
 
           <!-- Tabel Rekap -->
           <div class="card">
@@ -1609,6 +1616,20 @@
                 Kelas X: 1-12 | Kelas XI & XII: A-G
               </p>
             </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">
+              Wali Kelas
+              <span class="text-muted" style="font-weight: 400">
+                (Opsional)
+              </span>
+            </label>
+            <select class="form-control" id="kelasWaliKelasId">
+              <option value="">— Pilih Wali Kelas —</option>
+            </select>
+            <p class="form-hint">
+              Pilih guru yang menjadi wali kelas. Wali kelas akan ditampilkan di data siswa.
+            </p>
           </div>
           <div class="form-group">
             <label class="form-label">

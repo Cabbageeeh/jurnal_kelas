@@ -1225,12 +1225,22 @@ function renderKelasTable() {
   document.getElementById("kelasTableBody").innerHTML = kelas.length
     ? kelas
         .map(
-          (k, i) => `
+          (k, i) => {
+            const waliKelas = k.waliKelasId ? dbGetById(DB_KEYS.users, k.waliKelasId) : null;
+            return `
         <tr>
           <td>${i + 1}</td>
           <td><strong>${k.nama}</strong></td>
           <td><span class="badge badge-gray">${k.tingkat}</span></td>
           <td>${k.jurusan}</td>
+          <td>
+            ${waliKelas 
+              ? `<div style="font-size:var(--text-sm);color:var(--gray-700)">
+                  <i class="fas fa-chalkboard-user"></i> ${waliKelas.nama}
+                 </div>`
+              : `<span style="color:var(--gray-400);font-size:var(--text-xs)">— Belum ada —</span>`
+            }
+          </td>
           <td>
             <span class="badge badge-siswa" style="font-size:13px">
               <i class="fas fa-users"></i> ${k.jumlahSiswa || 0} siswa
@@ -1254,10 +1264,11 @@ function renderKelasTable() {
             </div>
           </td>
         </tr>
-      `,
+      `;
+          }
         )
         .join("")
-    : `<tr><td colspan="7" style="text-align:center;
+    : `<tr><td colspan="8" style="text-align:center;
         color:var(--gray-400);padding:32px">
         Belum ada kelas.
        </td></tr>`;
@@ -1265,6 +1276,13 @@ function renderKelasTable() {
 
 function openKelasModal(id = null) {
   hideFormError("kelasFormError");
+  
+  // Isi dropdown wali kelas dengan guru aktif
+  const guruList = dbGetAll(DB_KEYS.users).filter(u => u.role === 'guru' && u.aktif);
+  const waliKelasSelect = document.getElementById("kelasWaliKelasId");
+  waliKelasSelect.innerHTML = '<option value="">— Pilih Wali Kelas —</option>' +
+    guruList.map(g => `<option value="${g.id}">${g.nama}</option>`).join('');
+  
   if (id) {
     const k = dbGetById(DB_KEYS.kelas, id);
     document.getElementById("modalKelasTitle").textContent = "Edit Kelas";
@@ -1273,6 +1291,7 @@ function openKelasModal(id = null) {
     document.getElementById("kelasTingkat").value = k.tingkat;
     updateJurusanOptions();
     document.getElementById("kelasJurusan").value = k.jurusan;
+    document.getElementById("kelasWaliKelasId").value = k.waliKelasId || "";
     document.getElementById("kelasJumlahSiswa").value = k.jumlahSiswa || 0;
     document.getElementById("kelasAktif").value = String(k.aktif);
   } else {
@@ -1282,6 +1301,7 @@ function openKelasModal(id = null) {
     document.getElementById("kelasTingkat").value = "X";
     updateJurusanOptions();
     document.getElementById("kelasJurusan").value = "";
+    document.getElementById("kelasWaliKelasId").value = "";
     document.getElementById("kelasJumlahSiswa").value = 0;
     document.getElementById("kelasAktif").value = "true";
   }
@@ -1311,6 +1331,7 @@ function saveKelas() {
   const id = document.getElementById("kelasId").value;
   const tingkat = document.getElementById("kelasTingkat").value;
   const jurusan = document.getElementById("kelasJurusan").value;
+  const waliKelasId = document.getElementById("kelasWaliKelasId").value || null;
   const jumlahSiswa =
     parseInt(document.getElementById("kelasJumlahSiswa").value) || 0;
   const aktif = document.getElementById("kelasAktif").value === "true";
@@ -1323,13 +1344,14 @@ function saveKelas() {
   const nama = `${tingkat}-${jurusan}`;
 
   if (id) {
-    dbUpdate(DB_KEYS.kelas, id, { nama, tingkat, jurusan, jumlahSiswa, aktif });
+    dbUpdate(DB_KEYS.kelas, id, { nama, tingkat, jurusan, waliKelasId, jumlahSiswa, aktif });
   } else {
     dbInsert(DB_KEYS.kelas, {
       id: generateId("kls"),
       nama,
       tingkat,
       jurusan,
+      waliKelasId,
       jumlahSiswa,
       aktif,
     });

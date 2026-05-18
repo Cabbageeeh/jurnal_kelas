@@ -32,6 +32,35 @@ function renderSiswaTable() {
   // Render statistik
   renderStatsSiswa(siswaList);
 
+  // Tampilkan info wali kelas jika ada filter kelas
+  const waliKelasInfo = document.getElementById("waliKelasInfo");
+  if (kelasId) {
+    const kelas = dbGetById(DB_KEYS.kelas, kelasId);
+    const waliKelas = kelas?.waliKelasId ? dbGetById(DB_KEYS.users, kelas.waliKelasId) : null;
+    
+    if (waliKelas) {
+      waliKelasInfo.innerHTML = `
+        <div class="alert alert-info" style="margin-bottom: 16px">
+          <i class="fas fa-chalkboard-user"></i>
+          <span>
+            <strong>Wali Kelas ${kelas.nama}:</strong> ${waliKelas.nama}
+          </span>
+        </div>
+      `;
+    } else {
+      waliKelasInfo.innerHTML = `
+        <div class="alert alert-warning" style="margin-bottom: 16px">
+          <i class="fas fa-circle-exclamation"></i>
+          <span>
+            Kelas <strong>${kelas?.nama || '—'}</strong> belum memiliki wali kelas.
+          </span>
+        </div>
+      `;
+    }
+  } else {
+    waliKelasInfo.innerHTML = '';
+  }
+
   // Render tabel
   const tbody = document.getElementById("siswaTableBody");
 
