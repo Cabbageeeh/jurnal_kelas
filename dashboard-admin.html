@@ -872,6 +872,19 @@
                     <option value="P">Perempuan</option>
                   </select>
                 </div>
+                <div>
+                  <label class="form-label">Urutkan</label>
+                  <select
+                    class="form-control"
+                    id="sortSiswa"
+                    onchange="renderSiswaTable()"
+                  >
+                    <option value="nama">Nama (A-Z)</option>
+                    <option value="nis">NIS</option>
+                    <option value="kelas">Kelas</option>
+                    <option value="gender">Gender</option>
+                  </select>
+                </div>
                 <button class="btn btn-outline" onclick="clearFilterSiswa()">
                   <i class="fas fa-rotate-left"></i> Reset
                 </button>
@@ -1210,7 +1223,7 @@
               <div
                 style="
                   display: grid;
-                  grid-template-columns: 1fr 1fr 1fr auto;
+                  grid-template-columns: 1fr 1fr 1fr 1fr auto;
                   gap: 12px;
                   align-items: end;
                 "
@@ -1245,6 +1258,22 @@
                     <option value="sakit">Sakit</option>
                     <option value="izin">Izin</option>
                     <option value="alpha">Alpha</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label">Urutkan</label>
+                  <select
+                    class="form-control"
+                    id="sortAbsensi"
+                    onchange="renderRekapAbsensi()"
+                  >
+                    <option value="total">Total (Terbanyak)</option>
+                    <option value="nama">Nama (A-Z)</option>
+                    <option value="nis">NIS</option>
+                    <option value="kelas">Kelas</option>
+                    <option value="sakit">Sakit (Terbanyak)</option>
+                    <option value="izin">Izin (Terbanyak)</option>
+                    <option value="alpha">Alpha (Terbanyak)</option>
                   </select>
                 </div>
                 <button class="btn btn-outline" onclick="clearFilterAbsensi()">

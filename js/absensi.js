@@ -8,6 +8,7 @@ function renderRekapAbsensi() {
   const bulan = document.getElementById("filterAbsensiBulan").value;
   const kelasId = document.getElementById("filterAbsensiKelas").value;
   const status = document.getElementById("filterAbsensiStatus").value;
+  const sortBy = document.getElementById("sortAbsensi")?.value || "total";
 
   if (!bulan) {
     document.getElementById("rekapAbsensiBody").innerHTML = `
@@ -125,8 +126,36 @@ function renderRekapAbsensi() {
     filteredData = rekapData.filter((r) => r[status] > 0);
   }
 
-  // Sort berdasarkan total tidak hadir (terbanyak dulu)
-  filteredData.sort((a, b) => b.total - a.total);
+  // Sort berdasarkan pilihan
+  switch (sortBy) {
+    case "nama":
+      filteredData.sort((a, b) => a.siswa.nama.localeCompare(b.siswa.nama));
+      break;
+    case "nis":
+      filteredData.sort((a, b) => a.siswa.nis.localeCompare(b.siswa.nis));
+      break;
+    case "kelas":
+      filteredData.sort((a, b) => {
+        const kelasA = a.kelas?.nama || "";
+        const kelasB = b.kelas?.nama || "";
+        return kelasA.localeCompare(kelasB);
+      });
+      break;
+    case "total":
+      filteredData.sort((a, b) => b.total - a.total);
+      break;
+    case "sakit":
+      filteredData.sort((a, b) => b.sakit - a.sakit);
+      break;
+    case "izin":
+      filteredData.sort((a, b) => b.izin - a.izin);
+      break;
+    case "alpha":
+      filteredData.sort((a, b) => b.alpha - a.alpha);
+      break;
+    default:
+      filteredData.sort((a, b) => b.total - a.total);
+  }
 
   // Render statistik
   renderStatsAbsensi(rekapData, bulan);
@@ -458,6 +487,7 @@ function clearFilterAbsensi() {
   document.getElementById("filterAbsensiBulan").value = bulanIni;
   document.getElementById("filterAbsensiKelas").value = "";
   document.getElementById("filterAbsensiStatus").value = "";
+  document.getElementById("sortAbsensi").value = "total";
   renderRekapAbsensi();
 }
 
@@ -492,7 +522,6 @@ async function exportRekapAbsensi(format) {
 
   const rekapData = siswaList.map((siswa) => {
     const kelas = dbGetById(DB_KEYS.kelas, siswa.kelasId);
-    const waliKelas = kelas?.waliKelasId ? dbGetById(DB_KEYS.users, kelas.waliKelasId) : null;
     
     let sakit = 0;
     let izin = 0;
@@ -526,7 +555,6 @@ async function exportRekapAbsensi(format) {
       nama: siswa.nama,
       gender: siswa.gender === "L" ? "Laki-laki" : siswa.gender === "P" ? "Perempuan" : "—",
       kelas: kelas?.nama || "—",
-      waliKelas: waliKelas?.nama || "—",
       sakit,
       izin,
       alpha,
@@ -542,12 +570,24 @@ async function exportRekapAbsensi(format) {
     return;
   }
 
-  // Prepare data untuk export dengan format baru
+  // Prepare data untuk export
   const namaKelas = kelasId
     ? dbGetById(DB_KEYS.kelas, kelasId)?.nama
     : "Semua Kelas";
 
-  const filter = `Periode: ${namaBulan} | Kelas: ${namaKelas}`;
+  // Ambil info wali kelas jika export per-kelas
+  let waliKelasInfo = null;
+  if (kelasId) {
+    const kelas = dbGetById(DB_KEYS.kelas, kelasId);
+    const waliKelas = kelas?.waliKelasId ? dbGetById(DB_KEYS.users, kelas.waliKelasId) : null;
+    waliKelasInfo = waliKelas?.nama || null;
+  }
+
+  // Build filter dengan wali kelas (jika ada)
+  let filter = `Periode: ${namaBulan} | Kelas: ${namaKelas}`;
+  if (waliKelasInfo) {
+    filter += ` | Wali Kelas: ${waliKelasInfo}`;
+  }
 
   const headers = [
     "No",
@@ -555,7 +595,6 @@ async function exportRekapAbsensi(format) {
     "Nama Siswa",
     "Gender",
     "Kelas",
-    "Wali Kelas",
     "Sakit",
     "Izin",
     "Alpha",
@@ -568,7 +607,6 @@ async function exportRekapAbsensi(format) {
     r.nama,
     r.gender,
     r.kelas,
-    r.waliKelas,
     r.sakit,
     r.izin,
     r.alpha,
@@ -592,7 +630,7 @@ async function exportRekapAbsensi(format) {
       await exportPDF({
         filename,
         title,
-        orientation: "landscape",
+        orientation: "portrait",
         filter,
         headers,
         rows,

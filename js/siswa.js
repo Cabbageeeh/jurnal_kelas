@@ -8,6 +8,7 @@ function renderSiswaTable() {
   const search = document.getElementById("filterSiswaSearch").value.toLowerCase();
   const kelasId = document.getElementById("filterSiswaKelas").value;
   const gender = document.getElementById("filterSiswaGender").value;
+  const sortBy = document.getElementById("sortSiswa")?.value || "nama";
 
   let siswaList = dbGetAll(DB_KEYS.siswa);
 
@@ -26,8 +27,31 @@ function renderSiswaTable() {
     siswaList = siswaList.filter((s) => s.gender === gender);
   }
 
-  // Sort by nama
-  siswaList.sort((a, b) => a.nama.localeCompare(b.nama));
+  // Sort berdasarkan pilihan
+  switch (sortBy) {
+    case "nama":
+      siswaList.sort((a, b) => a.nama.localeCompare(b.nama));
+      break;
+    case "nis":
+      siswaList.sort((a, b) => a.nis.localeCompare(b.nis));
+      break;
+    case "kelas":
+      siswaList.sort((a, b) => {
+        const kelasA = dbGetById(DB_KEYS.kelas, a.kelasId)?.nama || "";
+        const kelasB = dbGetById(DB_KEYS.kelas, b.kelasId)?.nama || "";
+        return kelasA.localeCompare(kelasB);
+      });
+      break;
+    case "gender":
+      siswaList.sort((a, b) => {
+        const genderA = a.gender || "";
+        const genderB = b.gender || "";
+        return genderA.localeCompare(genderB);
+      });
+      break;
+    default:
+      siswaList.sort((a, b) => a.nama.localeCompare(b.nama));
+  }
 
   // Render statistik
   renderStatsSiswa(siswaList);
@@ -192,6 +216,7 @@ function clearFilterSiswa() {
   document.getElementById("filterSiswaSearch").value = "";
   document.getElementById("filterSiswaKelas").value = "";
   document.getElementById("filterSiswaGender").value = "";
+  document.getElementById("sortSiswa").value = "nama";
   renderSiswaTable();
 }
 

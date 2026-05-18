@@ -19,9 +19,10 @@ Fitur ini menambahkan kemampuan untuk mengelola wali kelas pada data master kela
 ### 3. Rekap Absensi
 - **Info Wali Kelas**: Menampilkan informasi wali kelas ketika memilih filter kelas tertentu
 - **Alert Informatif**: Sama seperti di data siswa
-- **Export PDF & XLSX**: Kolom wali kelas ditambahkan pada hasil export
-  - Format XLSX: Kolom "Wali Kelas" ditambahkan setelah kolom "Kelas"
-  - Format PDF: Kolom "Wali Kelas" ditambahkan dengan orientasi landscape
+- **Export PDF & XLSX**: Wali kelas ditampilkan di **header/filter** (bukan sebagai kolom)
+  - Hanya muncul jika export **per-kelas** (bukan "Semua Kelas")
+  - Format: `Periode: ... | Kelas: ... | Wali Kelas: ...`
+  - Orientasi PDF: Portrait (tidak perlu landscape karena tidak ada kolom tambahan)
 
 ## Cara Penggunaan
 
@@ -55,11 +56,12 @@ Fitur ini menambahkan kemampuan untuk mengelola wali kelas pada data master kela
 ### Export Rekap Absensi dengan Wali Kelas
 
 1. Buka menu **Laporan > Rekap Absensi**
-2. Pilih **Bulan** dan **Kelas** (opsional)
+2. Pilih **Bulan** dan **Kelas tertentu** (bukan "Semua Kelas")
 3. Klik tombol **Export PDF** atau **Export XLSX**
-4. File yang didownload akan mencakup kolom **Wali Kelas**:
-   - Jika kelas memiliki wali kelas, nama guru akan ditampilkan
-   - Jika tidak ada wali kelas, akan ditampilkan "—"
+4. File yang didownload akan menampilkan **Wali Kelas di header**:
+   - Format: `Periode: Januari 2026 | Kelas: X-1 | Wali Kelas: Budi Santoso, S.Pd`
+   - Jika tidak ada wali kelas, info wali kelas tidak ditampilkan
+   - Jika export "Semua Kelas", info wali kelas tidak ditampilkan
 
 ## Struktur Data
 
@@ -106,17 +108,31 @@ Fitur ini menambahkan kemampuan untuk mengelola wali kelas pada data master kela
 
 ## Format Export
 
+### Header/Filter Export
+Untuk export **per-kelas**, wali kelas ditampilkan di bagian header/filter:
+
+```
+Periode: Januari 2026 | Kelas: X-1 | Wali Kelas: Budi Santoso, S.Pd
+```
+
+**Catatan:**
+- Wali kelas **hanya muncul** jika export untuk kelas tertentu (bukan "Semua Kelas")
+- Jika kelas tidak memiliki wali kelas, info wali kelas tidak ditampilkan di header
+
 ### XLSX (Excel)
 ```
-| No | NIS | Nama Siswa | Gender | Kelas | Wali Kelas | Sakit | Izin | Alpha | Total |
-|----|-----|------------|--------|-------|------------|-------|------|-------|-------|
-| 1  | ... | ...        | ...    | X-1   | Budi S.    | 2     | 1    | 0     | 3     |
+Header: Periode: Januari 2026 | Kelas: X-1 | Wali Kelas: Budi Santoso, S.Pd
+
+| No | NIS | Nama Siswa | Gender | Kelas | Sakit | Izin | Alpha | Total |
+|----|-----|------------|--------|-------|-------|------|-------|-------|
+| 1  | ... | ...        | ...    | X-1   | 2     | 1    | 0     | 3     |
 ```
 
 ### PDF
-- Orientasi: **Landscape** (untuk mengakomodasi kolom tambahan)
-- Header: Informasi sekolah lengkap
-- Kolom: Sama seperti XLSX dengan styling profesional
+- Orientasi: **Portrait** (tidak ada kolom tambahan)
+- Header: Informasi sekolah lengkap dengan logo
+- Filter: Menampilkan periode, kelas, dan wali kelas (jika ada)
+- Kolom: Sama seperti sebelumnya (tanpa kolom wali kelas)
 
 ## Catatan Penting
 
@@ -125,7 +141,9 @@ Fitur ini menambahkan kemampuan untuk mengelola wali kelas pada data master kela
 - Jika guru dinonaktifkan, wali kelas tetap tersimpan tetapi tidak akan muncul di dropdown saat edit
 - Info wali kelas hanya muncul ketika filter kelas dipilih (tidak muncul untuk "Semua Kelas")
 - Fitur ini tidak mempengaruhi data siswa atau absensi yang sudah ada
-- Export PDF menggunakan orientasi landscape untuk mengakomodasi kolom wali kelas
+- Export PDF menggunakan orientasi **portrait** (tidak ada kolom tambahan)
+- Wali kelas di export hanya muncul di **header/filter**, bukan sebagai kolom tabel
+- Export "Semua Kelas" tidak menampilkan info wali kelas di header
 
 ## Pengembangan Selanjutnya (Opsional)
 

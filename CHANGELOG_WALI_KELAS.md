@@ -8,8 +8,9 @@
 #### Rekap Absensi
 - ✅ Menampilkan info wali kelas di halaman rekap absensi ketika filter kelas dipilih
 - ✅ Alert informatif (biru jika ada wali kelas, kuning jika belum ada)
-- ✅ Kolom "Wali Kelas" ditambahkan pada export XLSX
-- ✅ Kolom "Wali Kelas" ditambahkan pada export PDF (orientasi landscape)
+- ✅ Wali kelas ditampilkan di **header/filter** pada export XLSX & PDF
+- ✅ Wali kelas **hanya muncul** untuk export per-kelas (bukan "Semua Kelas")
+- ✅ Tidak ada kolom tambahan di tabel export (tetap portrait)
 
 ### 📝 File yang Dimodifikasi
 
@@ -21,9 +22,9 @@
   → Menambahkan elemen waliKelasInfoAbsensi
 
 - exportRekapAbsensi()
-  → Menambahkan kolom waliKelas pada data export
-  → Header: ["No", "NIS", "Nama Siswa", "Gender", "Kelas", "Wali Kelas", ...]
-  → Orientasi PDF diubah ke landscape
+  → Menambahkan wali kelas pada filter/header (bukan kolom)
+  → Logika: if (kelasId) { ambil wali kelas dan tambahkan ke filter }
+  → Orientasi PDF tetap portrait
 ```
 
 #### 2. dashboard-admin.html
@@ -35,14 +36,24 @@
 
 ### 📊 Format Export
 
+#### Header/Filter
+Untuk export **per-kelas**, wali kelas muncul di header:
+```
+Periode: Januari 2026 | Kelas: X-1 | Wali Kelas: Budi Santoso, S.Pd
+```
+
 #### XLSX
-| No | NIS | Nama Siswa | Gender | Kelas | **Wali Kelas** | Sakit | Izin | Alpha | Total |
-|----|-----|------------|--------|-------|----------------|-------|------|-------|-------|
+```
+Header: Periode: Januari 2026 | Kelas: X-1 | Wali Kelas: Budi Santoso, S.Pd
+
+| No | NIS | Nama Siswa | Gender | Kelas | Sakit | Izin | Alpha | Total |
+|----|-----|------------|--------|-------|-------|------|-------|-------|
+```
 
 #### PDF
-- Orientasi: **Landscape** (untuk mengakomodasi kolom tambahan)
-- Kolom sama dengan XLSX
-- Styling profesional dengan header sekolah lengkap
+- Orientasi: **Portrait** (tidak ada kolom tambahan)
+- Filter menampilkan wali kelas (jika export per-kelas)
+- Kolom tabel sama seperti sebelumnya
 
 ---
 
@@ -164,10 +175,11 @@
 ### 3. Test Rekap Absensi
 ```
 1. Buka Laporan > Rekap Absensi
-2. Pilih bulan dan kelas
+2. Pilih bulan dan kelas tertentu (bukan "Semua Kelas")
 3. Verifikasi alert wali kelas muncul
-4. Export ke XLSX → Cek kolom "Wali Kelas"
-5. Export ke PDF → Cek kolom "Wali Kelas"
+4. Export ke XLSX → Cek header/filter ada "Wali Kelas: ..."
+5. Export ke PDF → Cek header/filter ada "Wali Kelas: ..."
+6. Export "Semua Kelas" → Verifikasi tidak ada info wali kelas di header
 ```
 
 ---
