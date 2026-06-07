@@ -157,9 +157,14 @@
 
         <!-- PAGE: DASHBOARD -->
         <div class="page-content hidden" id="page-dashboard">
-          <div class="page-header">
-            <h2 class="page-title">Selamat Datang 👋</h2>
-            <p class="page-subtitle" id="dashPeriodeLabel">—</p>
+          <div class="page-header d-flex justify-between align-center">
+            <div>
+              <h2 class="page-title">Selamat Datang 👋</h2>
+              <p class="page-subtitle" id="dashPeriodeLabel">—</p>
+            </div>
+            <button class="btn btn-outline" onclick="openModalRekapBulanan()">
+              <i class="fas fa-file-pdf"></i> Cetak Rekap Bulanan
+            </button>
           </div>
           <div class="stats-grid" id="statsGrid"></div>
 
@@ -520,6 +525,38 @@
                       Koordinat default SMAN 15 Surabaya: <strong>-7.3200, 112.7280</strong>.
                       Radius 300m berarti guru harus berada dalam jarak 300 meter dari titik ini saat konfirmasi.
                     </span>
+                  </div>
+                </div>
+
+                <!-- Section: Tanda Tangan Kepala Sekolah -->
+                <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--gray-200);">
+                  <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">
+                    <i class="fas fa-signature" style="color: var(--primary);"></i>
+                    Tanda Tangan Kepala Sekolah
+                  </h4>
+                  <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">
+                    Digunakan untuk laporan PDF bulanan. Upload gambar tanda tangan (PNG/JPG).
+                  </p>
+
+                  <div style="display: flex; align-items: center; gap: 16px;">
+                    <div id="ttdPreview" style="width: 150px; height: 80px; border: 2px dashed var(--gray-300); border-radius: 8px; display: flex; align-items: center; justify-content: center; background: var(--gray-50);">
+                      <span style="color: var(--gray-400); font-size: 12px;">Belum ada</span>
+                    </div>
+                    <div>
+                      <label class="btn btn-outline" style="cursor: pointer;">
+                        <i class="fas fa-upload"></i> Upload Tanda Tangan
+                        <input
+                          type="file"
+                          id="inputTtdKepsek"
+                          accept="image/png,image/jpeg"
+                          onchange="handleTtdUpload(event)"
+                          style="display: none"
+                        />
+                      </label>
+                      <button class="btn btn-ghost" onclick="hapusTtd()" style="margin-top: 4px; font-size: 12px;">
+                        <i class="fas fa-trash"></i> Hapus
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -2503,6 +2540,38 @@
             onclick="konfirmasiImport()"
           >
             <i class="fas fa-file-import"></i> Import Sekarang
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: REKAP BULANAN PDF -->
+    <div class="modal-overlay" id="modalRekapBulanan">
+      <div class="modal" style="max-width: 440px">
+        <div class="modal-header">
+          <h3>Cetak Rekap Kehadiran Bulanan</h3>
+          <button class="modal-close" onclick="closeModal('modalRekapBulanan')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-info" style="margin-bottom: 16px">
+            <i class="fas fa-circle-info"></i>
+            <span>
+              Laporan PDF akan berisi ringkasan kehadiran semua guru per bulan,
+              termasuk tanda tangan Kepala Sekolah.
+            </span>
+          </div>
+          <div class="form-group">
+            <label>Pilih Bulan</label>
+            <input type="month" class="form-control" id="rekapBulananBulan" />
+            <small class="form-hint">Contoh: Juni 2026</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('modalRekapBulanan')">
+            Batal
+          </button>
+          <button class="btn btn-danger" onclick="cetakRekapBulananPDF()">
+            <i class="fas fa-file-pdf"></i> Cetak PDF
           </button>
         </div>
       </div>

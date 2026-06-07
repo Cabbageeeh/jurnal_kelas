@@ -2039,6 +2039,13 @@ function renderProfilPage() {
     resetLogoPreview();
   }
 
+  // Tampilkan tanda tangan jika ada
+  if (profil.ttdKepsek) {
+    setTtdPreview(profil.ttdKepsek);
+  } else {
+    resetTtdPreview();
+  }
+
   // Update preview kartu
   updatePreview();
 }
@@ -2094,6 +2101,7 @@ function simpanProfil() {
     website,
     kepalaSekolah: kepala,
     logo: profilLama.logo || "",
+    ttdKepsek: profilLama.ttdKepsek || "",
     latitude,
     longitude,
     geofenceRadius,
@@ -2164,6 +2172,56 @@ function hapusLogo() {
   resetLogoPreview();
   document.getElementById("logoInput").value = "";
   showToast("Logo berhasil dihapus.", "info");
+}
+
+// ── Tanda Tangan Kepala Sekolah Upload ────────────────────
+
+function handleTtdUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (!file.type.match(/^image\//)) {
+    showToast("File harus berupa gambar (JPG/PNG).", "error");
+    return;
+  }
+  if (file.size > 1 * 1024 * 1024) {
+    showToast("Ukuran tanda tangan maksimal 1MB.", "error");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const base64 = e.target.result;
+    setTtdPreview(base64);
+
+    const profil = getProfilSekolah();
+    profil.ttdKepsek = base64;
+    saveProfilSekolah(profil);
+
+    showToast("Tanda tangan berhasil diupload!", "success");
+  };
+  reader.readAsDataURL(file);
+}
+
+function setTtdPreview(base64) {
+  const el = document.getElementById("ttdPreview");
+  el.innerHTML = `<img src="${base64}" style="max-width:100%;max-height:100%;object-fit:contain"/>`;
+  el.style.border = "2px solid var(--success)";
+}
+
+function resetTtdPreview() {
+  const el = document.getElementById("ttdPreview");
+  el.innerHTML = '<span style="color: var(--gray-400); font-size: 12px;">Belum ada</span>';
+  el.style.border = "2px dashed var(--gray-300)";
+}
+
+function hapusTtd() {
+  const profil = getProfilSekolah();
+  profil.ttdKepsek = "";
+  saveProfilSekolah(profil);
+  resetTtdPreview();
+  document.getElementById("inputTtdKepsek").value = "";
+  showToast("Tanda tangan berhasil dihapus.", "info");
 }
 
 // ── STATUS GURU HARIAN ─────────────────────────────────────

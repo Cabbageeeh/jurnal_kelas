@@ -1009,4 +1009,282 @@ async function exportPDF({
   showToast("File PDF berhasil didownload!", "success");
 }
 
+// ── Rekap Bulanan PDF ──────────────────────────────────────
+
+function openModalRekapBulanan() {
+  // Set default ke bulan ini
+  const now = new Date();
+  const bulan = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  document.getElementById("rekapBulananBulan").value = bulan;
+  openModal("modalRekapBulanan");
+}
+
+async function cetakRekapBulananPDF() {
+  const bulanInput = document.getElementById("rekapBulananBulan").value;
+  if (!bulanInput) {
+    showToast("Pilih bulan terlebih dahulu.", "error");
+    return;
+  }
+
+  const [tahun, bulan] = bulanInput.split("-").map(Number);
+  const namaBulan = [
+    "", "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+  ][bulan];
+
+  // Generate tanggal dalam bulan
+  const tglMulai = `${tahun}-${String(bulan).padStart(2, "0")}-01`;
+  const lastDay = new Date(tahun, bulan, 0).getDate();
+  const tglAkhir = `${tahun}-${String(bulan).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+
+  // Ambil data
+  const HARI = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const semuaJadwal = dbGetAll(DB_KEYS.jadwal);
+  const semuaKonfirmasi = dbGetAll(DB_KEYS.konfirmasi);
+  const hariLibur = dbGetAll(DB_KEYS.hariLibur).map((h) => h.tanggal);
+  const guruMasterList = getGuruMaster();
+
+  // Generate semua tanggal dalam bulan
+  const semuaTanggal = [];
+  for (let d = 1; d <= lastDay; d++) {
+    semuaTanggal.push(`${tahun}-${String(bulan).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
+  }
+
+  // Hitung hari efektif (exclude minggu & libur)
+  const hariEfektif = semuaTanggal.filter((tgl) => {
+    const hari = new Date(tgl).getDay();
+    return hari !== 0 && !hariLibur.includes(tgl);
+  });
+
+  // Build per-guru data
+  const guruData = {};
+  semuaTanggal.forEach((tanggal) => {
+    const hariIdx = new Date(tanggal).getDay();
+    const hariNama = HARI[hariIdx];
+    if (hariIdx === 0 || hariLibur.includes(tanggal)) return;
+
+    const jadwalHariIni = semuaJadwal.filter((j) => j.hari === hariNama && j.aktif !== false);
+    jadwalHariIni.forEach((jadwal) => {
+      if (!guruData[jadwal.guruId]) {
+        const guru = dbGetById(DB_KEYS.users, jadwal.guruId);
+        const gm = guruMasterList.find((g) => g.userId === jadwal.guruId);
+        guruData[jadwal.guruId] = {
+          nama: guru?.nama || "—",
+          nip: gm?.nip || "—",
+          totalJadwal: 0,
+          sudahKonfirmasi: 0,
+          belum: 0,
+          izin: 0,
+          dinasLuar: 0,
+        };
+      }
+
+      const statusHarian = getStatusGuru(jadwal.guruId, tanggal);
+      const konfirmasi = semuaKonfirmasi.find((k) => k.jadwalId === jadwal.id && k.tanggal === tanggal);
+
+      guruData[jadwal.guruId].totalJadwal++;
+
+      if (statusHarian === "izin") {
+        guruData[jadwal.guruId].izin++;
+      } else if (statusHarian === "din") {
+        guruData[jadwal.guruId].dinasLuar++;
+      } else if (konfirmasi) {
+        guruData[jadwal.guruId].sudahKonfirmasi++;
+      } else {
+        guruData[jadwal.guruId].belum++;
+      }
+    });
+  });
+
+  // Convert ke array & hitung persentase
+  const rows = Object.values(guruData).map((g, i) => {
+    const kehadiran = g.totalJadwal > 0
+      ? Math.round(((g.sudahKonfirmasi + g.dinasLuar) / g.totalJadwal) * 100)
+      : 0;
+    const perluPerhatian = kehadiran < 80 ? "⚠️ Ya" : "";
+    return [
+      i + 1,
+      g.nip,
+      g.nama,
+      g.totalJadwal,
+      g.sudahKonfirmasi,
+      g.belum,
+      g.izin,
+      g.dinasLuar,
+      `${kehadiran}%`,
+      perluPerhatian,
+    ];
+  });
+
+  // Hitung total kehadiran
+  const totalGuru = rows.length;
+  const totalSudah = rows.reduce((s, r) => s + Number(r[4]), 0);
+  const totalBelum = rows.reduce((s, r) => s + Number(r[5]), 0);
+  const totalIzin = rows.reduce((s, r) => s + Number(r[6]), 0);
+  const totalDL = rows.reduce((s, r) => s + Number(r[7]), 0);
+  const totalJadwal = rows.reduce((s, r) => s + Number(r[3]), 0);
+  const tingkatKehadiran = totalJadwal > 0
+    ? Math.round(((totalSudah + totalDL) / totalJadwal) * 100)
+    : 0;
+
+  // Generate PDF
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  let y = 15;
+  const profil = getProfilSekolah();
+
+  // ── Kop Surat ──
+  if (profil.logo) {
+    try {
+      let logoBase64 = profil.logo;
+      if (!profil.logo.startsWith("data:image")) logoBase64 = await imageToBase64(profil.logo);
+      if (logoBase64) {
+        const compressed = await compressImageForPDF(logoBase64, 160, 160, 0.85);
+        doc.addImage(compressed, "JPEG", 14, y, 20, 20);
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text(profil.namaSekolah || "SMA Negeri 15 Surabaya", pageW / 2, y + 5, { align: "center" });
+
+  if (profil.alamat) {
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(profil.alamat, pageW / 2, y + 10, { align: "center" });
+  }
+
+  const kontak = [];
+  if (profil.telepon) kontak.push(`Telp: ${profil.telepon}`);
+  if (profil.email) kontak.push(`Email: ${profil.email}`);
+  if (kontak.length) {
+    doc.setFontSize(8);
+    doc.text(kontak.join(" | "), pageW / 2, y + 15, { align: "center" });
+  }
+
+  y += 22;
+  doc.setLineWidth(0.5);
+  doc.line(14, y, pageW - 14, y);
+  y += 8;
+
+  // ── Judul ──
+  doc.setFontSize(13);
+  doc.setFont("helvetica", "bold");
+  doc.text("LAPORAN KEHADIRAN GURU", pageW / 2, y, { align: "center" });
+  y += 6;
+  doc.setFontSize(11);
+  doc.text(`Bulan ${namaBulan} ${tahun}`, pageW / 2, y, { align: "center" });
+  y += 8;
+
+  // ── Ringkasan ──
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Periode: 1 - ${lastDay} ${namaBulan} ${tahun}`, 14, y);
+  doc.text(`Hari Efektif: ${hariEfektif.length} hari`, 14, y + 5);
+  doc.text(`Total Guru: ${totalGuru}`, 14, y + 10);
+  doc.text(`Tingkat Kehadiran: ${tingkatKehadiran}%`, 14, y + 15);
+
+  doc.text(`Total Jadwal: ${totalJadwal}`, pageW / 2, y);
+  doc.text(`Sudah Konfirmasi: ${totalSudah}`, pageW / 2, y + 5);
+  doc.text(`Belum Konfirmasi: ${totalBelum}`, pageW / 2, y + 10);
+
+  doc.text(`Izin: ${totalIzin}`, pageW - 80, y);
+  doc.text(`Dinas Luar: ${totalDL}`, pageW - 80, y + 5);
+
+  y += 22;
+
+  // ── Tabel ──
+  doc.autoTable({
+    startY: y,
+    head: [["No", "NIP", "Nama Guru", "Total Jadwal", "Sudah", "Belum", "Izin", "Dinas Luar", "% Hadir", "Perhatian"]],
+    body: rows,
+    theme: "striped",
+    headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold", halign: "center", fontSize: 8 },
+    styles: { fontSize: 7, cellPadding: 2 },
+    alternateRowStyles: { fillColor: [245, 245, 245] },
+    columnStyles: {
+      0: { halign: "center", cellWidth: 8 },
+      1: { cellWidth: 35 },
+      2: { cellWidth: 50 },
+      3: { halign: "center", cellWidth: 18 },
+      4: { halign: "center", cellWidth: 14 },
+      5: { halign: "center", cellWidth: 14 },
+      6: { halign: "center", cellWidth: 12 },
+      7: { halign: "center", cellWidth: 18 },
+      8: { halign: "center", cellWidth: 14 },
+      9: { halign: "center", cellWidth: 18 },
+    },
+    margin: { left: 14, right: 14 },
+    didDrawPage: (data) => {
+      const pageCount = doc.internal.getNumberOfPages();
+      doc.setFontSize(7);
+      doc.text(`Halaman ${data.pageNumber} dari ${pageCount}`, pageW / 2, pageH - 10, { align: "center" });
+      doc.text(profil.namaSekolah || "SMAN 15 Surabaya", 14, pageH - 10);
+    },
+  });
+
+  // ── Tanda Tangan (halaman terakhir) ──
+  const finalY = doc.lastAutoTable.finalY + 15;
+
+  if (finalY > pageH - 50) {
+    doc.addPage();
+  }
+
+  const signY = finalY > pageH - 50 ? 20 : finalY;
+  const signX = pageW - 80;
+
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Surabaya, ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`, signX, signY);
+  doc.text("Kepala Sekolah,", signX, signY + 5);
+
+  // Tanda tangan image
+  if (profil.ttdKepsek) {
+    try {
+      let ttdBase64 = profil.ttdKepsek;
+      if (!ttdBase64.startsWith("data:image")) ttdBase64 = await imageToBase64(ttdBase64);
+      if (ttdBase64) {
+        doc.addImage(ttdBase64, "PNG", signX + 5, signY + 8, 30, 15);
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  doc.setFont("helvetica", "bold");
+  doc.text(profil.kepalaSekolah || "—", signX, signY + 28);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+
+  // NIP dari guru master jika ada
+  const kepsekMaster = guruMasterList.find((g) => {
+    const user = dbGetById(DB_KEYS.users, g.userId);
+    return user?.nama === profil.kepalaSekolah;
+  });
+  doc.text(`NIP: ${kepsekMaster?.nip || "—"}`, signX, signY + 33);
+
+  // Catatan guru perlu perhatian
+  const perluPerhatian = rows.filter((r) => r[9]);
+  if (perluPerhatian.length > 0) {
+    const catY = signY + 40;
+    if (catY > pageH - 20) {
+      doc.addPage();
+    }
+    const noteY = catY > pageH - 20 ? 20 : catY;
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.text("Catatan: Guru dengan kehadiran < 80% (perlu perhatian):", 14, noteY);
+    doc.setFont("helvetica", "normal");
+    perluPerhatian.forEach((r, i) => {
+      doc.text(`  ${i + 1}. ${r[2]} (NIP: ${r[1]}) — Kehadiran: ${r[8]}`, 14, noteY + 5 + i * 4);
+    });
+  }
+
+  const filename = `Rekap_Kehadiran_Guru_${namaBulan}_${tahun}`;
+  doc.save(`${filename}.pdf`);
+  closeModal("modalRekapBulanan");
+  showToast("PDF Rekap Bulanan berhasil didownload!", "success");
+}
+
 console.log("exportPDF function defined");
