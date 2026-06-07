@@ -51,6 +51,8 @@ function redirectToDashboard(role) {
     admin: "dashboard-admin.html",
     guru: "dashboard-guru.html",
     siswa: "dashboard-siswa.html",
+    tu: "dashboard-tu.html",
+    kepsek: "dashboard-kepsek.html",
   };
   window.location.replace(routes[role] || "index.html");
 }
@@ -146,6 +148,8 @@ function logout() {
       admin: "🛡️ Administrator",
       guru: "👨‍🏫 Guru",
       siswa: `🎓 ${session.jabatan === "ketua" ? "Ketua Kelas" : "Sekretaris"}`,
+      tu: "📋 Petugas TU",
+      kepsek: "👔 Kepala Sekolah",
     };
     roleEl.textContent = roleLabel[session.role] || session.role;
   }

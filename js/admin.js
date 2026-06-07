@@ -34,6 +34,7 @@ const PAGE_TITLES = {
   jadwal: "Jadwal Pelajaran",
   jam: "Jam Pelajaran",
   "hari-libur": "Hari Libur",
+  "status-guru": "Status Guru",
   users: "Kelola Pengguna",
   kelas: "Kelola Kelas",
   mapel: "Kelola Mata Pelajaran",
@@ -66,6 +67,11 @@ function showPage(page) {
 
     dashboard: renderDashboard,
     profil: renderProfilPage,
+    "status-guru": () => {
+      const tglInput = document.getElementById("statusGuruTanggal");
+      if (!tglInput.value) tglInput.value = getTodayStr();
+      renderStatusGuruTable();
+    },
     periode: renderPeriodeTable,
     jadwal: () => {
       populateJadwalFilters();
@@ -180,6 +186,12 @@ function renderDashboard() {
       label: "Jurnal Hari Ini",
       value: jurnal.filter((j) => j.tanggal === today).length,
     },
+    {
+      icon: "fa-triangle-exclamation",
+      color: "danger",
+      label: "Tanpa Konfirmasi Guru",
+      value: jurnal.filter((j) => j.tanpaKonfirmasiGuru).length,
+    },
   ];
 
   document.getElementById("statsGrid").innerHTML = stats
@@ -257,11 +269,16 @@ function renderDashboard() {
         .map((j) => {
           const kl = dbGetById(DB_KEYS.kelas, j.kelasId);
           const m = dbGetById(DB_KEYS.mapel, j.mapelId);
+          const badgeTanpaGuru = j.tanpaKonfirmasiGuru
+            ? `<span style="display:inline-block;margin-left:6px;padding:1px 6px;background:#FEF3C7;
+                color:#92400E;border-radius:3px;font-size:9px;font-weight:600">
+                <i class="fas fa-triangle-exclamation" style="font-size:8px"></i> Tanpa Guru
+              </span>` : "";
           return `
             <div style="padding:8px 0;border-bottom:1px solid var(--gray-100)">
               <div style="display:flex;justify-content:space-between">
                 <span style="font-size:var(--text-sm);font-weight:500">
-                  ${kl?.nama || "—"} — ${m?.nama || "—"}
+                  ${kl?.nama || "—"} — ${m?.nama || "—"} ${badgeTanpaGuru}
                 </span>
                 <span class="badge badge-siswa">Jam ${j.jamKe}</span>
               </div>
@@ -1715,6 +1732,12 @@ function renderProfilPage() {
   document.getElementById("profilKepalaSekolah").value =
     profil.kepalaSekolah || "";
 
+  // Isi form geofence
+  document.getElementById("profilLatitude").value = profil.latitude || "";
+  document.getElementById("profilLongitude").value = profil.longitude || "";
+  document.getElementById("profilGeofenceRadius").value =
+    profil.geofenceRadius || "";
+
   // Tampilkan logo jika ada
   if (profil.logo) {
     setLogoPreview(profil.logo);
@@ -1750,6 +1773,10 @@ function simpanProfil() {
   const email = document.getElementById("profilEmail").value.trim();
   const website = document.getElementById("profilWebsite").value.trim();
   const kepala = document.getElementById("profilKepalaSekolah").value.trim();
+  const latitude = parseFloat(document.getElementById("profilLatitude").value) || null;
+  const longitude = parseFloat(document.getElementById("profilLongitude").value) || null;
+  const geofenceRadius =
+    parseInt(document.getElementById("profilGeofenceRadius").value) || 300;
 
   const errEl = document.getElementById("profilError");
   errEl.classList.add("hidden");
@@ -1773,6 +1800,9 @@ function simpanProfil() {
     website,
     kepalaSekolah: kepala,
     logo: profilLama.logo || "",
+    latitude,
+    longitude,
+    geofenceRadius,
   });
 
   showToast("Profil sekolah berhasil disimpan!", "success");
@@ -1840,6 +1870,146 @@ function hapusLogo() {
   resetLogoPreview();
   document.getElementById("logoInput").value = "";
   showToast("Logo berhasil dihapus.", "info");
+}
+
+// ── STATUS GURU HARIAN ─────────────────────────────────────
+
+function renderStatusGuruTable() {
+  const tanggal = document.getElementById("statusGuruTanggal").value || getTodayStr();
+  const guruList = dbGetAll(DB_KEYS.users).filter((u) => u.role === "guru");
+  const semuaKonfirmasi = dbGetAll(DB_KEYS.konfirmasi).filter(
+    (k) => k.tanggal === tanggal
+  );
+  const semuaStatus = getStatusGuruPerTanggal(tanggal);
+  const tbody = document.getElementById("statusGuruTableBody");
+  const statsEl = document.getElementById("statusGuruStats");
+
+  // Hitung statistik
+  let countHadir = 0, countDinasLuar = 0, countIzin = 0, countBelum = 0;
+
+  const rows = guruList.map((guru, i) => {
+    const statusEntry = semuaStatus.find((s) => s.guruId === guru.id);
+    const status = statusEntry ? statusEntry.status : null;
+    const keterangan = statusEntry ? statusEntry.keterangan : "";
+    const konfirmasiGuru = semuaKonfirmasi.filter((k) => k.guruId === guru.id);
+
+    // Hitung stats
+    if (status === "dinas_luar") countDinasLuar++;
+    else if (status === "izin") countIzin++;
+    else if (konfirmasiGuru.length > 0) countHadir++;
+    else countBelum++;
+
+    // Status badge
+    let statusBadge = "";
+    if (status === "dinas_luar") {
+      statusBadge = `<span class="badge badge-info"><i class="fas fa-plane"></i> Dinas Luar</span>`;
+    } else if (status === "izin") {
+      statusBadge = `<span class="badge badge-danger"><i class="fas fa-calendar-xmark"></i> Izin</span>`;
+    } else if (konfirmasiGuru.length > 0) {
+      statusBadge = `<span class="badge badge-success"><i class="fas fa-check"></i> Hadir</span>`;
+    } else {
+      statusBadge = `<span class="badge badge-warning"><i class="fas fa-clock"></i> Belum</span>`;
+    }
+
+    // Status select
+    const currentStatus = status || "hadir";
+    const statusSelect = `
+      <select class="form-control" style="min-width: 140px; font-size: 12px; padding: 4px 8px;"
+              onchange="handleChangeStatusGuru('${guru.id}', this.value, '${tanggal}')">
+        <option value="hadir" ${currentStatus === "hadir" ? "selected" : ""}>
+          ✅ Hadir (Geofence aktif)
+        </option>
+        <option value="dinas_luar" ${currentStatus === "dinas_luar" ? "selected" : ""}>
+          ✈️ Dinas Luar
+        </option>
+        <option value="izin" ${currentStatus === "izin" ? "selected" : ""}>
+          📋 Izin / Sakit
+        </option>
+      </select>`;
+
+    // Keterangan
+    const keteranganInput = `
+      <input type="text" class="form-control" style="min-width: 150px; font-size: 12px; padding: 4px 8px;"
+             value="${keterangan}" placeholder="Keterangan..."
+             onchange="handleChangeKeterangan('${guru.id}', this.value, '${tanggal}')" />`;
+
+    // Konfirmasi info
+    let konfirmasiInfo = "—";
+    if (konfirmasiGuru.length > 0) {
+      konfirmasiInfo = konfirmasiGuru
+        .map((k) => {
+          const jadwal = dbGetById(DB_KEYS.jadwal, k.jadwalId);
+          const kelasNama = jadwal
+            ? dbGetById(DB_KEYS.kelas, jadwal.kelasId)?.nama || "?"
+            : "?";
+          return `<span style="font-size: 12px;">${kelasNama} (${k.waktuKonfirmasi})</span>`;
+        })
+        .join("<br>");
+    }
+
+    return `
+      <tr>
+        <td>${i + 1}</td>
+        <td><strong>${guru.nama}</strong></td>
+        <td>${guru.nip || "—"}</td>
+        <td>${statusBadge}<br>${statusSelect}</td>
+        <td>${keteranganInput}</td>
+        <td>${konfirmasiInfo}</td>
+      </tr>`;
+  });
+
+  tbody.innerHTML =
+    rows.length > 0
+      ? rows.join("")
+      : `<tr><td colspan="6" style="text-align: center; padding: 20px;">
+           <p style="color: var(--text-secondary); margin: 0;">
+             Belum ada data guru terdaftar.
+           </p>
+         </td></tr>`;
+
+  // Render stats
+  statsEl.innerHTML = `
+    <div style="background: var(--success-light, #d1fae5); padding: 8px 16px; border-radius: 8px; font-size: 13px;">
+      <strong>${countHadir}</strong> Hadir
+    </div>
+    <div style="background: var(--info-light, #dbeafe); padding: 8px 16px; border-radius: 8px; font-size: 13px;">
+      <strong>${countDinasLuar}</strong> Dinas Luar
+    </div>
+    <div style="background: var(--danger-light, #fee2e2); padding: 8px 16px; border-radius: 8px; font-size: 13px;">
+      <strong>${countIzin}</strong> Izin
+    </div>
+    <div style="background: var(--warning-light, #fef3c7); padding: 8px 16px; border-radius: 8px; font-size: 13px;">
+      <strong>${countBelum}</strong> Belum Konfirmasi
+    </div>`;
+}
+
+function handleChangeStatusGuru(guruId, newStatus, tanggal) {
+  const guru = dbGetById(DB_KEYS.users, guruId);
+  const keterangan = prompt(
+    newStatus === "izin"
+      ? `Alasan izin untuk ${guru.nama} (opsional):`
+      : newStatus === "dinas_luar"
+        ? `Keterangan dinas luar untuk ${guru.nama} (opsional):`
+        : null
+  );
+
+  setStatusGuru(guruId, tanggal, newStatus, keterangan || "");
+  showToast(`Status ${guru.nama} diubah menjadi ${formatStatusLabel(newStatus)}`, "success");
+  renderStatusGuruTable();
+}
+
+function handleChangeKeterangan(guruId, keterangan, tanggal) {
+  const status = getStatusGuru(guruId, tanggal) || "hadir";
+  setStatusGuru(guruId, tanggal, status, keterangan);
+}
+
+function formatStatusLabel(status) {
+  switch (status) {
+    case "hadir": return "Hadir";
+    case "dinas_luar": return "Dinas Luar";
+    case "izin": return "Izin";
+    default: return status;
+  }
 }
 
 // ── UTILITAS ──────────────────────────────────────────────

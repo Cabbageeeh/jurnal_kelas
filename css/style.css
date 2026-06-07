@@ -396,6 +396,14 @@ textarea.form-control {
   background: #ecfdf5;
   color: var(--color-siswa);
 }
+.badge-tu {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+.badge-kepsek {
+  background: #ede9fe;
+  color: #7c3aed;
+}
 .badge-success {
   background: #d1fae5;
   color: #065f46;

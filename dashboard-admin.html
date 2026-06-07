@@ -83,6 +83,9 @@
           <button class="nav-item admin" onclick="showPage('hari-libur')">
             <i class="fas fa-calendar-xmark"></i> Hari Libur
           </button>
+          <button class="nav-item admin" onclick="showPage('status-guru')">
+            <i class="fas fa-user-clock"></i> Status Guru
+          </button>
 
           <div class="nav-section-title">Data Master</div>
           <button class="nav-item admin" onclick="showPage('users')">
@@ -439,6 +442,57 @@
                   </span>
                 </div>
 
+                <!-- Section: Geofencing -->
+                <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--gray-200);">
+                  <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">
+                    <i class="fas fa-map-location-dot" style="color: var(--primary);"></i>
+                    Koordinat GPS & Geofencing
+                  </h4>
+                  <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">
+                    Digunakan untuk memvalidasi lokasi guru saat konfirmasi kehadiran.
+                  </p>
+
+                  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                      <label class="form-label">Latitude</label>
+                      <input
+                        type="number"
+                        step="0.0001"
+                        class="form-control"
+                        id="profilLatitude"
+                        placeholder="cth: -7.3200"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Longitude</label>
+                      <input
+                        type="number"
+                        step="0.0001"
+                        class="form-control"
+                        id="profilLongitude"
+                        placeholder="cth: 112.7280"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Radius Geofence (meter)</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="profilGeofenceRadius"
+                        placeholder="cth: 300"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="alert alert-info">
+                    <i class="fas fa-circle-info"></i>
+                    <span>
+                      Koordinat default SMAN 15 Surabaya: <strong>-7.3200, 112.7280</strong>.
+                      Radius 300m berarti guru harus berada dalam jarak 300 meter dari titik ini saat konfirmasi.
+                    </span>
+                  </div>
+                </div>
+
                 <div class="alert alert-danger hidden" id="profilError"></div>
 
                 <div
@@ -723,6 +777,64 @@
           </div>
         </div>
 
+        <!-- PAGE: STATUS GURU HARIAN -->
+        <div class="page-content hidden" id="page-status-guru">
+          <div class="page-header d-flex justify-between align-center">
+            <div>
+              <h2 class="page-title">Status Guru Harian</h2>
+              <p class="page-subtitle">
+                Atur status kehadiran guru per hari (Hadir / Dinas Luar / Izin)
+              </p>
+            </div>
+            <div>
+              <input
+                type="date"
+                class="form-control"
+                id="statusGuruTanggal"
+                onchange="renderStatusGuruTable()"
+                style="width: 180px"
+              />
+            </div>
+          </div>
+
+          <!-- Info Banner -->
+          <div class="alert alert-info" style="margin-bottom: 16px">
+            <i class="fas fa-circle-info"></i>
+            <span>
+              <strong>Hadir:</strong> Geofencing aktif (wajib di sekolah).
+              <strong>Dinas Luar:</strong> Geofencing nonaktif (konfirmasi dari mana saja).
+              <strong>Izin:</strong> Tidak perlu konfirmasi, fallback siswa aktif.
+            </span>
+          </div>
+
+          <!-- Legend / Stats -->
+          <div id="statusGuruStats" style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;"></div>
+
+          <!-- Table -->
+          <div class="card">
+            <div class="card-header d-flex justify-between align-center">
+              <span class="card-title">
+                <i class="fas fa-list-check"></i> Daftar Guru
+              </span>
+            </div>
+            <div class="card-body" style="overflow-x: auto">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>Nama Guru</th>
+                    <th>NIP</th>
+                    <th>Status</th>
+                    <th>Keterangan</th>
+                    <th>Konfirmasi</th>
+                  </tr>
+                </thead>
+                <tbody id="statusGuruTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <!-- PAGE: USERS -->
         <div class="page-content hidden" id="page-users">
           <div class="page-header d-flex justify-between align-center">
@@ -767,6 +879,8 @@
                   <option value="admin">Admin</option>
                   <option value="guru">Guru</option>
                   <option value="siswa">Siswa</option>
+                  <option value="tu">Petugas TU</option>
+                  <option value="kepsek">Kepala Sekolah</option>
                 </select>
                 <select
                   class="form-control"
@@ -1574,6 +1688,8 @@
               <option value="guru">Guru</option>
               <option value="siswa">Siswa</option>
               <option value="admin">Admin</option>
+              <option value="tu">Petugas TU</option>
+              <option value="kepsek">Kepala Sekolah</option>
             </select>
           </div>
           <div id="fieldSiswa" class="hidden">

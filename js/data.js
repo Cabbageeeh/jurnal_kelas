@@ -15,6 +15,7 @@ const DB_KEYS = {
   profil: "jk_profil",
   hariLibur: "jk_hari_libur",
   siswa: "jk_siswa",
+  statusGuru: "jk_status_guru",
 };
 
 // ── Data Awal ─────────────────────────────────────────────
@@ -127,6 +128,28 @@ const INITIAL_USERS = [
     aktif: true,
     createdAt: new Date().toISOString(),
   })),
+
+  // Petugas TU
+  {
+    id: "u010",
+    nama: "Siti Aminah, S.E.",
+    username: "tu_siti",
+    password: "tu123",
+    role: "tu",
+    aktif: true,
+    createdAt: new Date().toISOString(),
+  },
+
+  // Kepala Sekolah
+  {
+    id: "u011",
+    nama: "Drs. Ahmad Subarjo, M.Pd",
+    username: "kepsek",
+    password: "kepsek123",
+    role: "kepsek",
+    aktif: true,
+    createdAt: new Date().toISOString(),
+  },
 ];
 
 const INITIAL_KELAS = [
@@ -422,6 +445,9 @@ function initDB() {
   if (!localStorage.getItem(DB_KEYS.siswa)) {
     localStorage.setItem(DB_KEYS.siswa, JSON.stringify([]));
   }
+  if (!localStorage.getItem(DB_KEYS.statusGuru)) {
+    localStorage.setItem(DB_KEYS.statusGuru, JSON.stringify([]));
+  }
 }
 
 // ── CRUD Generik ──────────────────────────────────────────
@@ -557,6 +583,43 @@ function isJadwalTerlewat(jamKeArr) {
 
   // Jadwal terlewat jika jam sekarang sudah melewati jam selesai
   return jamSekarang > infoJamTerakhir.selesai;
+}
+
+/**
+ * Cek apakah siswa boleh mengisi jurnal tanpa konfirmasi guru.
+ * Syarat: sudah masuk 30 menit sebelum jam pelajaran terakhir selesai,
+ * DAN guru belum konfirmasi kehadiran hari ini.
+ * @param {array} jamKeArr - array jam pelajaran [1,2,3]
+ * @param {string} jadwalId - ID jadwal
+ * @returns {boolean}
+ */
+function isBolehIsiTanpaGuru(jamKeArr, jadwalId) {
+  const now = new Date();
+  const menitSekarang = now.getHours() * 60 + now.getMinutes();
+  const jams = dbGetAll(DB_KEYS.jamPelajaran).filter(
+    (j) => j.tipe === "pelajaran",
+  );
+
+  // Ambil jam terakhir dari jadwal
+  const jamTerakhir = Math.max(...jamKeArr);
+  const infoJamTerakhir = jams.find((j) => j.ke === jamTerakhir);
+  if (!infoJamTerakhir) return false;
+
+  const [h2, m2] = infoJamTerakhir.selesai.split(":").map(Number);
+  const menitSelesai = h2 * 60 + m2;
+
+  // Cek apakah sudah masuk 30 menit sebelum jam selesai
+  const menitFallback = menitSelesai - 30;
+  if (menitSekarang < menitFallback) return false;
+
+  // Cek apakah guru sudah konfirmasi
+  const today = getTodayStr();
+  const sudahKonfirmasi = dbGetAll(DB_KEYS.konfirmasi).some(
+    (k) => k.jadwalId === jadwalId && k.tanggal === today,
+  );
+
+  // Boleh isi jika guru BELUM konfirmasi
+  return !sudahKonfirmasi;
 }
 
 /**
@@ -760,6 +823,10 @@ const INITIAL_PROFIL = {
   kepalaSekolah: "Drs. Ahmad Subarjo, M.Pd",
   npsn: "20533015",
   logo: "assets/img/Logo_Sekolah_Final-SMAN 15 Surabaya.png", // Path logo sekolah
+  // Koordinat GPS sekolah (SMAN 15 Surabaya)
+  latitude: -7.3200,
+  longitude: 112.7280,
+  geofenceRadius: 300, // meter
 };
 
 const INITIAL_HARI_LIBUR = [
@@ -790,4 +857,131 @@ const INITIAL_HARI_LIBUR = [
 initDB();
 if (!localStorage.getItem(DB_KEYS.hariLibur)) {
   localStorage.setItem(DB_KEYS.hariLibur, JSON.stringify(INITIAL_HARI_LIBUR));
+}
+
+// ── Geofencing ────────────────────────────────────────────
+
+/**
+ * Hitung jarak antara 2 titik GPS menggunakan rumus Haversine.
+ * @param {number} lat1 - Latitude titik 1
+ * @param {number} lon1 - Longitude titik 1
+ * @param {number} lat2 - Latitude titik 2
+ * @param {number} lon2 - Longitude titik 2
+ * @returns {number} - Jarak dalam meter
+ */
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371000; // radius bumi dalam meter
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+/**
+ * Validasi apakah lokasi GPS berada di dalam radius geofence sekolah.
+ * @param {number} lat - Latitude guru
+ * @param {number} lng - Longitude guru
+ * @returns {{ valid: boolean, jarak: number, radius: number }} - Hasil validasi
+ */
+function validasiGeofence(lat, lng) {
+  const profil = getProfilSekolah();
+  const sekolahLat = profil.latitude;
+  const sekolahLng = profil.longitude;
+  const radius = profil.geofenceRadius || 300;
+
+  if (!sekolahLat || !sekolahLng) {
+    // Koordinat sekolah belum di-set → tidak bisa validasi
+    return { valid: true, jarak: null, radius, pesan: "Koordinat sekolah belum diatur" };
+  }
+
+  const jarak = Math.round(haversineDistance(lat, lng, sekolahLat, sekolahLng));
+  return {
+    valid: jarak <= radius,
+    jarak,
+    radius,
+    pesan: jarak <= radius
+      ? `Di dalam area sekolah (${jarak}m)`
+      : `Di luar area sekolah (${jarak}m dari sekolah, radius ${radius}m)`,
+  };
+}
+
+// ── Status Guru Harian ────────────────────────────────────
+
+/**
+ * Ambil status guru untuk tanggal tertentu.
+ * @param {string} guruId - ID guru
+ * @param {string} tanggal - Format YYYY-MM-DD
+ * @returns {string} - 'hadir' | 'dinas_luar' | 'izin' | null
+ */
+function getStatusGuru(guruId, tanggal) {
+  const data = dbGetAll(DB_KEYS.statusGuru);
+  const entry = data.find((s) => s.guruId === guruId && s.tanggal === tanggal);
+  return entry ? entry.status : null; // null = belum di-set (default: hadir)
+}
+
+/**
+ * Set status guru untuk tanggal tertentu.
+ * @param {string} guruId - ID guru
+ * @param {string} tanggal - Format YYYY-MM-DD
+ * @param {string} status - 'hadir' | 'dinas_luar' | 'izin'
+ * @param {string} keterangan - Alasan/keterangan opsional
+ */
+function setStatusGuru(guruId, tanggal, status, keterangan = "") {
+  const data = dbGetAll(DB_KEYS.statusGuru);
+  const idx = data.findIndex((s) => s.guruId === guruId && s.tanggal === tanggal);
+
+  const entry = {
+    guruId,
+    tanggal,
+    status,
+    keterangan,
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (idx >= 0) {
+    data[idx] = { ...data[idx], ...entry };
+    dbSetAll(DB_KEYS.statusGuru, data);
+  } else {
+    entry.id = generateId("stg");
+    entry.createdAt = new Date().toISOString();
+    dbInsert(DB_KEYS.statusGuru, entry);
+  }
+}
+
+/**
+ * Ambil semua status guru untuk tanggal tertentu.
+ * @param {string} tanggal - Format YYYY-MM-DD
+ * @returns {Array}
+ */
+function getStatusGuruPerTanggal(tanggal) {
+  return dbGetAll(DB_KEYS.statusGuru).filter((s) => s.tanggal === tanggal);
+}
+
+/**
+ * Cek apakah guru wajib geofence hari ini.
+ * Wajib geofence hanya jika status = 'hadir' atau belum di-set (null).
+ * @param {string} guruId - ID guru
+ * @param {string} tanggal - Format YYYY-MM-DD
+ * @returns {boolean}
+ */
+function isGuruWajibGeofence(guruId, tanggal) {
+  const status = getStatusGuru(guruId, tanggal);
+  return status === null || status === "hadir";
+}
+
+/**
+ * Cek apakah guru izin/sakit hari ini (tidak perlu konfirmasi).
+ * @param {string} guruId - ID guru
+ * @param {string} tanggal - Format YYYY-MM-DD
+ * @returns {boolean}
+ */
+function isGuruIzin(guruId, tanggal) {
+  const status = getStatusGuru(guruId, tanggal);
+  return status === "izin";
 }

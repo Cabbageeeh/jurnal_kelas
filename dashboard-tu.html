@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Petugas TU — Jurnal Kelas</title>
+    <meta name="description" content="Sistem Jurnal Kelas Digital — Petugas TU" />
+    <meta name="theme-color" content="#0891B2" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📒</text></svg>" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/dashboard.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  </head>
+  <body>
+    <div class="dashboard-layout">
+      <!-- SIDEBAR -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.2);flex-shrink:0;">
+            <img src="assets/img/Logo_Sekolah_Final-SMAN 15 Surabaya.png" alt="Logo" style="width:100%;height:100%;object-fit:contain;" />
+          </div>
+          <div>
+            <div class="sidebar-app-name">SMAN 15 Surabaya</div>
+            <div class="sidebar-app-sub">Panel Petugas TU</div>
+          </div>
+        </div>
+
+        <div class="sidebar-user">
+          <div class="user-avatar admin" id="sidebarAvatar">T</div>
+          <div>
+            <div class="user-name" id="sidebarName">Petugas TU</div>
+            <div class="user-role"><span class="badge badge-info"><i class="fas fa-clipboard-user"></i> Petugas TU</span></div>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <div class="nav-section-title">Laporan</div>
+          <button class="nav-item admin" onclick="showPage('rekap-jurnal')">
+            <i class="fas fa-file-lines"></i> Rekap Jurnal
+          </button>
+          <button class="nav-item admin" onclick="showPage('rekap-konfirmasi')">
+            <i class="fas fa-user-check"></i> Rekap Konfirmasi
+          </button>
+          <button class="nav-item admin" onclick="showPage('rekap-absensi')">
+            <i class="fas fa-clipboard-user"></i> Rekap Absensi
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <button class="btn-logout" onclick="logout()">
+            <i class="fas fa-right-from-bracket"></i> Keluar
+          </button>
+        </div>
+      </aside>
+
+      <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+      <!-- MAIN -->
+      <div class="main-content">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <span class="topbar-title" id="topbarTitle">Rekap Jurnal</span>
+          </div>
+          <div class="topbar-right">
+            <button class="dark-mode-toggle" onclick="toggleDarkMode()" id="darkModeBtn" title="Toggle Dark Mode"><i class="fas fa-moon"></i></button>
+            <span class="topbar-date" id="topbarDate"></span>
+            <span class="badge badge-info"><i class="fas fa-clipboard-user"></i>&nbsp; Petugas TU</span>
+          </div>
+        </header>
+
+        <!-- PAGE: REKAP JURNAL -->
+        <div class="page-content" id="page-rekap-jurnal">
+          <div class="page-header d-flex justify-between align-center">
+            <div>
+              <h2 class="page-title">Rekap Jurnal Kelas</h2>
+              <p class="page-subtitle">Semua jurnal yang diisi oleh siswa</p>
+            </div>
+            <div style="display: flex; gap: 10px">
+              <button class="btn btn-outline" onclick="exportRekapAdminWrapper('jurnal', 'xlsx')"><i class="fas fa-file-excel"></i> Export XLSX</button>
+              <button class="btn btn-outline" onclick="exportRekapAdminWrapper('jurnal', 'pdf')"><i class="fas fa-file-pdf"></i> Export PDF</button>
+            </div>
+          </div>
+          <div class="card mb-4">
+            <div class="card-body" style="padding: 16px">
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: end;">
+                <div>
+                  <label class="form-label">Dari Tanggal</label>
+                  <input type="date" class="form-control" id="filterJurnalDari" onchange="renderRekapJurnal()" />
+                </div>
+                <div>
+                  <label class="form-label">Sampai Tanggal</label>
+                  <input type="date" class="form-control" id="filterJurnalSampai" onchange="renderRekapJurnal()" />
+                </div>
+                <div>
+                  <label class="form-label">Kelas</label>
+                  <select class="form-control" id="filterJurnalKelas" onchange="renderRekapJurnal()">
+                    <option value="">Semua Kelas</option>
+                  </select>
+                </div>
+                <button class="btn btn-outline" onclick="clearFilterJurnal()"><i class="fas fa-rotate-left"></i> Reset</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body" style="padding: 0">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr><th>Tanggal</th><th>Kelas</th><th>Jam</th><th>Mapel</th><th>Guru</th><th>Materi</th><th>Absensi</th><th>Diisi Oleh</th></tr>
+                  </thead>
+                  <tbody id="rekapJurnalBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAGE: REKAP KONFIRMASI -->
+        <div class="page-content hidden" id="page-rekap-konfirmasi">
+          <div class="page-header d-flex justify-between align-center">
+            <div>
+              <h2 class="page-title">Rekap Konfirmasi Guru</h2>
+              <p class="page-subtitle">Riwayat konfirmasi kehadiran guru</p>
+            </div>
+            <div style="display: flex; gap: 10px">
+              <button class="btn btn-outline" onclick="exportRekapAdminWrapper('konfirmasi', 'xlsx')"><i class="fas fa-file-excel"></i> Export XLSX</button>
+              <button class="btn btn-outline" onclick="exportRekapAdminWrapper('konfirmasi', 'pdf')"><i class="fas fa-file-pdf"></i> Export PDF</button>
+            </div>
+          </div>
+          <div class="card mb-4">
+            <div class="card-body" style="padding: 16px">
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: end;">
+                <div>
+                  <label class="form-label">Dari Tanggal</label>
+                  <input type="date" class="form-control" id="filterKonfDari" onchange="renderRekapKonfirmasi()" />
+                </div>
+                <div>
+                  <label class="form-label">Sampai Tanggal</label>
+                  <input type="date" class="form-control" id="filterKonfSampai" onchange="renderRekapKonfirmasi()" />
+                </div>
+                <div>
+                  <label class="form-label">Guru</label>
+                  <select class="form-control" id="filterKonfGuru" onchange="renderRekapKonfirmasi()">
+                    <option value="">Semua Guru</option>
+                  </select>
+                </div>
+                <button class="btn btn-outline" onclick="clearFilterKonf()"><i class="fas fa-rotate-left"></i> Reset</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body" style="padding: 0">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr><th>Tanggal</th><th>Guru</th><th>Kelas</th><th>Mapel</th><th>Jam</th><th>Waktu</th><th>Lokasi</th><th>Foto</th><th>Status</th></tr>
+                  </thead>
+                  <tbody id="rekapKonfirmasiBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAGE: REKAP ABSENSI -->
+        <div class="page-content hidden" id="page-rekap-absensi">
+          <div class="page-header d-flex justify-between align-center">
+            <div>
+              <h2 class="page-title">Rekap Absensi Siswa</h2>
+              <p class="page-subtitle">Rekap ketidakhadiran siswa berdasarkan jurnal kelas</p>
+            </div>
+            <div style="display: flex; gap: 10px">
+              <button class="btn btn-outline" onclick="exportRekapAbsensi('xlsx')"><i class="fas fa-file-excel"></i> Export XLSX</button>
+              <button class="btn btn-outline" onclick="exportRekapAbsensi('pdf')"><i class="fas fa-file-pdf"></i> Export PDF</button>
+            </div>
+          </div>
+          <div class="card mb-4">
+            <div class="card-body" style="padding: 16px">
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 12px; align-items: end;">
+                <div>
+                  <label class="form-label">Bulan</label>
+                  <input type="month" class="form-control" id="filterAbsensiBulan" onchange="renderRekapAbsensi()" />
+                </div>
+                <div>
+                  <label class="form-label">Kelas</label>
+                  <select class="form-control" id="filterAbsensiKelas" onchange="renderRekapAbsensi()">
+                    <option value="">Semua Kelas</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label">Status</label>
+                  <select class="form-control" id="filterAbsensiStatus" onchange="renderRekapAbsensi()">
+                    <option value="">Semua Status</option>
+                    <option value="sakit">Sakit</option>
+                    <option value="izin">Izin</option>
+                    <option value="alpha">Alpha</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label">Urutkan</label>
+                  <select class="form-control" id="sortAbsensi" onchange="renderRekapAbsensi()">
+                    <option value="total">Total (Terbanyak)</option>
+                    <option value="nama">Nama (A-Z)</option>
+                    <option value="nis">NIS</option>
+                    <option value="kelas">Kelas</option>
+                    <option value="sakit">Sakit (Terbanyak)</option>
+                    <option value="izin">Izin (Terbanyak)</option>
+                    <option value="alpha">Alpha (Terbanyak)</option>
+                  </select>
+                </div>
+                <button class="btn btn-outline" onclick="clearFilterAbsensi()"><i class="fas fa-rotate-left"></i> Reset</button>
+              </div>
+            </div>
+          </div>
+          <div class="stats-grid mb-4" id="statsAbsensi"></div>
+          <div id="waliKelasInfoAbsensi"></div>
+          <div class="card">
+            <div class="card-body" style="padding: 0">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr><th>No</th><th>Nama Siswa</th><th>NIS</th><th>Gender</th><th>Kelas</th><th>Sakit</th><th>Izin</th><th>Alpha</th><th>Total Tidak Hadir</th><th>Aksi</th></tr>
+                  </thead>
+                  <tbody id="rekapAbsensiBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODAL FOTO -->
+        <div class="modal-overlay" id="modalFoto">
+          <div class="modal" style="max-width: 500px">
+            <div class="modal-header"><h3 class="modal-title"><i class="fas fa-camera"></i> Foto Konfirmasi</h3><button class="modal-close" onclick="closeModal('modalFoto')"><i class="fas fa-xmark"></i></button></div>
+            <div class="modal-body" style="text-align: center">
+              <img id="fotoPreview" src="" style="width: 100%; border-radius: 8px;" />
+              <div id="fotoInfo" style="margin-top: 12px; font-size: var(--text-sm); color: var(--gray-500);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/darkmode.js"></script>
+    <script src="js/export.js"></script>
+    <script src="js/absensi.js"></script>
+    <script src="js/tu.js"></script>
+  </body>
+</html>

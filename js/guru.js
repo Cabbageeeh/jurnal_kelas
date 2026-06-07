@@ -293,6 +293,154 @@ document.addEventListener("click", (e) => {
   }
 });
 
+// ── SELF STATUS (Guru set status sendiri) ─────────────────
+
+/**
+ * Cek apakah guru masih bisa set status sendiri hari ini.
+ * Hanya boleh SEBELUM jam mengajar pertama dimulai.
+ */
+function bisaSetStatusSendiri() {
+  const today = getTodayStr();
+  const hariIni = getHariIni();
+
+  // Ambil semua jadwal guru hari ini
+  const jadwalGuru = dbGetAll(DB_KEYS.jadwal).filter(
+    (j) => j.hari === hariIni && j.guruId === currentSession.id
+  );
+
+  if (jadwalGuru.length === 0) return false; // tidak ada jadwal
+
+  // Cari jam pertama guru mengajar
+  const jams = dbGetAll(DB_KEYS.jamPelajaran).filter((j) => j.tipe === "pelajaran");
+  let jamPertamaMenit = Infinity;
+
+  jadwalGuru.forEach((jdw) => {
+    jdw.jamKe.forEach((ke) => {
+      const jam = jams.find((j) => j.ke === ke);
+      if (jam) {
+        const [h, m] = jam.mulai.split(":").map(Number);
+        const menitMulai = h * 60 + m;
+        if (menitMulai < jamPertamaMenit) jamPertamaMenit = menitMulai;
+      }
+    });
+  });
+
+  // Bandingkan waktu sekarang dengan jam pertama
+  const now = new Date();
+  const menitSekarang = now.getHours() * 60 + now.getMinutes();
+
+  return menitSekarang < jamPertamaMenit;
+}
+
+/**
+ * Render form set status sendiri (tampil/hide berdasarkan waktu).
+ */
+function renderSelfStatusForm() {
+  const formEl = document.getElementById("selfStatusForm");
+  if (!formEl) return;
+
+  const today = getTodayStr();
+  const currentStatus = getStatusGuru(currentSession.id, today);
+  const bisaSet = bisaSetStatusSendiri();
+
+  // Jika sudah masuk jam mengajar DAN sudah punya status non-default → sembunyikan
+  if (!bisaSet && currentStatus) {
+    formEl.classList.add("hidden");
+    return;
+  }
+
+  // Jika tidak bisa set dan tidak ada status → sembunyikan juga
+  if (!bisaSet) {
+    formEl.classList.add("hidden");
+    return;
+  }
+
+  // Tampilkan form
+  formEl.classList.remove("hidden");
+
+  // Set radio sesuai status saat ini
+  const radios = formEl.querySelectorAll('input[name="selfStatus"]');
+  radios.forEach((r) => {
+    r.checked = r.value === (currentStatus || "hadir");
+  });
+
+  // Isi keterangan jika ada
+  const semuaStatus = getStatusGuruPerTanggal(today);
+  const myStatus = semuaStatus.find((s) => s.guruId === currentSession.id);
+  document.getElementById("selfKeterangan").value = myStatus?.keterangan || "";
+}
+
+/**
+ * Simpan status kehadiran diri sendiri.
+ */
+function simpanSelfStatus() {
+  const today = getTodayStr();
+  const errEl = document.getElementById("selfStatusError");
+  errEl.classList.add("hidden");
+
+  // Cek masih bisa set status?
+  if (!bisaSetStatusSendiri()) {
+    errEl.innerHTML = `<i class="fas fa-circle-exclamation"></i>
+      Tidak bisa mengubah status. Jam mengajar sudah dimulai.
+      Hubungi admin jika perlu mengubah status.`;
+    errEl.classList.remove("hidden");
+    return;
+  }
+
+  // Ambil nilai
+  const selected = document.querySelector('input[name="selfStatus"]:checked');
+  if (!selected) {
+    errEl.innerHTML = `<i class="fas fa-circle-exclamation"></i> Pilih status terlebih dahulu.`;
+    errEl.classList.remove("hidden");
+    return;
+  }
+
+  const status = selected.value;
+  const keterangan = document.getElementById("selfKeterangan").value.trim();
+
+  // Validasi: wajib keterangan jika dinas_luar atau izin
+  if ((status === "dinas_luar" || status === "izin") && !keterangan) {
+    errEl.innerHTML = `<i class="fas fa-circle-exclamation"></i>
+      Keterangan wajib diisi untuk status ${status === "dinas_luar" ? "Dinas Luar" : "Izin"}.`;
+    errEl.classList.remove("hidden");
+    return;
+  }
+
+  // Simpan
+  setStatusGuru(currentSession.id, today, status, keterangan);
+
+  showToast(
+    `Status kehadiran berhasil diubah ke "${formatStatusLabel(status)}" ✅`,
+    "success",
+    4000
+  );
+
+  // Refresh tampilan
+  renderJadwalAktif();
+}
+
+/**
+ * Reset form status ke kondisi awal.
+ */
+function resetSelfStatusForm() {
+  const today = getTodayStr();
+  const currentStatus = getStatusGuru(currentSession.id, today);
+
+  // Reset radio
+  const radios = document.querySelectorAll('input[name="selfStatus"]');
+  radios.forEach((r) => {
+    r.checked = r.value === (currentStatus || "hadir");
+  });
+
+  // Reset keterangan
+  const semuaStatus = getStatusGuruPerTanggal(today);
+  const myStatus = semuaStatus.find((s) => s.guruId === currentSession.id);
+  document.getElementById("selfKeterangan").value = myStatus?.keterangan || "";
+
+  // Sembunyikan error
+  document.getElementById("selfStatusError").classList.add("hidden");
+}
+
 // ── PAGE: JADWAL AKTIF ────────────────────────────────────
 
 function renderJadwalAktif() {
@@ -306,6 +454,51 @@ function renderJadwalAktif() {
       "Hari ini adalah hari libur";
     return; // ← stop di sini, tidak lanjut ke bawah
   }
+
+  // ── Banner Status Guru Hari Ini ──
+  const statusGuru = getStatusGuru(currentSession.id, getTodayStr());
+  const statusBannerEl = document.getElementById("statusGuruBanner");
+  if (statusBannerEl) {
+    if (statusGuru === "dinas_luar") {
+      statusBannerEl.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;
+          padding:12px 16px;background:#DBEAFE;border:1px solid #93C5FD;
+          border-radius:var(--radius-md);margin-bottom:12px">
+          <i class="fas fa-plane" style="color:#2563EB;font-size:18px"></i>
+          <div>
+            <div style="font-size:var(--text-sm);font-weight:600;color:#1E40AF">
+              Status: Dinas Luar
+            </div>
+            <div style="font-size:var(--text-xs);color:#3B82F6">
+              Konfirmasi kehadiran bisa dilakukan dari mana saja (geofencing nonaktif)
+            </div>
+          </div>
+        </div>`;
+      statusBannerEl.classList.remove("hidden");
+    } else if (statusGuru === "izin") {
+      statusBannerEl.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;
+          padding:12px 16px;background:#FEE2E2;border:1px solid #FCA5A5;
+          border-radius:var(--radius-md);margin-bottom:12px">
+          <i class="fas fa-calendar-xmark" style="color:#DC2626;font-size:18px"></i>
+          <div>
+            <div style="font-size:var(--text-sm);font-weight:600;color:#991B1B">
+              Status: Izin / Sakit
+            </div>
+            <div style="font-size:var(--text-xs);color:#EF4444">
+              Anda tidak perlu konfirmasi kehadiran hari ini
+            </div>
+          </div>
+        </div>`;
+      statusBannerEl.classList.remove("hidden");
+    } else {
+      statusBannerEl.classList.add("hidden");
+    }
+  }
+
+  // ── Form Set Status Sendiri ──
+  renderSelfStatusForm();
+
   const hariIni = getHariIni();
   const jamAktif = getJamAktifSekarang();
   const jamSekarang = getJamSekarang();
@@ -854,6 +1047,7 @@ function simpanKonfirmasi() {
   // Cek ulang jam masih aktif saat tombol simpan ditekan
   const jadwal = dbGetById(DB_KEYS.jadwal, jadwalKonfirmId);
   const jamAktif = getJamAktifSekarang();
+  const today = getTodayStr();
 
   if (!jadwal.jamKe.some((ke) => jamAktif.includes(ke))) {
     document.getElementById("konfirmasiError").innerHTML =
@@ -873,6 +1067,25 @@ function simpanKonfirmasi() {
     return;
   }
 
+  // ── Validasi Geofence (hanya jika status = hadir/default) ──
+  const wajibGeofence = isGuruWajibGeofence(currentSession.id, today);
+
+  if (wajibGeofence && dataLokasi && dataLokasi.latitude && dataLokasi.longitude) {
+    const hasilGeo = validasiGeofence(dataLokasi.latitude, dataLokasi.longitude);
+
+    if (!hasilGeo.valid) {
+      // Geofence gagal — tolak konfirmasi
+      document.getElementById("konfirmasiError").innerHTML =
+        `<i class="fas fa-circle-exclamation"></i>
+         <strong>Konfirmasi Ditolak!</strong><br>
+         Anda berada di luar area sekolah (${hasilGeo.jarak}m dari sekolah, radius ${hasilGeo.radius}m).<br>
+         ${hasilGeo.pesan}<br><br>
+         <small>Jika Anda sedang dinas luar atau izin, hubungi admin untuk mengubah status kehadiran Anda.</small>`;
+      document.getElementById("konfirmasiError").classList.remove("hidden");
+      return;
+    }
+  }
+
   const now = new Date();
   const waktu = now.toLocaleTimeString("id-ID", {
     hour: "2-digit",
@@ -885,7 +1098,7 @@ function simpanKonfirmasi() {
     id: generateId("knf"),
     jadwalId: jadwalKonfirmId,
     guruId: currentSession.id,
-    tanggal: getTodayStr(),
+    tanggal: today,
     waktuKonfirmasi: waktu,
     foto: fotoDataUrl || null,
     lokasi: dataLokasi || null,
