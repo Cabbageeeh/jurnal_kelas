@@ -35,6 +35,7 @@ const PAGE_TITLES = {
   jam: "Jam Pelajaran",
   "hari-libur": "Hari Libur",
   "status-guru": "Status Guru",
+  "guru-master": "Data Master Guru",
   users: "Kelola Pengguna",
   kelas: "Kelola Kelas",
   mapel: "Kelola Mata Pelajaran",
@@ -72,6 +73,7 @@ function showPage(page) {
       if (!tglInput.value) tglInput.value = getTodayStr();
       renderStatusGuruTable();
     },
+    "guru-master": renderGuruMasterTable,
     periode: renderPeriodeTable,
     jadwal: () => {
       populateJadwalFilters();
@@ -210,6 +212,9 @@ function renderDashboard() {
     )
     .join("");
 
+  // ── RINGKASAN HARIAN GURU ──────────────────────────────
+  renderRingkasanHarian(today);
+
   // Konfirmasi hari ini
   const konfHariIni = konfirmasi
     .filter((k) => k.tanggal === today)
@@ -294,6 +299,145 @@ function renderDashboard() {
           <i class="fas fa-file-circle-xmark"></i>
           <p>Belum ada jurnal</p>
          </div>`;
+}
+
+/**
+ * Render ringkasan kehadiran guru hari ini di dashboard
+ */
+function renderRingkasanHarian(today) {
+  const HARI = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const hariIdx = new Date(today).getDay();
+  const hariNama = HARI[hariIdx];
+
+  // Update tanggal label
+  const tglEl = document.getElementById("ringkasanTanggal");
+  if (tglEl) tglEl.textContent = `${formatTanggal(today)} (${hariNama})`;
+
+  // Ambil jadwal hari ini
+  const semuaJadwal = dbGetAll(DB_KEYS.jadwal).filter(
+    (j) => j.hari === hariNama && j.aktif !== false
+  );
+
+  // Cek hari libur
+  const hariLibur = dbGetAll(DB_KEYS.hariLibur);
+  const isLibur = hariLibur.some((h) => h.tanggal === today);
+
+  const statsEl = document.getElementById("ringkasanStats");
+  const tbodyEl = document.getElementById("ringkasanGuruBody");
+
+  if (isLibur) {
+    if (statsEl) statsEl.innerHTML = `<div class="alert alert-info" style="margin:0"><i class="fas fa-calendar-xmark"></i> Hari ini hari libur, tidak ada jadwal mengajar.</div>`;
+    if (tbodyEl) tbodyEl.innerHTML = "";
+    return;
+  }
+
+  if (semuaJadwal.length === 0) {
+    if (statsEl) statsEl.innerHTML = `<div class="alert alert-info" style="margin:0"><i class="fas fa-calendar"></i> Tidak ada jadwal mengajar untuk hari ${hariNama}.</div>`;
+    if (tbodyEl) tbodyEl.innerHTML = "";
+    return;
+  }
+
+  // Group jadwal per guru
+  const semuaKonfirmasi = dbGetAll(DB_KEYS.konfirmasi);
+  const guruMap = {};
+
+  semuaJadwal.forEach((jadwal) => {
+    if (!guruMap[jadwal.guruId]) {
+      guruMap[jadwal.guruId] = { guru: dbGetById(DB_KEYS.users, jadwal.guruId), jadwalList: [], konfirmasiCount: 0, totalJadwal: 0 };
+    }
+    const konfirmasi = semuaKonfirmasi.find((k) => k.jadwalId === jadwal.id && k.tanggal === today);
+    const kelas = dbGetById(DB_KEYS.kelas, jadwal.kelasId);
+    const mapel = dbGetById(DB_KEYS.mapel, jadwal.mapelId);
+
+    guruMap[jadwal.guruId].jadwalList.push({ jadwal, kelas, mapel, konfirmasi });
+    guruMap[jadwal.guruId].totalJadwal++;
+    if (konfirmasi) guruMap[jadwal.guruId].konfirmasiCount++;
+  });
+
+  // Hitung statistik
+  const totalGuru = Object.keys(guruMap).length;
+  let sudahSemua = 0;
+  let sebagian = 0;
+  let belum = 0;
+  let izin = 0;
+  let dinasLuar = 0;
+
+  Object.values(guruMap).forEach((g) => {
+    const statusHarian = getStatusGuru(g.guru?.id, today);
+    if (statusHarian === "izin") {
+      izin++;
+    } else if (statusHarian === "din") {
+      dinasLuar++;
+    } else if (g.konfirmasiCount === g.totalJadwal) {
+      sudahSemua++;
+    } else if (g.konfirmasiCount > 0) {
+      sebagian++;
+    } else {
+      belum++;
+    }
+  });
+
+  // Render stats
+  if (statsEl) {
+    statsEl.innerHTML = `
+      <div class="badge" style="background:#ECFDF5;color:#065F46;padding:8px 14px;font-size:var(--text-sm)"><i class="fas fa-circle-check"></i> <strong>${sudahSemua}</strong> Sudah Semua</div>
+      ${sebagian > 0 ? `<div class="badge" style="background:#FEFCE8;color:#854D0E;padding:8px 14px;font-size:var(--text-sm)"><i class="fas fa-clock"></i> <strong>${sebagian}</strong> Sebagian</div>` : ""}
+      ${belum > 0 ? `<div class="badge" style="background:#FEF2F2;color:#991B1B;padding:8px 14px;font-size:var(--text-sm)"><i class="fas fa-circle-xmark"></i> <strong>${belum}</strong> Belum</div>` : ""}
+      ${izin > 0 ? `<div class="badge" style="background:#DBEAFE;color:#1E40AF;padding:8px 14px;font-size:var(--text-sm)"><i class="fas fa-envelope"></i> <strong>${izin}</strong> Izin</div>` : ""}
+      ${dinasLuar > 0 ? `<div class="badge" style="background:#FEFCE8;color:#854D0E;padding:8px 14px;font-size:var(--text-sm)"><i class="fas fa-briefcase"></i> <strong>${dinasLuar}</strong> Dinas Luar</div>` : ""}
+      <div class="badge" style="background:var(--gray-100);color:var(--gray-700);padding:8px 14px;font-size:var(--text-sm)">Total: <strong>${totalGuru}</strong> guru</div>
+    `;
+  }
+
+  // Render table
+  if (tbodyEl) {
+    const rows = Object.values(guruMap)
+      .map((g) => {
+        const statusHarian = getStatusGuru(g.guru?.id, today);
+        const jadwalStr = g.jadwalList
+          .map((j) => `${j.kelas?.nama || "?"} Jam ${j.jadwal.jamKe?.join(",")}`)
+          .join(", ");
+
+        // Status badge
+        let statusBadge = "";
+        let rowBg = "";
+        if (statusHarian === "izin") {
+          statusBadge = '<span class="badge" style="background:#DBEAFE;color:#1E40AF">Izin</span>';
+          rowBg = "background: #f0f9ff;";
+        } else if (statusHarian === "din") {
+          statusBadge = '<span class="badge badge-warning">Dinas Luar</span>';
+          rowBg = "background: #fefce8;";
+        } else {
+          statusBadge = '<span class="badge" style="background:#ECFDF5;color:#065F46">Hadir</span>';
+        }
+
+        // Konfirmasi badge
+        let konfBadge = "";
+        if (statusHarian === "izin") {
+          konfBadge = '<span style="color:var(--gray-400);font-size:var(--text-xs)">Tidak perlu</span>';
+        } else if (g.konfirmasiCount === g.totalJadwal) {
+          konfBadge = `<span class="badge badge-success"><i class="fas fa-check"></i> ${g.konfirmasiCount}/${g.totalJadwal}</span>`;
+        } else if (g.konfirmasiCount > 0) {
+          konfBadge = `<span class="badge badge-warning"><i class="fas fa-clock"></i> ${g.konfirmasiCount}/${g.totalJadwal}</span>`;
+          rowBg = rowBg || "background: #fefce8;";
+        } else {
+          konfBadge = `<span class="badge badge-danger"><i class="fas fa-xmark"></i> 0/${g.totalJadwal}</span>`;
+          rowBg = rowBg || "background: #FEF2F2;";
+        }
+
+        return `
+          <tr style="${rowBg}">
+            <td style="font-size:var(--text-sm);font-weight:500">${g.guru?.nama || "—"}</td>
+            <td style="font-size:var(--text-xs);color:var(--gray-600)">${jadwalStr}</td>
+            <td>${statusBadge}</td>
+            <td>${konfBadge}</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    tbodyEl.innerHTML = rows || `<tr><td colspan="4" style="text-align:center;color:var(--gray-400)">Tidak ada data</td></tr>`;
+  }
 }
 
 // ── CRUD: PERIODE ─────────────────────────────────────────
@@ -1553,89 +1697,239 @@ function renderRekapKonfirmasi() {
   const dari = document.getElementById("filterKonfDari").value;
   const sampai = document.getElementById("filterKonfSampai").value;
   const guruId = document.getElementById("filterKonfGuru").value;
+  const tampilkan = document.getElementById("filterKonfTampilkan")?.value || "konfirmasi";
 
-  let data = dbGetAll(DB_KEYS.konfirmasi);
-  if (dari) data = data.filter((k) => k.tanggal >= dari);
-  if (sampai) data = data.filter((k) => k.tanggal <= sampai);
-  if (guruId) data = data.filter((k) => k.guruId === guruId);
-  data.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+  // Ambil data guru master untuk NIP
+  const guruMasterList = getGuruMaster();
+  const getNIP = (userId) => {
+    const gm = guruMasterList.find((g) => g.userId === userId);
+    return gm?.nip || "—";
+  };
 
-  document.getElementById("rekapKonfirmasiBody").innerHTML = data.length
-    ? data
-        .map((k) => {
-          const j = dbGetById(DB_KEYS.jadwal, k.jadwalId);
-          const g = dbGetById(DB_KEYS.users, k.guruId);
-          const kl = dbGetById(DB_KEYS.kelas, j?.kelasId);
-          const m = dbGetById(DB_KEYS.mapel, j?.mapelId);
-          return `
-          <tr>
-            <td style="white-space:nowrap;font-size:var(--text-sm)">
-              ${formatTanggal(k.tanggal)}
-            </td>
-            <td>${g?.nama || "—"}</td>
-            <td><span class="badge badge-guru">${kl?.nama || "—"}</span></td>
-            <td>${m?.nama || "—"}</td>
-            <td>Jam ${j?.jamKe?.join(", ") || "—"}</td>
-            <td>
-              <span class="badge badge-info">
-                <i class="fas fa-clock"></i> ${k.waktuKonfirmasi || "—"}
-              </span>
-            </td>
-<td>
-  ${
-    k.lokasi
-      ? `<div style="font-size:var(--text-xs);max-width:150px">
-        <div style="color:var(--success);font-weight:600;
-          margin-bottom:2px">
-          <i class="fas fa-location-dot"></i>
-          ±${k.lokasi.akurasi}m
-        </div>
-        <div style="color:var(--gray-500);
-          white-space:nowrap;overflow:hidden;
-          text-overflow:ellipsis"
-          title="${k.lokasi.alamat}">
-          ${k.lokasi.alamat}
-        </div>
-        <a href="https://maps.google.com/?q=${k.lokasi.lat},${k.lokasi.lon}"
-          target="_blank"
-          style="font-size:var(--text-xs);color:var(--primary)">
-          <i class="fas fa-map"></i> Lihat di Maps
-        </a>
-       </div>`
-      : `<span class="badge badge-gray">
-        <i class="fas fa-location-slash"></i> Tidak ada
-       </span>`
-  }
-</td>
-            <td>
-              ${
+  if (tampilkan === "semua") {
+    // MODE: SEMUA GURU (termasuk yang tidak konfirmasi)
+    const HARI = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+
+    // Default ke minggu ini (Senin - Sabtu) jika tanggal tidak diisi
+    let dateFrom = dari;
+    let dateTo = sampai;
+    if (!dateFrom && !dateTo) {
+      const now = new Date();
+      const dayOfWeek = now.getDay(); // 0=Minggu, 1=Senin, ...
+      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + mondayOffset);
+      const saturday = new Date(monday);
+      saturday.setDate(monday.getDate() + 5);
+      dateFrom = monday.toISOString().slice(0, 10);
+      dateTo = saturday.toISOString().slice(0, 10);
+    }
+    if (!dateFrom) dateFrom = dateTo;
+    if (!dateTo) dateTo = dateFrom;
+
+    // Batasi maks 60 hari untuk mencegah browser hang
+    const diffDays = Math.ceil((new Date(dateTo) - new Date(dateFrom)) / 86400000);
+    if (diffDays > 60) {
+      showToast("Rentang tanggal terlalu luas. Maksimal 60 hari.", "warning");
+      return;
+    }
+
+    // Generate semua tanggal dalam rentang
+    const semuaTanggal = [];
+    const d = new Date(dateFrom);
+    const end = new Date(dateTo);
+    while (d <= end) {
+      semuaTanggal.push(d.toISOString().slice(0, 10));
+      d.setDate(d.getDate() + 1);
+    }
+
+    // Ambil semua jadwal
+    const semuaJadwal = dbGetAll(DB_KEYS.jadwal);
+    const semuaKonfirmasi = dbGetAll(DB_KEYS.konfirmasi);
+
+    // Build rows: untuk setiap tanggal × jadwal yang cocok
+    let rows = [];
+    semuaTanggal.forEach((tanggal) => {
+      const hariIdx = new Date(tanggal).getDay();
+      const hariNama = HARI[hariIdx];
+
+      // Cek apakah hari libur
+      const hariLibur = dbGetAll(DB_KEYS.hariLibur);
+      const isLibur = hariLibur.some((h) => h.tanggal === tanggal);
+      if (isLibur) return; // skip hari libur
+
+      // Jadwal yang cocok untuk hari ini
+      const jadwalHariIni = semuaJadwal.filter((j) => j.hari === hariNama && j.aktif !== false);
+
+      jadwalHariIni.forEach((jadwal) => {
+        if (guruId && jadwal.guruId !== guruId) return;
+
+        // Cek apakah ada konfirmasi untuk jadwal ini di tanggal ini
+        const konfirmasi = semuaKonfirmasi.find(
+          (k) => k.jadwalId === jadwal.id && k.tanggal === tanggal
+        );
+
+        const guru = dbGetById(DB_KEYS.users, jadwal.guruId);
+        const kelas = dbGetById(DB_KEYS.kelas, jadwal.kelasId);
+        const mapel = dbGetById(DB_KEYS.mapel, jadwal.mapelId);
+
+        // Status guru harian
+        const statusHarian = getStatusGuru(jadwal.guruId, tanggal);
+
+        rows.push({
+          tanggal,
+          jadwal,
+          konfirmasi,
+          guru,
+          kelas,
+          mapel,
+          nip: getNIP(jadwal.guruId),
+          statusHarian: statusHarian || "hadir",
+        });
+      });
+    });
+
+    // Sort by tanggal desc
+    rows.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+
+    // Render
+    document.getElementById("rekapKonfirmasiBody").innerHTML = rows.length
+      ? rows
+          .map((r) => {
+            const isKonfirmasi = !!r.konfirmasi;
+            const isIzin = r.statusHarian === "izin";
+            const isDinasLuar = r.statusHarian === "din";
+
+            // Row color
+            let rowBg = "";
+            let statusBadge = "";
+            if (isKonfirmasi) {
+              statusBadge = '<span class="badge badge-success">Terkonfirmasi</span>';
+            } else if (isIzin) {
+              rowBg = "background: #f0f9ff;";
+              statusBadge = '<span class="badge" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-envelope"></i> Izin</span>';
+            } else if (isDinasLuar) {
+              rowBg = "background: #fefce8;";
+              statusBadge = '<span class="badge badge-warning">Belum (Dinas Luar)</span>';
+            } else {
+              rowBg = "background: #FEF2F2;";
+              statusBadge = '<span class="badge badge-danger">Belum Konfirmasi</span>';
+            }
+
+            const k = r.konfirmasi;
+            return `
+            <tr style="${rowBg}">
+              <td style="white-space:nowrap;font-size:var(--text-sm)">${formatTanggal(r.tanggal)}</td>
+              <td>${r.guru?.nama || "—"}</td>
+              <td><code style="font-size:var(--text-xs)">${r.nip}</code></td>
+              <td><span class="badge badge-guru">${r.kelas?.nama || "—"}</span></td>
+              <td>${r.mapel?.nama || "—"}</td>
+              <td>Jam ${r.jadwal?.jamKe?.join(", ") || "—"}</td>
+              <td>${isKonfirmasi ? `<span class="badge badge-info"><i class="fas fa-clock"></i> ${k.waktuKonfirmasi || "—"}</span>` : "—"}</td>
+              <td>${
+                isKonfirmasi && k.lokasi
+                  ? `<div style="font-size:var(--text-xs);max-width:150px"><div style="color:var(--success);font-weight:600;margin-bottom:2px"><i class="fas fa-location-dot"></i> ±${k.lokasi.akurasi}m</div><div style="color:var(--gray-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${k.lokasi.alamat}">${k.lokasi.alamat}</div></div>`
+                  : "—"
+              }</td>
+              <td>${
+                isKonfirmasi && k.foto
+                  ? `<img src="${k.foto}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;cursor:pointer;border:2px solid var(--success)" onclick="lihatFoto('${k.id}')" title="Klik untuk memperbesar"/>`
+                  : "—"
+              }</td>
+              <td>${statusBadge}</td>
+            </tr>`;
+          })
+          .join("")
+      : `<tr><td colspan="10" style="text-align:center;color:var(--gray-400);padding:32px">Tidak ada data jadwal dalam rentang tanggal.</td></tr>`;
+
+    // Update stats
+    updateRekapKonfirmasiStats(rows);
+  } else {
+    // MODE: HANYA KONFIRMASI (default, seperti sebelumnya)
+    let data = dbGetAll(DB_KEYS.konfirmasi);
+    if (dari) data = data.filter((k) => k.tanggal >= dari);
+    if (sampai) data = data.filter((k) => k.tanggal <= sampai);
+    if (guruId) data = data.filter((k) => k.guruId === guruId);
+    data.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+
+    document.getElementById("rekapKonfirmasiBody").innerHTML = data.length
+      ? data
+          .map((k) => {
+            const j = dbGetById(DB_KEYS.jadwal, k.jadwalId);
+            const g = dbGetById(DB_KEYS.users, k.guruId);
+            const kl = dbGetById(DB_KEYS.kelas, j?.kelasId);
+            const m = dbGetById(DB_KEYS.mapel, j?.mapelId);
+            return `
+            <tr>
+              <td style="white-space:nowrap;font-size:var(--text-sm)">${formatTanggal(k.tanggal)}</td>
+              <td>${g?.nama || "—"}</td>
+              <td><code style="font-size:var(--text-xs)">${getNIP(k.guruId)}</code></td>
+              <td><span class="badge badge-guru">${kl?.nama || "—"}</span></td>
+              <td>${m?.nama || "—"}</td>
+              <td>Jam ${j?.jamKe?.join(", ") || "—"}</td>
+              <td><span class="badge badge-info"><i class="fas fa-clock"></i> ${k.waktuKonfirmasi || "—"}</span></td>
+              <td>${
+                k.lokasi
+                  ? `<div style="font-size:var(--text-xs);max-width:150px"><div style="color:var(--success);font-weight:600;margin-bottom:2px"><i class="fas fa-location-dot"></i> ±${k.lokasi.akurasi}m</div><div style="color:var(--gray-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${k.lokasi.alamat}">${k.lokasi.alamat}</div><a href="https://maps.google.com/?q=${k.lokasi.lat},${k.lokasi.lon}" target="_blank" style="font-size:var(--text-xs);color:var(--primary)"><i class="fas fa-map"></i> Maps</a></div>`
+                  : `<span class="badge badge-gray"><i class="fas fa-location-slash"></i> Tidak ada</span>`
+              }</td>
+              <td>${
                 k.foto
-                  ? `<img src="${k.foto}"
-                    style="width:36px;height:36px;border-radius:50%;
-                    object-fit:cover;cursor:pointer;
-                    border:2px solid var(--success)"
-                    onclick="lihatFoto('${k.id}')"
-                    title="Klik untuk memperbesar"/>`
+                  ? `<img src="${k.foto}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;cursor:pointer;border:2px solid var(--success)" onclick="lihatFoto('${k.id}')" title="Klik untuk memperbesar"/>`
                   : `<span class="badge badge-gray">Tidak ada</span>`
-              }
-            </td>
-            <td>
-              <span class="badge badge-success">Terkonfirmasi</span>
-            </td>
-          </tr>
-        `;
-        })
-        .join("")
-    : `<tr><td colspan="8" style="text-align:center;
-        color:var(--gray-400);padding:32px">
-        Belum ada konfirmasi.
-       </td></tr>`;
+              }</td>
+              <td><span class="badge badge-success">Terkonfirmasi</span></td>
+            </tr>`;
+          })
+          .join("")
+      : `<tr><td colspan="10" style="text-align:center;color:var(--gray-400);padding:32px">Belum ada konfirmasi.</td></tr>`;
+
+    // Clear stats
+    const statsEl = document.getElementById("rekapKonfirmasiStats");
+    if (statsEl) statsEl.innerHTML = "";
+  }
+}
+
+/**
+ * Update statistik ringkasan di atas tabel rekap konfirmasi
+ */
+function updateRekapKonfirmasiStats(rows) {
+  const statsEl = document.getElementById("rekapKonfirmasiStats");
+  if (!statsEl) return;
+
+  const total = rows.length;
+  const konfirmasi = rows.filter((r) => r.konfirmasi).length;
+  const izin = rows.filter((r) => !r.konfirmasi && r.statusHarian === "izin").length;
+  const dinasLuar = rows.filter((r) => !r.konfirmasi && r.statusHarian === "din").length;
+  const belum = total - konfirmasi - izin - dinasLuar;
+
+  statsEl.innerHTML = `
+    <div class="badge" style="background:#ECFDF5;color:#065F46;padding:8px 14px;font-size:var(--text-sm)">
+      <i class="fas fa-circle-check"></i> <strong>${konfirmasi}</strong> Terkonfirmasi
+    </div>
+    <div class="badge" style="background:#FEF2F2;color:#991B1B;padding:8px 14px;font-size:var(--text-sm)">
+      <i class="fas fa-circle-xmark"></i> <strong>${belum}</strong> Belum Konfirmasi
+    </div>
+    <div class="badge" style="background:#DBEAFE;color:#1E40AF;padding:8px 14px;font-size:var(--text-sm)">
+      <i class="fas fa-envelope"></i> <strong>${izin}</strong> Izin
+    </div>
+    <div class="badge" style="background:#FEFCE8;color:#854D0E;padding:8px 14px;font-size:var(--text-sm)">
+      <i class="fas fa-briefcase"></i> <strong>${dinasLuar}</strong> Dinas Luar
+    </div>
+    <div class="badge" style="background:var(--gray-100);color:var(--gray-700);padding:8px 14px;font-size:var(--text-sm)">
+      Total: <strong>${total}</strong> jadwal
+    </div>
+  `;
 }
 
 function clearFilterKonf() {
   document.getElementById("filterKonfDari").value = "";
   document.getElementById("filterKonfSampai").value = "";
   document.getElementById("filterKonfGuru").value = "";
+  const tampilkanEl = document.getElementById("filterKonfTampilkan");
+  if (tampilkanEl) tampilkanEl.value = "konfirmasi";
+  const statsEl = document.getElementById("rekapKonfirmasiStats");
+  if (statsEl) statsEl.innerHTML = "";
   renderRekapKonfirmasi();
 }
 
@@ -2355,3 +2649,495 @@ function cekStatusSinkronisasi() {
     });
   });
 }
+
+// ============================================
+// Data Master Guru
+// ============================================
+
+let importGuruData = [];
+
+/**
+ * Render tabel data master guru
+ */
+function renderGuruMasterTable() {
+  const data = getGuruMaster();
+  const mapelList = dbGetAll(DB_KEYS.mapel);
+  const users = dbGetAll(DB_KEYS.users);
+  const tbody = document.getElementById("guruMasterTableBody");
+  const countEl = document.getElementById("guruMasterCount");
+  
+  countEl.textContent = `${data.length} data`;
+  
+  if (data.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align: center; padding: 32px; color: var(--gray-400)">
+          <i class="fas fa-chalkboard-user" style="font-size: 32px; margin-bottom: 8px; display: block"></i>
+          Belum ada data guru. Klik <strong>Import Excel</strong> atau <strong>Tambah</strong> untuk mulai.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+  
+  tbody.innerHTML = data
+    .map((g, i) => {
+      // Get user info
+      const user = users.find((u) => u.id === g.userId);
+      
+      // Get mapel names
+      const mapelNames = (g.mapelIds || [])
+        .map((id) => {
+          const m = mapelList.find((mp) => mp.id === id);
+          return m ? m.nama : "—";
+        })
+        .join(", ") || "—";
+      
+      return `
+        <tr>
+          <td>${i + 1}</td>
+          <td><code>${g.nip}</code></td>
+          <td><strong>${g.nama}</strong></td>
+          <td style="font-size: var(--text-sm)">${mapelNames}</td>
+          <td>${g.telepon || "—"}</td>
+          <td><span class="badge badge-guru">${user?.username || "—"}</span></td>
+          <td><code style="font-size: var(--text-xs)">${user?.password || "—"}</code></td>
+          <td>
+            <div style="display: flex; gap: 4px">
+              <button class="btn-icon btn-warning" onclick="editGuru('${g.id}')" title="Edit">
+                <i class="fas fa-pen"></i>
+              </button>
+              <button class="btn-icon btn-danger" onclick="hapusGuru('${g.id}')" title="Hapus">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+}
+
+/**
+ * Open modal untuk tambah guru
+ */
+function openAddGuruModal() {
+  document.getElementById("modalGuruTitle").textContent = "Tambah Guru";
+  document.getElementById("guruMasterId").value = "";
+  document.getElementById("guruNip").value = "";
+  document.getElementById("guruNama").value = "";
+  document.getElementById("guruTelepon").value = "";
+  
+  // Render mapel checkboxes
+  renderGuruMapelCheckboxes([]);
+  
+  openModal("modalGuru");
+}
+
+/**
+ * Open modal untuk edit guru
+ */
+function editGuru(id) {
+  const data = getGuruMasterById(id);
+  if (!data) {
+    showToast("Data guru tidak ditemukan", "error");
+    return;
+  }
+  
+  document.getElementById("modalGuruTitle").textContent = "Edit Guru";
+  document.getElementById("guruMasterId").value = id;
+  document.getElementById("guruNip").value = data.nip;
+  document.getElementById("guruNama").value = data.nama;
+  document.getElementById("guruTelepon").value = data.telepon || "";
+  
+  // Render mapel checkboxes with selected values
+  renderGuruMapelCheckboxes(data.mapelIds || []);
+  
+  openModal("modalGuru");
+}
+
+/**
+ * Render checkboxes untuk mata pelajaran
+ */
+function renderGuruMapelCheckboxes(selectedIds = []) {
+  const mapelList = dbGetAll(DB_KEYS.mapel);
+  const container = document.getElementById("guruMapelCheckboxes");
+  
+  if (mapelList.length === 0) {
+    container.innerHTML = '<p style="color: var(--gray-400); text-align: center; margin: 0">Belum ada data mata pelajaran</p>';
+    return;
+  }
+  
+  container.innerHTML = mapelList
+    .map(
+      (m) => `
+        <label style="display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer">
+          <input type="checkbox" value="${m.id}" ${selectedIds.includes(m.id) ? "checked" : ""} style="width: 16px; height: 16px" />
+          <span>${m.nama} <code>(${m.kode})</code></span>
+        </label>
+      `
+    )
+    .join("");
+}
+
+/**
+ * Simpan data guru (tambah/edit)
+ */
+function simpanGuru() {
+  const id = document.getElementById("guruMasterId").value;
+  const nip = document.getElementById("guruNip").value.trim();
+  const nama = document.getElementById("guruNama").value.trim();
+  const telepon = document.getElementById("guruTelepon").value.trim();
+  
+  // Get selected mapel IDs
+  const checkboxes = document.querySelectorAll("#guruMapelCheckboxes input[type='checkbox']:checked");
+  const mapelIds = Array.from(checkboxes).map((cb) => cb.value);
+  
+  // Validasi
+  if (!nip) {
+    showToast("NIP wajib diisi", "error");
+    return;
+  }
+  if (!nama) {
+    showToast("Nama wajib diisi", "error");
+    return;
+  }
+  
+  try {
+    if (id) {
+      // Edit
+      updateGuruMaster(id, { nama, mapelIds, telepon });
+      showToast("Data guru berhasil diupdate", "success");
+    } else {
+      // Tambah
+      addGuruMaster({ nip, nama, mapelIds, telepon });
+      showToast("Guru berhasil ditambahkan beserta akunnya", "success");
+    }
+    
+    closeModal("modalGuru");
+    renderGuruMasterTable();
+    renderUsersTable(); // Refresh users table too
+  } catch (err) {
+    showToast(err.message, "error");
+  }
+}
+
+/**
+ * Hapus data guru
+ */
+function hapusGuru(id) {
+  const data = getGuruMasterById(id);
+  if (!data) {
+    showToast("Data guru tidak ditemukan", "error");
+    return;
+  }
+  
+  if (!confirm(`Hapus data guru "${data.nama}"?\n\nAkun pengguna terkait juga akan dihapus.`)) {
+    return;
+  }
+  
+  try {
+    deleteGuruMaster(id);
+    showToast("Data guru berhasil dihapus", "success");
+    renderGuruMasterTable();
+    renderUsersTable();
+  } catch (err) {
+    showToast(err.message, "error");
+  }
+}
+
+// ============================================
+// Import Guru dari Excel
+// ============================================
+
+/**
+ * Download template guru
+ */
+function downloadTemplateGuru() {
+  const wb = XLSX.utils.book_new();
+  const mapelList = dbGetAll(DB_KEYS.mapel);
+  const mapelNames = mapelList.map((m) => m.nama).join(", ");
+  
+  const headers = ["nip", "nama", "mapel", "telepon"];
+  const contoh = [
+    ["198501012010011001", "Budi Santoso, S.Pd", "Matematika", "081234567890"],
+    ["199002152015032002", "Siti Rahayu, S.Pd", "B. Indonesia, B. Inggris", "081987654321"],
+    ["198712252012011003", "Ahmad Fauzi, M.Pd", "Fisika, Kimia", "081122334455"],
+  ];
+  
+  const info = [
+    ["PETUNJUK IMPORT DATA GURU:"],
+    [""],
+    ["KOLOM:"],
+    ["• nip: Nomor Induk Pegawai (WAJIB, harus unik)"],
+    ["• nama: Nama lengkap dengan gelar"],
+    ["• mapel: Mata pelajaran (pisahkan dengan koma jika lebih dari satu)"],
+    ["• telepon: Nomor telepon (opsional)"],
+    [""],
+    ["MATA PELAJARAN YANG TERSEDIA:"],
+    [mapelNames || "(Belum ada data mata pelajaran)"],
+    [""],
+    ["AUTO-GENERATE:"],
+    ["• Username: dari nama (contoh: Budi Santoso → budi.santoso)"],
+    ["• Password: 4 digit terakhir NIP"],
+    [""],
+    ["CATATAN:"],
+    ["• Akun pengguna dengan role 'guru' akan otomatis dibuat"],
+    ["• NIP yang sudah terdaftar akan dilewati"],
+    ["• Setelah import, cek halaman Data Guru untuk melihat username & password"],
+  ];
+  
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...contoh]);
+  ws["!cols"] = headers.map(() => ({ wch: 25 }));
+  XLSX.utils.book_append_sheet(wb, ws, "Data Guru");
+  
+  const wsInfo = XLSX.utils.aoa_to_sheet(info);
+  XLSX.utils.book_append_sheet(wb, wsInfo, "Petunjuk");
+  
+  XLSX.writeFile(wb, "template_data_guru.xlsx");
+  showToast("Template berhasil didownload!", "success");
+}
+
+/**
+ * Open import guru modal
+ */
+function openImportGuruModal() {
+  importGuruData = [];
+  document.getElementById("importGuruStep1").classList.remove("hidden");
+  document.getElementById("importGuruStep2").classList.add("hidden");
+  document.getElementById("btnProsesGuru").classList.remove("hidden");
+  document.getElementById("btnImportGuru").classList.add("hidden");
+  clearFileGuru();
+  hideImportGuruError();
+  openModal("modalImportGuru");
+}
+
+/**
+ * Handle file select
+ */
+function handleFileSelectGuru(event) {
+  const file = event.target.files[0];
+  if (file) loadFileGuru(file);
+}
+
+function handleDropGuru(event) {
+  event.preventDefault();
+  document.getElementById("dropZoneGuru").classList.remove("drag-over");
+  const file = event.dataTransfer.files[0];
+  if (file) loadFileGuru(file);
+}
+
+function handleDragOverGuru(event) {
+  event.preventDefault();
+  document.getElementById("dropZoneGuru").classList.add("drag-over");
+}
+
+function handleDragLeaveGuru() {
+  document.getElementById("dropZoneGuru").classList.remove("drag-over");
+}
+
+function loadFileGuru(file) {
+  if (!file.name.match(/\.(xlsx|xls)$/i)) {
+    showImportGuruError("File harus berformat .xlsx atau .xls");
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    showImportGuruError("Ukuran file maksimal 5MB");
+    return;
+  }
+  
+  hideImportGuruError();
+  document.getElementById("fileInfoGuru").classList.remove("hidden");
+  document.getElementById("fileNameGuru").textContent = file.name;
+  document.getElementById("fileSizeGuru").textContent = (file.size / 1024).toFixed(1) + " KB";
+  window._selectedFileGuru = file;
+}
+
+function clearFileGuru() {
+  const fi = document.getElementById("fileInputGuru");
+  if (fi) fi.value = "";
+  const fileInfo = document.getElementById("fileInfoGuru");
+  if (fileInfo) fileInfo.classList.add("hidden");
+  window._selectedFileGuru = null;
+  hideImportGuruError();
+}
+
+function showImportGuruError(msg) {
+  const el = document.getElementById("importGuruError");
+  document.getElementById("importGuruErrorMsg").textContent = msg;
+  el.classList.remove("hidden");
+}
+
+function hideImportGuruError() {
+  const el = document.getElementById("importGuruError");
+  if (el) el.classList.add("hidden");
+}
+
+/**
+ * Proses file guru
+ */
+function prosesFileGuru() {
+  if (!window._selectedFileGuru) {
+    showImportGuruError("Pilih file Excel terlebih dahulu.");
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: "array" });
+      
+      importGuruData = [];
+      
+      // Parse semua sheet yang relevan
+      wb.SheetNames.forEach((sheetName) => {
+        const ws = wb.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
+        const name = sheetName.toLowerCase();
+        
+        if (name.includes("guru") || name.includes("data")) {
+          importGuruData = parseGuruData(rows);
+        }
+      });
+      
+      // Jika belum ada data, coba parse sheet pertama
+      if (importGuruData.length === 0) {
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
+        importGuruData = parseGuruData(rows);
+      }
+      
+      if (importGuruData.length === 0) {
+        showImportGuruError(
+          "Tidak ada data yang terbaca. Pastikan kolom: nip, nama, mapel, telepon"
+        );
+        return;
+      }
+      
+      tampilkanPreviewGuru();
+    } catch (err) {
+      showImportGuruError("Gagal membaca file. Pastikan format benar.");
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(window._selectedFileGuru);
+}
+
+/**
+ * Parse data guru dari rows
+ */
+function parseGuruData(rows) {
+  const mapelList = dbGetAll(DB_KEYS.mapel);
+  
+  return rows
+    .filter((r) => r.nip && r.nama)
+    .map((r) => {
+      const nip = String(r.nip).trim();
+      const nama = String(r.nama).trim();
+      const mapelStr = String(r.mapel || r.mata_pelajaran || "").trim();
+      const telepon = String(r.telepon || "").trim();
+      
+      // Parse mapel (comma-separated)
+      const mapelNames = mapelStr
+        ? mapelStr.split(",").map((s) => s.trim().toLowerCase())
+        : [];
+      
+      const mapelIds = mapelNames
+        .map((name) => {
+          const m = mapelList.find(
+            (mp) => mp.nama.toLowerCase() === name || mp.kode.toLowerCase() === name
+          );
+          return m?.id || null;
+        })
+        .filter((id) => id !== null);
+      
+      // Cek duplikat NIP
+      const existing = getGuruMasterByNIP(nip);
+      
+      return {
+        nip,
+        nama,
+        mapelIds,
+        mapelStr: mapelStr || "—",
+        telepon,
+        duplikat: !!existing,
+        valid: !existing,
+      };
+    });
+}
+
+/**
+ * Tampilkan preview import guru
+ */
+function tampilkanPreviewGuru() {
+  const tbody = document.getElementById("importGuruPreviewBody");
+  const mapelList = dbGetAll(DB_KEYS.mapel);
+  
+  const validCount = importGuruData.filter((d) => d.valid).length;
+  const dupCount = importGuruData.filter((d) => d.duplikat).length;
+  
+  tbody.innerHTML = importGuruData
+    .map(
+      (d, i) => `
+        <tr style="${!d.valid ? "background:#FEF2F2;color:#991B1B" : ""}">
+          <td>${i + 1}</td>
+          <td><code>${d.nip}</code></td>
+          <td>${d.nama}</td>
+          <td style="font-size: var(--text-sm)">${d.mapelStr}</td>
+          <td>${d.telepon || "—"}</td>
+          <td>
+            ${
+              d.duplikat
+                ? '<span class="badge badge-danger">Duplikat</span>'
+                : '<span class="badge badge-success">OK</span>'
+            }
+          </td>
+        </tr>
+      `
+    )
+    .join("");
+  
+  document.getElementById("importGuruSuccessMsg").textContent = 
+    `File berhasil dibaca. ${validCount} data siap diimport${dupCount > 0 ? `, ${dupCount} duplikat dilewati` : ""}.`;
+  
+  document.getElementById("importGuruStep1").classList.add("hidden");
+  document.getElementById("importGuruStep2").classList.remove("hidden");
+  document.getElementById("btnProsesGuru").classList.add("hidden");
+  document.getElementById("btnImportGuru").classList.remove("hidden");
+}
+
+/**
+ * Konfirmasi import guru
+ */
+function konfirmasiImportGuru() {
+  const validData = importGuruData.filter((d) => d.valid);
+  
+  if (validData.length === 0) {
+    showToast("Tidak ada data valid untuk diimport", "error");
+    return;
+  }
+  
+  const result = importGuruMaster(
+    validData.map((d) => ({
+      nip: d.nip,
+      nama: d.nama,
+      mapelIds: d.mapelIds,
+      telepon: d.telepon,
+    }))
+  );
+  
+  closeModal("modalImportGuru");
+  
+  // Show result
+  const msg = `Import selesai:\n• Berhasil: ${result.berhasil}\n• Gagal: ${result.gagal}\n• Duplikat: ${result.duplikat}`;
+  showToast(msg, result.gagal > 0 ? "warning" : "success", 5000);
+  
+  if (result.errors && result.errors.length > 0) {
+    console.log("Import errors:", result.errors);
+  }
+  
+  renderGuruMasterTable();
+  renderUsersTable();
+}
+

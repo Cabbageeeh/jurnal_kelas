@@ -277,6 +277,40 @@ textarea {
   color: var(--gray-800);
 }
 
+/* Icon Buttons */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  transition: all 0.2s;
+}
+.btn-icon:hover {
+  transform: scale(1.1);
+}
+.btn-icon.btn-warning {
+  background: var(--warning);
+  color: var(--white);
+}
+.btn-icon.btn-danger {
+  background: var(--danger);
+  color: var(--white);
+}
+.btn-icon.btn-info {
+  background: var(--info);
+  color: var(--white);
+}
+.btn-icon.btn-success {
+  background: var(--success);
+  color: var(--white);
+}
+
 /* --- 6. Form Components --- */
 .form-group {
   display: flex;

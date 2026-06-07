@@ -16,6 +16,7 @@ const DB_KEYS = {
   hariLibur: "jk_hari_libur",
   siswa: "jk_siswa",
   statusGuru: "jk_status_guru",
+  guruMaster: "jk_guru_master",
 };
 
 // ── Data Awal ─────────────────────────────────────────────
@@ -447,6 +448,9 @@ function initDB() {
   }
   if (!localStorage.getItem(DB_KEYS.statusGuru)) {
     localStorage.setItem(DB_KEYS.statusGuru, JSON.stringify([]));
+  }
+  if (!localStorage.getItem(DB_KEYS.guruMaster)) {
+    localStorage.setItem(DB_KEYS.guruMaster, JSON.stringify([]));
   }
 }
 
@@ -985,3 +989,170 @@ function isGuruIzin(guruId, tanggal) {
   const status = getStatusGuru(guruId, tanggal);
   return status === "izin";
 }
+
+// ============================================
+// Data Master Guru
+// ============================================
+
+/**
+ * Ambil semua data master guru.
+ * @returns {Array}
+ */
+function getGuruMaster() {
+  return dbGetAll(DB_KEYS.guruMaster);
+}
+
+/**
+ * Ambil data master guru berdasarkan ID.
+ * @param {string} id - ID guru master
+ * @returns {Object|null}
+ */
+function getGuruMasterById(id) {
+  return dbGetById(DB_KEYS.guruMaster, id);
+}
+
+/**
+ * Ambil data master guru berdasarkan NIP.
+ * @param {string} nip - NIP guru
+ * @returns {Object|null}
+ */
+function getGuruMasterByNIP(nip) {
+  return dbGetAll(DB_KEYS.guruMaster).find((g) => g.nip === nip) || null;
+}
+
+/**
+ * Tambah data master guru baru.
+ * @param {Object} data - Data guru {nip, nama, mapelIds, telepon}
+ * @returns {Object} Data guru yang disimpan (termasuk userId)
+ */
+function addGuruMaster(data) {
+  const { nip, nama, mapelIds, telepon } = data;
+
+  // Cek NIP duplikat
+  const existing = getGuruMasterByNIP(nip);
+  if (existing) {
+    throw new Error(`NIP ${nip} sudah terdaftar`);
+  }
+
+  // Generate username dari nama (nama.depan)
+  const namaParts = nama.split(" ");
+  let username = namaParts[0].toLowerCase();
+  if (namaParts.length > 1) {
+    username += "." + namaParts[namaParts.length - 1].toLowerCase();
+  }
+  // Pastikan username unik
+  const users = dbGetAll(DB_KEYS.users);
+  let finalUsername = username;
+  let counter = 1;
+  while (users.find((u) => u.username === finalUsername)) {
+    finalUsername = username + counter;
+    counter++;
+  }
+
+  // Generate password dari NIP (4 digit terakhir)
+  const password = nip.slice(-4);
+
+  // Buat user dengan role guru
+  const userId = generateId("u");
+  const newUser = {
+    id: userId,
+    nama,
+    username: finalUsername,
+    password,
+    role: "guru",
+    aktif: true,
+    createdAt: new Date().toISOString(),
+  };
+  dbInsert(DB_KEYS.users, newUser);
+
+  // Simpan data master guru
+  const guruMaster = {
+    id: generateId("gm"),
+    userId,
+    nip,
+    nama,
+    mapelIds: mapelIds || [],
+    telepon: telepon || "",
+    aktif: true,
+    createdAt: new Date().toISOString(),
+  };
+  dbInsert(DB_KEYS.guruMaster, guruMaster);
+
+  return guruMaster;
+}
+
+/**
+ * Update data master guru.
+ * @param {string} id - ID guru master
+ * @param {Object} updates - Data yang diupdate
+ */
+function updateGuruMaster(id, updates) {
+  const existing = getGuruMasterById(id);
+  if (!existing) {
+    throw new Error("Data guru tidak ditemukan");
+  }
+
+  // Jika nama berubah, update juga di users
+  if (updates.nama && updates.nama !== existing.nama) {
+    const user = dbGetById(DB_KEYS.users, existing.userId);
+    if (user) {
+      dbUpdate(DB_KEYS.users, existing.userId, { nama: updates.nama });
+    }
+  }
+
+  // Update data master
+  dbUpdate(DB_KEYS.guruMaster, id, {
+    ...updates,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+/**
+ * Hapus data master guru (dan user terkait).
+ * @param {string} id - ID guru master
+ */
+function deleteGuruMaster(id) {
+  const existing = getGuruMasterById(id);
+  if (!existing) {
+    throw new Error("Data guru tidak ditemukan");
+  }
+
+  // Hapus user terkait
+  dbDelete(DB_KEYS.users, existing.userId);
+
+  // Hapus data master
+  dbDelete(DB_KEYS.guruMaster, id);
+}
+
+/**
+ * Import data guru dari array (hasil parse XLSX).
+ * @param {Array} dataArr - Array data guru
+ * @returns {Object} {berhasil, gagal, duplikat}
+ */
+function importGuruMaster(dataArr) {
+  let berhasil = 0;
+  let gagal = 0;
+  let duplikat = 0;
+  const errors = [];
+
+  dataArr.forEach((data, idx) => {
+    try {
+      // Cek duplikat NIP
+      const existing = getGuruMasterByNIP(data.nip);
+      if (existing) {
+        duplikat++;
+        errors.push(`Baris ${idx + 1}: NIP ${data.nip} sudah terdaftar`);
+        return;
+      }
+
+      addGuruMaster(data);
+      berhasil++;
+    } catch (err) {
+      gagal++;
+      errors.push(`Baris ${idx + 1}: ${err.message}`);
+    }
+  });
+
+  return { berhasil, gagal, duplikat, errors };
+}
+

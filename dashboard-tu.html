@@ -133,7 +133,7 @@
           </div>
           <div class="card mb-4">
             <div class="card-body" style="padding: 16px">
-              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: end;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 12px; align-items: end;">
                 <div>
                   <label class="form-label">Dari Tanggal</label>
                   <input type="date" class="form-control" id="filterKonfDari" onchange="renderRekapKonfirmasi()" />
@@ -148,16 +148,25 @@
                     <option value="">Semua Guru</option>
                   </select>
                 </div>
+                <div>
+                  <label class="form-label">Tampilkan</label>
+                  <select class="form-control" id="filterKonfTampilkan" onchange="renderRekapKonfirmasi()">
+                    <option value="konfirmasi">Hanya Konfirmasi</option>
+                    <option value="semua">Semua Guru</option>
+                  </select>
+                </div>
                 <button class="btn btn-outline" onclick="clearFilterKonf()"><i class="fas fa-rotate-left"></i> Reset</button>
               </div>
             </div>
           </div>
+          <!-- Stats row -->
+          <div id="rekapKonfirmasiStats" style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;"></div>
           <div class="card">
             <div class="card-body" style="padding: 0">
               <div class="table-wrapper">
                 <table>
                   <thead>
-                    <tr><th>Tanggal</th><th>Guru</th><th>Kelas</th><th>Mapel</th><th>Jam</th><th>Waktu</th><th>Lokasi</th><th>Foto</th><th>Status</th></tr>
+                    <tr><th>Tanggal</th><th>Guru</th><th>NIP</th><th>Kelas</th><th>Mapel</th><th>Jam</th><th>Waktu</th><th>Lokasi</th><th>Foto</th><th>Status</th></tr>
                   </thead>
                   <tbody id="rekapKonfirmasiBody"></tbody>
                 </table>
